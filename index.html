@@ -59,6 +59,7 @@
                 </div>
                 <div>
                     <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
+                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5"></p>
                     <p class="text-[11px] text-green-500 flex items-center gap-1 font-semibold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active</p>
                 </div>
             </div>
@@ -146,7 +147,7 @@
     </div>
 
     <script>
-        // Bug Fix: Safely initialize Telegram WebApp to prevent undefined errors in external browsers
+        // Securely initialize Telegram WebApp to prevent undefined errors outside Telegram
         const tg = window.Telegram?.WebApp || {};
         
         const SUPABASE_URL = 'https://pwdhqahhuffczkqmlacp.supabase.co';
@@ -156,6 +157,7 @@
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
 
+        // Fetch Telegram user data
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
 
@@ -166,6 +168,15 @@
             userId = tgUser ? String(tgUser.id) : "99999";
             
             document.getElementById('user-display-name').innerText = tgUser?.first_name || "Guest User";
+            
+            // Display @username in UI
+            const usernameDisplay = document.getElementById('user-username-display');
+            if (tgUser?.username) {
+                usernameDisplay.innerText = "@" + tgUser.username;
+            } else {
+                usernameDisplay.innerText = "ID: " + userId;
+            }
+
             document.getElementById('u-id-display').innerText = userId;
             
             if (tgUser?.photo_url) {
@@ -189,9 +200,9 @@
             }, 30);
         }
 
+        // Fetch user data from Supabase
         async function fetchUserData() {
             try {
-                // Bug Fix: Changed single() to maybeSingle() to prevent crash on 0 rows
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 
                 if (error) throw error;
@@ -229,7 +240,7 @@
                 updateUI();
             } catch(e) { 
                 console.error("Error setting user data:", e); 
-                updateUI(); // Load UI even if database fails
+                updateUI(); 
             }
         }
 
@@ -338,7 +349,6 @@
             btn.disabled = true; 
             btn.innerText = "WAITING...";
             
-            // Bug Fix: Check if openLink exists (prevents crash outside Telegram)
             if (tg.openLink) {
                 tg.openLink("https://otieu.com/4/10387375");
             } else {
@@ -363,9 +373,10 @@
 
         function copyRefLink() {
             const botUsername = "Earnx24webbot"; 
+            
+            // Format referral link with exactly StartApp
             const refLink = `https://t.me/${botUsername}/StartApp?startapp=${userId}`;
             
-            // Bug Fix: More reliable copy method for mobile devices / external browsers
             const textArea = document.createElement("textarea");
             textArea.value = refLink;
             document.body.appendChild(textArea);
@@ -379,6 +390,7 @@
             document.body.removeChild(textArea);
         }
 
+        // Update UI components
         function updateUI() {
             document.getElementById('bal-val-display').innerText = `Rs. ${currentBalance.toFixed(2)}`;
             document.getElementById('w-balance-val').innerText = `Rs. ${currentBalance.toFixed(2)}`;
