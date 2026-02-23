@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EarnX24 | Blue Glass</title> 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { background-color: #020617; font-family: 'Inter', sans-serif; color: white; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        
+        #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s; }
+        .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.1); border-top: 3px solid #38bdf8; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px; }
+        .progress-container { width: 200px; height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8; }
+        
+        #custom-notify { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; z-index: 1000; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
+        #custom-notify.active { top: 30px; opacity: 1; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 2rem; padding-bottom: 3rem; }
+        .bottom-sheet.active { bottom: 0; }
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
+        
+        .method-btn.selected { border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        .spinner { border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; width: 14px; height: 14px; animation: spin 0.8s linear infinite; }
+        .history-item { opacity: 0; transform: translateY(-20px); animation: slideDown 0.4s forwards; }
+        @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body onload="initApp()">
+
+    <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
+        <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
+        <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
+    </div>
+
+    <div id="loading-screen">
+        <div class="loader-ring"></div>
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting</p>
+        <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
+    </div>
+
+    <div id="dashboard-screen" class="h-screen w-full flex flex-col relative overflow-hidden z-20">
+        <div class="p-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold"><i class="ph-fill ph-user text-xl"></i></div>
+                <div>
+                    <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
+                    <p class="text-[11px] text-green-500 flex items-center gap-1 font-semibold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active</p>
+                </div>
+            </div>
+            <button onclick="openSheet('settings-sheet')" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate"><i class="ph-bold ph-gear text-slate-400"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
+            <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs. 0.00</h1>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                    <div class="bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full flex items-center gap-2">
+                        <i class="ph-fill ph-coin text-yellow-500 text-xs"></i><span id="coin-val" class="font-bold text-[10px] text-yellow-200 uppercase">0 COINS</span>
+                    </div>
+                    <button onclick="openSheet('withdraw-sheet')" class="bg-[#0ea5e9] px-6 py-2 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
+                </div>
+            </div>
+
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="ph-fill ph-play-circle text-2xl"></i></div>
+                    <div><p class="font-bold text-sm">Watch Video Ad</p><p class="text-[10px] text-yellow-500 font-bold uppercase">Earn Rs. 1.50</p></div>
+                </div>
+                <button id="adBtn" onclick="earnReward()" class="bg-sky-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">START</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
+                    <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md">View All</button>
+                </div>
+                <div id="history-list" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
+
+    <div id="settings-sheet" class="bottom-sheet">
+        <button onclick="closeSheet('settings-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-xl font-black text-white mb-6 uppercase italic">Settings</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass p-4 rounded-2xl border-white/5 text-center">
+                <p class="text-[8px] text-slate-500 font-black uppercase mb-1 tracking-widest">App Version</p>
+                <p class="text-[11px] font-black text-sky-400">1.0.0</p>
+            </div>
+            <div class="glass p-4 rounded-2xl border-white/5 text-center">
+                <p class="text-[8px] text-slate-500 font-black uppercase mb-1 tracking-widest">User ID</p>
+                <p id="u-id-display" class="text-[10px] font-black text-white">---</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="withdraw-sheet" class="bottom-sheet">
+        <button onclick="closeSheet('withdraw-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw</h2>
+        <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs. 0.00</span></p>
+        
+        <div class="grid grid-cols-2 gap-3 mb-8">
+            <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-4 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+                <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase">Binance</span>
+            </button>
+            <button onclick="selectMethod(this, 'RELOAD')" class="method-btn p-4 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+                <i class="ph-fill ph-device-mobile-camera text-purple-500 text-2xl"></i><span class="text-[9px] font-black uppercase">Reload</span>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <input id="w-address" type="text" inputmode="numeric" placeholder="Select a method first" disabled class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 opacity-50">
+            <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" disabled class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 opacity-50">
+            <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-4 flex items-center justify-center gap-2">Submit Request</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://pwdhqahhuffczkqmlacp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_FP4kWPd5THLSBdVEBUTjyA_OPhSHEeX';
+        const tg = window.Telegram.WebApp;
+        const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let currentBalance = 0, userId = null, selectedMethodName = null;
+        let isAllHistoryVisible = false;
+
+        async function initApp() {
+            tg.ready(); tg.expand();
+            userId = tg.initDataUnsafe?.user ? String(tg.initDataUnsafe.user.id) : "99999";
+            document.getElementById('user-display-name').innerText = tg.initDataUnsafe?.user?.first_name || "User";
+            document.getElementById('u-id-display').innerText = userId;
+            await fetchUserData();
+            await fetchHistory(true);
+
+            let prog = 0;
+            const timer = setInterval(() => {
+                prog += 2;
+                document.getElementById('progress-bar').style.width = prog + '%';
+                document.getElementById('percentage').innerText = prog + '%';
+                if(prog >= 100) { clearInterval(timer); setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 500); }
+            }, 30);
+        }
+
+        async function fetchUserData() {
+            try {
+                let { data } = await _supabase.from('profiles').select('*').eq('user_id', userId).single();
+                if (!data) { data = (await _supabase.from('profiles').insert([{ user_id: userId, balance: 0 }]).select().single()).data; }
+                currentBalance = parseFloat(data.balance);
+                updateUI();
+            } catch(e) {}
+        }
+
+        async function fetchHistory(limit) {
+            const { data } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            if (data) {
+                const items = limit ? data.slice(0, 5) : data;
+                document.getElementById('history-list').innerHTML = items.map(item => {
+                    const isEarn = item.type === 'AD_REWARD';
+                    let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
+                    let iconClass = isEarn ? 'ph-trend-up' : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                    let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
+                    const dateObj = new Date(item.created_at);
+                    return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div>
+                            <div>
+                                <p class="text-[11px] font-black uppercase tracking-tight">${isEarn ? 'AD REWARD' : 'WITHDRAW REQUEST'}</p>
+                                <p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p>
+                                <p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p>
+                            </div>
+                        </div>
+                        <p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? '+1.50' : `-Rs.${item.amount.toFixed(2)}`}</p>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        function toggleHistory() {
+            isAllHistoryVisible = !isAllHistoryVisible;
+            fetchHistory(!isAllHistoryVisible);
+            document.getElementById('toggle-history-btn').innerText = isAllHistoryVisible ? "Hide" : "View All";
+        }
+
+        function selectMethod(btn, name) {
+            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedMethodName = name;
+            const addrInput = document.getElementById('w-address');
+            const amtInput = document.getElementById('w-amount');
+            addrInput.disabled = false; addrInput.classList.remove('opacity-50');
+            amtInput.disabled = false; amtInput.classList.remove('opacity-50');
+            addrInput.placeholder = (name === 'BINANCE') ? "Enter Binance ID" : "Enter Phone Number";
+            addrInput.value = "";
+            addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+        }
+
+        async function processWithdraw() {
+            const addr = document.getElementById('w-address').value.trim();
+            const amt = parseFloat(document.getElementById('w-amount').value);
+
+            if (!selectedMethodName) return showNotify("Select a method first!");
+            if (!addr) return showNotify(selectedMethodName === 'BINANCE' ? "Enter Binance ID!" : "Enter Mobile Number!");
+            if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 10)) return showNotify("Invalid Binance ID!");
+            if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
+            if (isNaN(amt) || amt <= 0) return showNotify("Enter a valid amount!");
+            if (selectedMethodName === 'BINANCE' && amt < 5) return showNotify("Min Rs. 5 for Binance");
+            if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs. 20 for Reload");
+            if (amt > currentBalance) return showNotify("Insufficient Balance!");
+
+            const btn = document.getElementById('withdraw-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
+
+            setTimeout(async () => {
+                const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
+                if (!balError) {
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
+                    
+                    // TELEGRAM BOT MESSAGE
+                    const botToken = "8586378959:AAHvFEYmN0NmVqMMBNQNw-SmO672yi4MvdE";
+                    const uName = tg.initDataUnsafe?.user?.first_name || "NISH";
+                    const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
+                    const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs. ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+
+                    currentBalance -= amt; updateUI(); fetchHistory(true);
+                    showNotify("Request Sent!", "success"); closeAllSheets();
+                } else {
+                    showNotify("Error processing request.");
+                }
+                btn.disabled = false; btn.innerText = "Submit Request";
+            }, 3000);
+        }
+
+        async function earnReward() {
+            const btn = document.getElementById('adBtn'); btn.disabled = true; btn.innerText = "WAITING...";
+            tg.openLink("https://otieu.com/4/10387375");
+            setTimeout(async () => {
+                await _supabase.from('profiles').update({ balance: currentBalance + 1.5 }).eq('user_id', userId);
+                await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
+                currentBalance += 1.5; updateUI(); fetchHistory(true);
+                showNotify("Reward Added!", "success"); btn.disabled = false; btn.innerText = "START";
+            }, 5000);
+        }
+
+        function updateUI() {
+            document.getElementById('bal-val-display').innerText = `Rs. ${currentBalance.toFixed(2)}`;
+            document.getElementById('w-balance-val').innerText = `Rs. ${currentBalance.toFixed(2)}`;
+            document.getElementById('coin-val').innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
+        }
+
+        function showNotify(msg, type) {
+            const box = document.getElementById('custom-notify');
+            document.getElementById('notify-msg').innerText = msg;
+            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24';
+            box.classList.add('active'); setTimeout(() => box.classList.remove('active'), 3000);
+        }
+        function openSheet(id) { document.getElementById(id).classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; }
+        function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSheet('settings-sheet'); }
+    </script>
+</body>
+</html>
