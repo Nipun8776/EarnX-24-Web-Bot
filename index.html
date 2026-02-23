@@ -32,6 +32,11 @@
         .history-item { opacity: 0; transform: translateY(-20px); animation: slideDown 0.4s forwards; }
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Lucky Wheel Styles */
+        @keyframes spin-slow { to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 4s linear infinite; }
+        .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
     </style>
 </head>
 
@@ -78,6 +83,16 @@
                     </div>
                     <button onclick="openSheet('withdraw-sheet')" class="bg-[#0ea5e9] px-6 py-2 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
                 </div>
+            </div>
+
+            <!-- Lucky Wheel Dashboard Button -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30"><i class="ph-fill ph-aperture text-2xl animate-spin-slow"></i></div>
+                    <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[10px] text-purple-300 font-bold uppercase">Win up to Rs. 50</p></div>
+                </div>
+                <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">SPIN</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
@@ -146,6 +161,45 @@
         </div>
     </div>
 
+    <!-- Lucky Wheel Bottom Sheet -->
+    <div id="wheel-sheet" class="bottom-sheet">
+        <button onclick="closeSheet('wheel-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4"></div>
+        <h2 class="text-xl font-black text-white mb-2 text-center uppercase italic">Lucky Wheel</h2>
+        <p class="text-center text-[10px] text-slate-400 mb-6 uppercase tracking-wider">Test Your Luck & Win Big</p>
+        
+        <div class="relative w-56 h-56 mx-auto my-6">
+            <div class="wheel-marker"></div>
+            <div id="lucky-wheel" class="w-full h-full rounded-full border-[6px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden transition-all duration-[4000ms] ease-[cubic-bezier(0.17,0.67,0.12,0.99)] relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">Rs 1</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(90deg) translateY(-85px);">Rs 5</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(150deg) translateY(-85px);">Rs 10</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(210deg) translateY(-85px);">50C</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(270deg) translateY(-85px);">Rs 50</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[10px] leading-tight drop-shadow-md" style="transform: rotate(330deg) translateY(-85px);">Try<br>Again</div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl mb-4 border border-white/10">
+            <div>
+                <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Available Spins</p>
+                <p id="spin-chances-display" class="text-xl font-black text-sky-400">0</p>
+            </div>
+            <button id="spin-btn" onclick="spinWheel()" class="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-3 rounded-xl font-black text-[10px] text-white btn-animate shadow-lg shadow-purple-500/30">SPIN NOW</button>
+        </div>
+
+        <div class="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
+            <div class="flex justify-between items-center mb-2">
+                <p class="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><i class="ph-fill ph-video-camera"></i> Watch Ads for Spins</p>
+                <p id="ad-progress-text" class="text-[10px] font-black text-white">0/3</p>
+            </div>
+            <div class="w-full h-2 bg-black/30 rounded-full overflow-hidden mb-3">
+                <div id="ad-progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-3 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Video Ad</button>
+        </div>
+    </div>
+
     <script>
         // Securely initialize Telegram WebApp to prevent undefined errors outside Telegram
         const tg = window.Telegram?.WebApp || {};
@@ -156,6 +210,17 @@
         
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
+        
+        // Lucky Wheel Variables
+        let spinChances = 0, adViewsForSpin = 0, currentWheelRotation = 0;
+        const prizes = [
+            { label: 'Rs 1', val: 1, type: 'cash' },
+            { label: 'Rs 5', val: 5, type: 'cash' },
+            { label: 'Rs 10', val: 10, type: 'cash' },
+            { label: '50 Coins', val: 0.75, type: 'coin' }, 
+            { label: 'Rs 50', val: 50, type: 'cash' },
+            { label: 'Try Again', val: 0, type: 'none' }
+        ];
 
         // Fetch Telegram user data
         const tgUser = tg.initDataUnsafe?.user || null;
@@ -235,14 +300,27 @@
                                 amount: 5,
                                 status: 'approved'
                             }]);
+                            
+                            // Send Telegram Notification to Referrer
+                            const botToken = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+                            const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
+                            const refText = `🎉 *New Referral Joined!*\n\n${refName} has joined EarnX24 using your referral link.\n\n💰 You received a bonus of Rs. 5.00!`;
+                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                         }
                     }
                 }
+                
+                // Retrieve wheel data safely
+                spinChances = parseInt(data.spin_chances || 0);
+                adViewsForSpin = parseInt(data.ad_views || 0);
+                
                 currentBalance = parseFloat(data.balance || 0);
                 updateUI();
+                updateWheelUI();
             } catch(e) { 
                 console.error("Error setting user data:", e); 
                 updateUI(); 
+                updateWheelUI();
             }
         }
 
@@ -256,11 +334,12 @@
                     document.getElementById('history-list').innerHTML = items.map(item => {
                         const isAdEarn = item.type === 'AD_REWARD';
                         const isRefEarn = item.type === 'REFERRAL_BONUS';
-                        const isEarn = isAdEarn || isRefEarn;
+                        const isWheelEarn = item.type === 'WHEEL_REWARD';
+                        const isEarn = isAdEarn || isRefEarn || isWheelEarn;
                         
-                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : 'WITHDRAW REQUEST');
+                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : (isWheelEarn ? 'WHEEL REWARD' : 'WITHDRAW REQUEST'));
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : 'ph-trend-up') : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : (isWheelEarn ? 'ph-aperture' : 'ph-trend-up')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         
                         const dateObj = new Date(item.created_at);
@@ -420,6 +499,96 @@
         function closeAllSheets() { 
             closeSheet('withdraw-sheet'); 
             closeSheet('settings-sheet'); 
+            closeSheet('wheel-sheet');
+        }
+        
+        // --- Lucky Wheel Functions ---
+        function updateWheelUI() {
+            document.getElementById('spin-chances-display').innerText = spinChances;
+            document.getElementById('ad-progress-text').innerText = `${adViewsForSpin}/3`;
+            document.getElementById('ad-progress-bar').style.width = `${(adViewsForSpin / 3) * 100}%`;
+        }
+
+        function watchAdForSpin() {
+            const btn = document.getElementById('spin-ad-btn');
+            btn.disabled = true;
+            btn.innerText = "WAITING...";
+            
+            if (tg.openLink) {
+                tg.openLink("https://otieu.com/4/10387375");
+            } else {
+                window.open("https://otieu.com/4/10387375", "_blank");
+            }
+
+            setTimeout(async () => {
+                adViewsForSpin++;
+                if (adViewsForSpin >= 3) {
+                    adViewsForSpin = 0;
+                    spinChances++;
+                    showNotify("You earned 1 Spin Chance!", "success");
+                } else {
+                    showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
+                }
+                updateWheelUI();
+                
+                try {
+                    await _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId);
+                } catch(e) { console.error("DB update error", e); }
+                
+                btn.disabled = false;
+                btn.innerText = "Watch Video Ad";
+            }, 5000);
+        }
+
+        function spinWheel() {
+            if (spinChances <= 0) return showNotify("No spin chances left! Watch ads to earn.", "warning");
+            
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+
+            spinChances--;
+            updateWheelUI();
+            
+            try {
+                _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then();
+            } catch(e) {}
+
+            const rand = Math.random();
+            let prizeIdx = 5; 
+            if (rand < 0.05) prizeIdx = 4; // Rs 50 (5% chance)
+            else if (rand < 0.15) prizeIdx = 2; // Rs 10 (10% chance)
+            else if (rand < 0.35) prizeIdx = 1; // Rs 5 (20% chance)
+            else if (rand < 0.60) prizeIdx = 3; // 50 Coins (25% chance)
+            else if (rand < 0.85) prizeIdx = 0; // Rs 1 (25% chance)
+            else prizeIdx = 5; // Try Again (15% chance)
+
+            const segmentAngle = 60;
+            const targetRotation = 360 - (30 + prizeIdx * segmentAngle);
+            const extraSpins = 5 * 360;
+            const randomOffset = Math.floor(Math.random() * 40) - 20;
+
+            currentWheelRotation += extraSpins + targetRotation - (currentWheelRotation % 360) + randomOffset;
+
+            const wheel = document.getElementById('lucky-wheel');
+            wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+            setTimeout(async () => {
+                const prize = prizes[prizeIdx];
+                if (prize.type === 'cash' || prize.type === 'coin') {
+                    currentBalance += prize.val;
+                    try {
+                        await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
+                    } catch(e) {}
+                    
+                    showNotify(`Congratulations! You won ${prize.label}!`, "success");
+                    updateUI();
+                    fetchHistory(true);
+                } else {
+                    showNotify("Oops! Try again next time.", "warning");
+                }
+                btn.disabled = false;
+            }, 4000); 
         }
     </script>
 </body>
