@@ -11,7 +11,8 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        body { background-color: #020617; font-family: 'Inter', sans-serif; color: white; margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        /* Mahondiral CSS ngam reende keyboard bugs */
+        body { background-color: #020617; font-family: 'Inter', sans-serif; color: white; margin: 0; height: 100dvh; min-height: -webkit-fill-available; overflow: hidden; display: flex; flex-direction: column; position: relative; overscroll-behavior: none; }
         
         #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s; }
         .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.1); border-top: 3px solid #38bdf8; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px; }
@@ -23,7 +24,7 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 2rem; padding-bottom: 3rem; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 85dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 2rem; padding-bottom: 3rem; }
         .bottom-sheet.active { bottom: 0; }
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
         
@@ -33,7 +34,7 @@
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Lucky Wheel Styles */
+        /* Tekan Naso Styles */
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
@@ -55,7 +56,7 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
-    <div id="dashboard-screen" class="h-screen w-full flex flex-col relative overflow-hidden z-20">
+    <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10">
@@ -85,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- Lucky Wheel Dashboard Button -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -93,6 +93,15 @@
                     <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[10px] text-purple-300 font-bold uppercase">Win up to Rs. 50</p></div>
                 </div>
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">SPIN</button>
+            </div>
+
+            <!-- Habeere Kuuɗe (Tasks Center) -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-400"><i class="ph-fill ph-list-checks text-2xl"></i></div>
+                    <div><p class="font-bold text-sm">Task Center</p><p class="text-[10px] text-green-400 font-bold uppercase">Join & Earn</p></div>
+                </div>
+                <button onclick="openSheet('tasks-sheet')" class="bg-green-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">VIEW</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
@@ -161,7 +170,32 @@
         </div>
     </div>
 
-    <!-- Lucky Wheel Bottom Sheet -->
+    <!-- Habeere Kuuɗe (Tasks Sheet) -->
+    <div id="tasks-sheet" class="bottom-sheet">
+        <button onclick="closeSheet('tasks-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4"></div>
+        <h2 class="text-xl font-black text-white mb-6 uppercase italic text-center">Task Center</h2>
+        
+        <div class="space-y-4" id="tasks-container">
+            <!-- Kuugal 1 -->
+            <div class="glass p-4 rounded-2xl border border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400"><i class="ph-fill ph-telegram-logo text-xl"></i></div>
+                    <div>
+                        <p class="font-bold text-sm">Join Official Channel</p>
+                        <p class="text-[10px] text-green-400 font-bold uppercase">+ Rs. 5.00</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="tg.openTelegramLink('https://t.me/FreeEarnClubNISH')" class="bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase">Join</button>
+                    <!-- Insera username of the channel properly here. It MUST start with @ -->
+                    <button onclick="checkAndClaimTask('@FreeEarnClubNISH', 5, this)" class="bg-green-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-lg shadow-green-500/30">Claim</button>
+                </div>
+            </div>
+            <!-- Ciftinugo kuuɗe godɗe ɗo -->
+        </div>
+    </div>
+
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4"></div>
@@ -201,7 +235,7 @@
     </div>
 
     <script>
-        // Securely initialize Telegram WebApp to prevent undefined errors outside Telegram
+        // Fuɗɗude Telegram WebApp
         const tg = window.Telegram?.WebApp || {};
         
         const SUPABASE_URL = 'https://pwdhqahhuffczkqmlacp.supabase.co';
@@ -211,7 +245,7 @@
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
-        // Lucky Wheel Variables
+        // Toggooji Tekan Naso
         let spinChances = 0, adViewsForSpin = 0, currentWheelRotation = 0;
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
@@ -222,9 +256,10 @@
             { label: 'Try Again', val: 0, type: 'none' }
         ];
 
-        // Fetch Telegram user data
+        // Ɓamugo kumpital kuutoro
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
+        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
 
         async function initApp() {
             if (tg.ready) tg.ready(); 
@@ -235,7 +270,6 @@
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
             document.getElementById('user-display-name').innerText = fullName || "Guest User";
             
-            // Display @username in UI
             const usernameDisplay = document.getElementById('user-username-display');
             if (tgUser?.username) {
                 usernameDisplay.innerText = "@" + tgUser.username;
@@ -266,7 +300,6 @@
             }, 30);
         }
 
-        // Fetch user data from Supabase
         async function fetchUserData() {
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
@@ -301,16 +334,13 @@
                                 status: 'approved'
                             }]);
                             
-                            // Send Telegram Notification to Referrer
-                            const botToken = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
                             const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
                             const refText = `🎉 *New Referral Joined!*\n\n${refName} has joined EarnX24 using your referral link.\n\n💰 You received a bonus of Rs. 5.00!`;
-                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
+                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                         }
                     }
                 }
                 
-                // Retrieve wheel data safely
                 spinChances = parseInt(data.spin_chances || 0);
                 adViewsForSpin = parseInt(data.ad_views || 0);
                 
@@ -335,11 +365,12 @@
                         const isAdEarn = item.type === 'AD_REWARD';
                         const isRefEarn = item.type === 'REFERRAL_BONUS';
                         const isWheelEarn = item.type === 'WHEEL_REWARD';
-                        const isEarn = isAdEarn || isRefEarn || isWheelEarn;
+                        const isTaskEarn = item.type === 'TASK_REWARD';
+                        const isEarn = isAdEarn || isRefEarn || isWheelEarn || isTaskEarn;
                         
-                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : (isWheelEarn ? 'WHEEL REWARD' : 'WITHDRAW REQUEST'));
+                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : (isWheelEarn ? 'WHEEL REWARD' : (isTaskEarn ? 'TASK REWARD' : 'WITHDRAW REQUEST')));
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : (isWheelEarn ? 'ph-aperture' : 'ph-trend-up')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : (isWheelEarn ? 'ph-aperture' : (isTaskEarn ? 'ph-list-checks' : 'ph-trend-up'))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         
                         const dateObj = new Date(item.created_at);
@@ -361,6 +392,7 @@
             }
         }
 
+        // Kuugal limgal taariika
         function toggleHistory() {
             isAllHistoryVisible = !isAllHistoryVisible;
             fetchHistory(!isAllHistoryVisible);
@@ -378,8 +410,11 @@
             addrInput.placeholder = (name === 'BINANCE') ? "Enter Binance ID" : "Enter Phone Number";
             addrInput.value = "";
             addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+            
+            setTimeout(() => { addrInput.focus(); }, 100);
         }
 
+        // Huutore Ittugol
         async function processWithdraw() {
             const addr = document.getElementById('w-address').value.trim();
             const amt = parseFloat(document.getElementById('w-amount').value);
@@ -403,11 +438,10 @@
                     if (!balError) {
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
                         
-                        const botToken = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
                         const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
                         const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs. ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
-                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
 
                         currentBalance -= amt; 
                         updateUI(); 
@@ -425,6 +459,7 @@
             }, 3000);
         }
 
+        // Ndar widiyo ad
         async function earnReward() {
             const btn = document.getElementById('adBtn'); 
             btn.disabled = true; 
@@ -454,8 +489,6 @@
 
         function copyRefLink() {
             const botUsername = "Earnx24webbot"; 
-            
-            // Format referral link with EXACTLY 'App' as requested in the screenshot
             const refLink = `https://t.me/${botUsername}/App?startapp=${userId}`;
             
             const textArea = document.createElement("textarea");
@@ -471,7 +504,7 @@
             document.body.removeChild(textArea);
         }
 
-        // Update UI components
+        // Hesɗitin UI
         function updateUI() {
             document.getElementById('bal-val-display').innerText = `Rs. ${currentBalance.toFixed(2)}`;
             document.getElementById('w-balance-val').innerText = `Rs. ${currentBalance.toFixed(2)}`;
@@ -500,9 +533,61 @@
             closeSheet('withdraw-sheet'); 
             closeSheet('settings-sheet'); 
             closeSheet('wheel-sheet');
+            closeSheet('tasks-sheet');
+        }
+
+        // Habeere Kuuɗe (Tasks Functions)
+        async function checkAndClaimTask(channelUsername, rewardAmount, btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerText = "CHECKING...";
+
+            try {
+                // Task Reward Supabase Check
+                const { data: existing } = await _supabase.from('transactions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('type', 'TASK_REWARD')
+                    .eq('address', channelUsername);
+                
+                if (existing && existing.length > 0) {
+                    showNotify("Reward already claimed!", "warning");
+                    btnElement.innerText = "CLAIMED";
+                    return;
+                }
+
+                // API Chat Member Check
+                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${channelUsername}&user_id=${userId}`);
+                const json = await res.json();
+
+                if (json.ok && ['member', 'administrator', 'creator'].includes(json.result.status)) {
+                    currentBalance += rewardAmount;
+                    await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                    await _supabase.from('transactions').insert([{ 
+                        user_id: userId, 
+                        type: 'TASK_REWARD', 
+                        amount: rewardAmount, 
+                        status: 'approved',
+                        address: channelUsername 
+                    }]);
+                    
+                    updateUI();
+                    fetchHistory(true);
+                    showNotify(`Task Completed! You earned Rs ${rewardAmount.toFixed(2)}`, "success");
+                    btnElement.innerText = "CLAIMED";
+                } else {
+                    showNotify("Please join the channel first!", "warning");
+                    btnElement.innerText = "CLAIM";
+                    btnElement.disabled = false;
+                }
+            } catch (e) {
+                console.error("Task error:", e);
+                showNotify("Error checking task status", "warning");
+                btnElement.innerText = "CLAIM";
+                btnElement.disabled = false;
+            }
         }
         
-        // --- Lucky Wheel Functions ---
+        // --- Tekan Naso (Lucky Wheel Functions) ---
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
             document.getElementById('ad-progress-text').innerText = `${adViewsForSpin}/3`;
