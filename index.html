@@ -53,7 +53,10 @@
     <div id="dashboard-screen" class="h-screen w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold"><i class="ph-fill ph-user text-xl"></i></div>
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10">
+                    <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
+                    <i id="default-pic" class="ph-fill ph-user text-xl"></i>
+                </div>
                 <div>
                     <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
                     <p class="text-[11px] text-green-500 flex items-center gap-1 font-semibold"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active</p>
@@ -82,6 +85,14 @@
                     <div><p class="font-bold text-sm">Watch Video Ad</p><p class="text-[10px] text-yellow-500 font-bold uppercase">Earn Rs. 1.50</p></div>
                 </div>
                 <button id="adBtn" onclick="earnReward()" class="bg-sky-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">START</button>
+            </div>
+
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="ph-fill ph-users-three text-2xl"></i></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs. 5.00</p></div>
+                </div>
+                <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
             <div class="space-y-4">
@@ -135,18 +146,34 @@
     </div>
 
     <script>
+        // Bug Fix: Safely initialize Telegram WebApp to prevent undefined errors in external browsers
+        const tg = window.Telegram?.WebApp || {};
+        
         const SUPABASE_URL = 'https://pwdhqahhuffczkqmlacp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_FP4kWPd5THLSBdVEBUTjyA_OPhSHEeX';
-        const tg = window.Telegram.WebApp;
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
 
+        const tgUser = tg.initDataUnsafe?.user || null;
+        const startParam = tg.initDataUnsafe?.start_param || null;
+
         async function initApp() {
-            tg.ready(); tg.expand();
-            userId = tg.initDataUnsafe?.user ? String(tg.initDataUnsafe.user.id) : "99999";
-            document.getElementById('user-display-name').innerText = tg.initDataUnsafe?.user?.first_name || "User";
+            if (tg.ready) tg.ready(); 
+            if (tg.expand) tg.expand();
+            
+            userId = tgUser ? String(tgUser.id) : "99999";
+            
+            document.getElementById('user-display-name').innerText = tgUser?.first_name || "Guest User";
             document.getElementById('u-id-display').innerText = userId;
+            
+            if (tgUser?.photo_url) {
+                document.getElementById('profile-pic').src = tgUser.photo_url;
+                document.getElementById('profile-pic').style.display = 'block';
+                document.getElementById('default-pic').style.display = 'none';
+            }
+
             await fetchUserData();
             await fetchHistory(true);
 
@@ -155,41 +182,90 @@
                 prog += 2;
                 document.getElementById('progress-bar').style.width = prog + '%';
                 document.getElementById('percentage').innerText = prog + '%';
-                if(prog >= 100) { clearInterval(timer); setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 500); }
+                if(prog >= 100) { 
+                    clearInterval(timer); 
+                    setTimeout(() => { document.getElementById('loading-screen').style.display = 'none'; }, 500); 
+                }
             }, 30);
         }
 
         async function fetchUserData() {
             try {
-                let { data } = await _supabase.from('profiles').select('*').eq('user_id', userId).single();
-                if (!data) { data = (await _supabase.from('profiles').insert([{ user_id: userId, balance: 0 }]).select().single()).data; }
-                currentBalance = parseFloat(data.balance);
+                // Bug Fix: Changed single() to maybeSingle() to prevent crash on 0 rows
+                let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+                
+                if (error) throw error;
+
+                if (!data) { 
+                    const newUser = { 
+                        user_id: userId, 
+                        balance: 0,
+                        username: tgUser?.username || '',
+                        first_name: tgUser?.first_name || 'Guest User',
+                        photo_url: tgUser?.photo_url || '',
+                        referred_by: startParam
+                    };
+                    
+                    let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
+                    data = ins.data || newUser; 
+                    
+                    if (startParam && startParam !== userId) {
+                        let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
+                        
+                        if (referrerData) {
+                            let newBalance = parseFloat(referrerData.balance) + 5;
+                            await _supabase.from('profiles').update({ balance: newBalance }).eq('user_id', startParam);
+                            
+                            await _supabase.from('transactions').insert([{ 
+                                user_id: startParam, 
+                                type: 'REFERRAL_BONUS', 
+                                amount: 5,
+                                status: 'approved'
+                            }]);
+                        }
+                    }
+                }
+                currentBalance = parseFloat(data.balance || 0);
                 updateUI();
-            } catch(e) {}
+            } catch(e) { 
+                console.error("Error setting user data:", e); 
+                updateUI(); // Load UI even if database fails
+            }
         }
 
         async function fetchHistory(limit) {
-            const { data } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-            if (data) {
-                const items = limit ? data.slice(0, 5) : data;
-                document.getElementById('history-list').innerHTML = items.map(item => {
-                    const isEarn = item.type === 'AD_REWARD';
-                    let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                    let iconClass = isEarn ? 'ph-trend-up' : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
-                    let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
-                    const dateObj = new Date(item.created_at);
-                    return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div>
-                            <div>
-                                <p class="text-[11px] font-black uppercase tracking-tight">${isEarn ? 'AD REWARD' : 'WITHDRAW REQUEST'}</p>
-                                <p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p>
-                                <p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p>
+            try {
+                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+                if (error) throw error;
+                
+                if (data) {
+                    const items = limit ? data.slice(0, 5) : data;
+                    document.getElementById('history-list').innerHTML = items.map(item => {
+                        const isAdEarn = item.type === 'AD_REWARD';
+                        const isRefEarn = item.type === 'REFERRAL_BONUS';
+                        const isEarn = isAdEarn || isRefEarn;
+                        
+                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : 'WITHDRAW REQUEST');
+                        let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
+                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : 'ph-trend-up') : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
+                        
+                        const dateObj = new Date(item.created_at);
+                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div>
+                                <div>
+                                    <p class="text-[11px] font-black uppercase tracking-tight">${label}</p>
+                                    <p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p>
+                                    <p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p>
+                                </div>
                             </div>
-                        </div>
-                        <p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? '+1.50' : `-Rs.${item.amount.toFixed(2)}`}</p>
-                    </div>`;
-                }).join('');
+                            <p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+${item.amount.toFixed(2)}` : `-Rs.${item.amount.toFixed(2)}`}</p>
+                        </div>`;
+                    }).join('');
+                }
+            } catch(e) {
+                console.error("Error fetching history:", e);
             }
         }
 
@@ -230,35 +306,77 @@
             btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
 
             setTimeout(async () => {
-                const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
-                if (!balError) {
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
-                    
-                    // TELEGRAM BOT MESSAGE
-                    const botToken = "8586378959:AAHvFEYmN0NmVqMMBNQNw-SmO672yi4MvdE";
-                    const uName = tg.initDataUnsafe?.user?.first_name || "NISH";
-                    const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                    const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs. ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+                try {
+                    const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
+                    if (!balError) {
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
+                        
+                        const botToken = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+                        const uName = tgUser?.first_name || "User";
+                        const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
+                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs. ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
+                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
 
-                    currentBalance -= amt; updateUI(); fetchHistory(true);
-                    showNotify("Request Sent!", "success"); closeAllSheets();
-                } else {
+                        currentBalance -= amt; 
+                        updateUI(); 
+                        fetchHistory(true);
+                        showNotify("Request Sent!", "success"); 
+                        closeAllSheets();
+                    } else {
+                        showNotify("Error processing request.");
+                    }
+                } catch(e) {
                     showNotify("Error processing request.");
                 }
-                btn.disabled = false; btn.innerText = "Submit Request";
+                btn.disabled = false; 
+                btn.innerText = "Submit Request";
             }, 3000);
         }
 
         async function earnReward() {
-            const btn = document.getElementById('adBtn'); btn.disabled = true; btn.innerText = "WAITING...";
-            tg.openLink("https://otieu.com/4/10387375");
+            const btn = document.getElementById('adBtn'); 
+            btn.disabled = true; 
+            btn.innerText = "WAITING...";
+            
+            // Bug Fix: Check if openLink exists (prevents crash outside Telegram)
+            if (tg.openLink) {
+                tg.openLink("https://otieu.com/4/10387375");
+            } else {
+                window.open("https://otieu.com/4/10387375", "_blank");
+            }
+            
             setTimeout(async () => {
-                await _supabase.from('profiles').update({ balance: currentBalance + 1.5 }).eq('user_id', userId);
-                await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
-                currentBalance += 1.5; updateUI(); fetchHistory(true);
-                showNotify("Reward Added!", "success"); btn.disabled = false; btn.innerText = "START";
+                try {
+                    await _supabase.from('profiles').update({ balance: currentBalance + 1.5 }).eq('user_id', userId);
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
+                    currentBalance += 1.5; 
+                    updateUI(); 
+                    fetchHistory(true);
+                    showNotify("Reward Added!", "success"); 
+                } catch(e) {
+                    showNotify("Error adding reward.");
+                }
+                btn.disabled = false; 
+                btn.innerText = "START";
             }, 5000);
+        }
+
+        function copyRefLink() {
+            const botUsername = "Earnx24webbot"; 
+            const refLink = `https://t.me/${botUsername}/StartApp?startapp=${userId}`;
+            
+            // Bug Fix: More reliable copy method for mobile devices / external browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = refLink;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotify("Referral Link Copied!", "success");
+            } catch (err) {
+                showNotify("Failed to copy link");
+            }
+            document.body.removeChild(textArea);
         }
 
         function updateUI() {
@@ -271,11 +389,24 @@
             const box = document.getElementById('custom-notify');
             document.getElementById('notify-msg').innerText = msg;
             box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24';
-            box.classList.add('active'); setTimeout(() => box.classList.remove('active'), 3000);
+            box.classList.add('active'); 
+            setTimeout(() => box.classList.remove('active'), 3000);
         }
-        function openSheet(id) { document.getElementById(id).classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; }
-        function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSheet('settings-sheet'); }
+        
+        function openSheet(id) { 
+            document.getElementById(id).classList.add('active'); 
+            document.getElementById('sheet-overlay').style.display = 'block'; 
+        }
+        
+        function closeSheet(id) { 
+            document.getElementById(id).classList.remove('active'); 
+            document.getElementById('sheet-overlay').style.display = 'none'; 
+        }
+        
+        function closeAllSheets() { 
+            closeSheet('withdraw-sheet'); 
+            closeSheet('settings-sheet'); 
+        }
     </script>
 </body>
 </html>
