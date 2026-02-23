@@ -167,7 +167,8 @@
             
             userId = tgUser ? String(tgUser.id) : "99999";
             
-            document.getElementById('user-display-name').innerText = tgUser?.first_name || "Guest User";
+            const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
+            document.getElementById('user-display-name').innerText = fullName || "Guest User";
             
             // Display @username in UI
             const usernameDisplay = document.getElementById('user-username-display');
@@ -208,11 +209,12 @@
                 if (error) throw error;
 
                 if (!data) { 
+                    const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
                         user_id: userId, 
                         balance: 0,
                         username: tgUser?.username || '',
-                        first_name: tgUser?.first_name || 'Guest User',
+                        first_name: fullName || 'Guest User',
                         photo_url: tgUser?.photo_url || '',
                         referred_by: startParam
                     };
@@ -323,7 +325,7 @@
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
                         
                         const botToken = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
-                        const uName = tgUser?.first_name || "User";
+                        const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
                         const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs. ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
                         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
