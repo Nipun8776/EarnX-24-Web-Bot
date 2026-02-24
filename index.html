@@ -574,7 +574,7 @@
                 }, 3000); 
                 
             } else if (btnElement.innerText === 'VERIFY') {
-                // Telegram eken pita test karoth warn kirima
+                // Yoo Telegram alaa yaalame akeekkachiisi
                 if (userId === "99999") {
                     showNotify("Please use Telegram App to verify!", "warning");
                     return;
@@ -598,15 +598,23 @@
                         return;
                     }
 
-                    // Request with encoded parameters to fix potential API routing bugs
-                    const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(channelUsername)}&user_id=${encodeURIComponent(userId)}`;
-                    const res = await fetch(apiUrl);
+                    // POST Request එකක් මගින් Telegram API එකට දත්ත යැවීම (URL ගැටළු මඟහරවා ගැනීමට)
+                    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            chat_id: channelUsername,
+                            user_id: userId
+                        })
+                    });
                     const json = await res.json();
 
                     console.log("Telegram API:", json); // Debugging sahan
 
                     if (!json.ok) {
-                        // Bot eka admin nattam meka enawa
+                        // Yoo Bot admin hin taane kun ni dhufa
                         showNotify("Bot Error: " + (json.description || "Bot must be Admin!"), "warning");
                         btnElement.innerText = "VERIFY";
                         btnElement.disabled = false;
@@ -614,7 +622,7 @@
                     }
 
                     const status = json.result.status;
-                    // Status eka 'left' kiyanne ain wela, 'kicked' kiyanne ban karala. Anith ewa okkoma allow karanawa.
+                    // Haalli 'left' ykn 'kicked' yoo ta'e heyyama hin qabu
                     if (status === 'member' || status === 'administrator' || status === 'creator' || status === 'restricted') {
                         currentBalance += rewardAmount;
                         await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
@@ -632,7 +640,7 @@
                         btnElement.innerText = "CLAIMED";
                         btnElement.className = "bg-green-500/20 text-green-400 px-6 py-2 rounded-xl text-[10px] font-black uppercase w-24 text-center transition-all duration-300";
                     } else {
-                        // Meka awe kiyanne status eka 'left' hari 'kicked' hari
+                        // Kun dhufe jechuun haalli 'left' ykn 'kicked' dha
                         showNotify(`Not joined! Status: ${status}`, "warning");
                         btnElement.innerText = "VERIFY";
                         btnElement.disabled = false;
