@@ -584,7 +584,7 @@
                 btnElement.innerText = "CHECK...";
 
                 try {
-                    // Mirkaneessi yoo fayyadamaan duraan fudhateera (Check Supabase first to prevent double claim even if left)
+                    // Mirkaneessi yoo fayyadamaan duraan fudhateera
                     const { data: existing } = await _supabase.from('transactions')
                         .select('*')
                         .eq('user_id', userId)
@@ -602,19 +602,19 @@
                     const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${channelUsername}&user_id=${userId}`);
                     const json = await res.json();
 
-                    // Bot eka admin nattam hari wena API error ekak awoth hari error eka pennima
+                    console.log("Telegram API:", json); // Debugging sahan
+
                     if (!json.ok) {
-                        if (json.description.includes("chat not found") || json.description.includes("not a member") || json.description.includes("admin")) {
-                            showNotify("Bot must be Admin in the channel!", "warning");
-                        } else {
-                            showNotify("API Error: " + json.description, "warning");
-                        }
+                        // Bot eka admin nattam meka enawa
+                        showNotify("Bot Error: " + (json.description || "Bot must be Admin!"), "warning");
                         btnElement.innerText = "VERIFY";
                         btnElement.disabled = false;
                         return;
                     }
 
-                    if (['member', 'administrator', 'creator'].includes(json.result.status)) {
+                    const status = json.result.status;
+                    // Status eka 'left' kiyanne ain wela, 'kicked' kiyanne ban karala. Anith ewa okkoma allow karanawa.
+                    if (status === 'member' || status === 'administrator' || status === 'creator' || status === 'restricted') {
                         currentBalance += rewardAmount;
                         await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
                         await _supabase.from('transactions').insert([{ 
@@ -631,13 +631,14 @@
                         btnElement.innerText = "CLAIMED";
                         btnElement.className = "bg-green-500/20 text-green-400 px-6 py-2 rounded-xl text-[10px] font-black uppercase w-24 text-center transition-all duration-300";
                     } else {
-                        showNotify("Please join the channel first!", "warning");
+                        // Meka awe kiyanne status eka 'left' hari 'kicked' hari
+                        showNotify(`Not joined! Status: ${status}`, "warning");
                         btnElement.innerText = "VERIFY";
                         btnElement.disabled = false;
                     }
                 } catch (e) {
                     console.error("Task error:", e);
-                    showNotify("Error checking task status", "warning");
+                    showNotify("Network Error! Try again.", "warning");
                     btnElement.innerText = "VERIFY";
                     btnElement.disabled = false;
                 }
