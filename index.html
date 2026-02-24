@@ -598,8 +598,9 @@
                         return;
                     }
 
-                    // Telegram API irraa haala miseensummaa mirkaneessi
-                    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${channelUsername}&user_id=${userId}`);
+                    // Request with encoded parameters to fix potential API routing bugs
+                    const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(channelUsername)}&user_id=${encodeURIComponent(userId)}`;
+                    const res = await fetch(apiUrl);
                     const json = await res.json();
 
                     console.log("Telegram API:", json); // Debugging sahan
