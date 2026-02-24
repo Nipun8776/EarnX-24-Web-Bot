@@ -24,7 +24,8 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 85dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 2rem; padding-bottom: 3rem; }
+        /* Thazhe kanunna sheet design update cheythu */
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
         
@@ -124,7 +125,7 @@
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
     <div id="settings-sheet" class="bottom-sheet">
-        <button onclick="closeSheet('settings-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <button onclick="closeSheet('settings-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
         <h2 class="text-xl font-black text-white mb-6 uppercase italic">Settings</h2>
         <div class="grid grid-cols-2 gap-4">
@@ -140,7 +141,7 @@
     </div>
 
     <div id="withdraw-sheet" class="bottom-sheet">
-        <button onclick="closeSheet('withdraw-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
         <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw</h2>
         <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs. 0.00</span></p>
@@ -162,40 +163,40 @@
     </div>
 
     <div id="wheel-sheet" class="bottom-sheet">
-        <button onclick="closeSheet('wheel-sheet')" class="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
-        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4"></div>
-        <h2 class="text-xl font-black text-white mb-2 text-center uppercase italic">Lucky Wheel</h2>
-        <p class="text-center text-[10px] text-slate-400 mb-6 uppercase tracking-wider">Test Your Luck & Win Big</p>
+        <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
+        <h2 class="text-xl font-black text-white mb-1 text-center uppercase italic">Lucky Wheel</h2>
+        <p class="text-center text-[10px] text-slate-400 mb-4 uppercase tracking-wider">Test Your Luck & Win Big</p>
         
-        <div class="relative w-56 h-56 mx-auto my-6">
-            <div class="wheel-marker"></div>
-            <div id="lucky-wheel" class="w-full h-full rounded-full border-[6px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden transition-all duration-[4000ms] ease-[cubic-bezier(0.17,0.67,0.12,0.99)] relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">Rs 1</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(90deg) translateY(-85px);">Rs 5</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(150deg) translateY(-85px);">Rs 10</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(210deg) translateY(-85px);">50C</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[12px] drop-shadow-md" style="transform: rotate(270deg) translateY(-85px);">Rs 50</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[10px] leading-tight drop-shadow-md" style="transform: rotate(330deg) translateY(-85px);">Try<br>Again</div>
+        <div class="relative w-48 h-48 mx-auto my-4">
+            <div class="wheel-marker" style="top: -8px; border-top-width: 16px; border-left-width: 8px; border-right-width: 8px;"></div>
+            <div id="lucky-wheel" class="w-full h-full rounded-full border-[5px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden transition-all duration-[4000ms] ease-[cubic-bezier(0.17,0.67,0.12,0.99)] relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(30deg) translateY(-72px);">Rs 1</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(90deg) translateY(-72px);">Rs 5</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(150deg) translateY(-72px);">Rs 10</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(210deg) translateY(-72px);">50C</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(270deg) translateY(-72px);">Rs 50</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[9px] leading-tight drop-shadow-md" style="transform: rotate(330deg) translateY(-72px);">Try<br>Again</div>
             </div>
         </div>
 
-        <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl mb-4 border border-white/10">
+        <div class="flex justify-between items-center bg-white/5 p-3 rounded-2xl mb-3 border border-white/10">
             <div>
                 <p class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Available Spins</p>
                 <p id="spin-chances-display" class="text-xl font-black text-sky-400">0</p>
             </div>
-            <button id="spin-btn" onclick="spinWheel()" class="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-3 rounded-xl font-black text-[10px] text-white btn-animate shadow-lg shadow-purple-500/30">SPIN NOW</button>
+            <button id="spin-btn" onclick="spinWheel()" class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-2.5 rounded-xl font-black text-[10px] text-white btn-animate shadow-lg shadow-purple-500/30">SPIN NOW</button>
         </div>
 
-        <div class="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
+        <div class="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/20">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><i class="ph-fill ph-video-camera"></i> Watch Ads for Spins</p>
                 <p id="ad-progress-text" class="text-[10px] font-black text-white">0/3</p>
             </div>
-            <div class="w-full h-2 bg-black/30 rounded-full overflow-hidden mb-3">
+            <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
                 <div id="ad-progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-3 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Video Ad</button>
+            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-2.5 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Video Ad</button>
         </div>
     </div>
 
