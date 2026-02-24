@@ -24,13 +24,13 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        /* Aynacha laphina */
+        /* Takardar Kasa (Bottom Sheet) */
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
         
-        /* Kupikha panela Estilos */
-        .side-panel { position: fixed; top: 0; left: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-right: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
-        .side-panel.active { left: 0; }
+        /* Salon Kwamitin Gefe (Side Panel) */
+        .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
+        .side-panel.active { right: 0; }
 
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
         
@@ -65,20 +65,20 @@
 
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
-            <!-- Kupikha panela boton -->
-            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
-            
-            <!-- Apnaqiri yatiyawi -->
-            <div class="flex items-center gap-3 text-right">
-                <div>
-                    <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
-                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5"></p>
-                </div>
+            <!-- Bayanin mai amfani a hagu -->
+            <div class="flex items-center gap-3 text-left">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10">
                     <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
                     <i id="default-pic" class="ph-fill ph-user text-xl"></i>
                 </div>
+                <div>
+                    <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
+                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5"></p>
+                </div>
             </div>
+
+            <!-- Maɓallin menu a dama -->
+            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
@@ -132,11 +132,11 @@
 
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
-    <!-- Kupikha panela -->
+    <!-- Kwamitin Gefe (Side panel) -->
     <div id="side-panel" class="side-panel">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-xl font-black text-white uppercase italic tracking-wider">Menu</h2>
-            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 btn-animate"><i class="ph-bold ph-arrow-left text-slate-400"></i></button>
+            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 btn-animate"><i class="ph-bold ph-arrow-right text-slate-400"></i></button>
         </div>
         
         <div class="flex flex-col space-y-4">
