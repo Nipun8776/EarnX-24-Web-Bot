@@ -11,8 +11,36 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        /* Teclado pantjasiwina jark'aqaña CSS */
-        body { background-color: #020617; font-family: 'Inter', sans-serif; color: white; margin: 0; height: 100dvh; min-height: -webkit-fill-available; overflow: hidden; display: flex; flex-direction: column; position: relative; overscroll-behavior: none; }
+        
+        /* Keyboard bug prevention and text selection disabled */
+        body { 
+            background-color: #020617; 
+            font-family: 'Inter', sans-serif; 
+            color: white; 
+            margin: 0; 
+            height: 100dvh; 
+            min-height: -webkit-fill-available; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            overscroll-behavior: none; 
+            
+            /* Prevent text selection and copy across the app */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Allow typing inside input fields and textareas */
+        input, textarea {
+            -webkit-user-select: auto;
+            -moz-user-select: auto;
+            -ms-user-select: auto;
+            user-select: auto;
+        }
         
         #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s; }
         .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.1); border-top: 3px solid #38bdf8; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px; }
@@ -24,11 +52,11 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        /* Takardar Kasa (Bottom Sheet) */
+        /* Bottom Sheet Styles */
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
         
-        /* Salon Kwamitin Gefe (Side Panel) */
+        /* Side Panel Styles */
         .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
         .side-panel.active { right: 0; }
 
@@ -41,7 +69,7 @@
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Suerte t'ijru estilos */
+        /* Lucky Wheel Styles */
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
@@ -50,11 +78,13 @@
 
 <body onload="initApp()">
 
+    <!-- Notification Toast -->
     <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
         <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
         <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
     </div>
 
+    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting</p>
@@ -63,25 +93,27 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
+    <!-- Main Dashboard -->
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
-            <!-- Bayanin mai amfani a hagu -->
+            <!-- User Info (Left) -->
             <div class="flex items-center gap-3 text-left">
-                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10">
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0">
                     <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
                     <i id="default-pic" class="ph-fill ph-user text-xl"></i>
                 </div>
-                <div>
-                    <h3 id="user-display-name" class="font-bold text-sm text-white">Loading...</h3>
-                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5"></p>
+                <div class="overflow-hidden">
+                    <h3 id="user-display-name" class="font-bold text-sm text-white truncate">Loading...</h3>
+                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5 truncate"></p>
                 </div>
             </div>
 
-            <!-- Maɓallin menu a dama -->
-            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
+            <!-- Side Panel Trigger Button (Right) -->
+            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
+            <!-- Balance Card -->
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
                 <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
                 <div class="flex items-center gap-2 mb-4">
@@ -91,10 +123,11 @@
                     <div class="bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full flex items-center gap-2">
                         <i class="ph-fill ph-coin text-yellow-500 text-xs"></i><span id="coin-val" class="font-bold text-[10px] text-yellow-200 uppercase">0 COINS</span>
                     </div>
-                    <button onclick="openSheet('withdraw-sheet')" class="bg-[#0ea5e9] px-6 py-2 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
+                    <button onclick="openSheet('withdraw-sheet')" class="bg-[#0ea5e9] px-6 py-2 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw Funds</button>
                 </div>
             </div>
 
+            <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -104,6 +137,7 @@
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">SPIN</button>
             </div>
 
+            <!-- Watch Ad Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="ph-fill ph-play-circle text-2xl animate-pulse"></i></div>
@@ -112,6 +146,7 @@
                 <button id="adBtn" onclick="earnReward()" class="bg-sky-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">START</button>
             </div>
 
+            <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="ph-fill ph-users-three text-2xl animate-bounce"></i></div>
@@ -120,96 +155,199 @@
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
-            <div class="space-y-4">
-                <div class="flex justify-between items-center">
+            <!-- Recent Activity Section -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
-                    <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md">View All</button>
+                    <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
                 </div>
                 <div id="history-list" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
+    <!-- Overlay for Modals and Panels -->
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
-    <!-- Kwamitin Gefe (Side panel) -->
+    <!-- Professional Side Panel -->
     <div id="side-panel" class="side-panel">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-xl font-black text-white uppercase italic tracking-wider">Menu</h2>
-            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 btn-animate"><i class="ph-bold ph-arrow-right text-slate-400"></i></button>
+        <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
+            <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
+                <img id="menu-profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
+                <i id="menu-default-pic" class="ph-fill ph-user text-2xl"></i>
+                <div id="menu-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]"></div>
+            </div>
+            <div class="flex-1 overflow-hidden">
+                <h3 id="menu-user-name" class="font-bold text-sm text-white truncate">Loading...</h3>
+                <p id="menu-user-id" class="text-[10px] text-slate-400 font-medium truncate mt-0.5">ID: ---</p>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-[9px] font-black text-slate-300 uppercase">Member</span>
+                    <span id="menu-status-badge" class="bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1">
+                        <i class="ph-regular ph-star"></i> Active
+                    </span>
+                </div>
+                <!-- Dynamic Member Since Date -->
+                <p id="menu-member-since" class="text-[9px] text-slate-500 mt-2 flex items-center gap-1"><i class="ph-regular ph-calendar-blank"></i> Member since ---</p>
+            </div>
+            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
-        
-        <div class="flex flex-col space-y-4">
-            <div class="glass p-4 rounded-2xl border-white/5 flex items-center justify-between">
-                <div>
-                    <p class="text-[8px] text-slate-500 font-black uppercase mb-0.5 tracking-widest">App Version</p>
-                    <p class="text-xs font-black text-sky-400">v1.0.0</p>
-                </div>
-                <i class="ph-fill ph-info text-slate-500 text-xl"></i>
-            </div>
-            
-            <div class="glass p-4 rounded-2xl border-white/5 flex items-center justify-between">
-                <div class="overflow-hidden">
-                    <p class="text-[8px] text-slate-500 font-black uppercase mb-0.5 tracking-widest">My User ID</p>
-                    <p id="panel-u-id-display" class="text-xs font-black text-white truncate">---</p>
-                </div>
-                <i class="ph-fill ph-identification-card text-slate-500 text-xl ml-2"></i>
-            </div>
 
-            <!-- Jach'a irpiri tarxeta -->
-            <div class="bg-gradient-to-br from-yellow-600/30 to-amber-900/30 border border-yellow-500/40 p-5 rounded-3xl relative overflow-hidden mt-4 shadow-[0_0_20px_rgba(234,179,8,0.15)]">
-                <div class="absolute -right-6 -top-6 text-yellow-500/20"><i class="ph-fill ph-crown text-8xl transform rotate-12"></i></div>
-                <div class="relative z-10">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="bg-yellow-500/20 p-1.5 rounded-lg border border-yellow-500/30 text-yellow-400"><i class="ph-fill ph-trophy text-lg"></i></div>
-                        <p class="text-[11px] text-yellow-500 font-black uppercase tracking-widest">Top Referrer</p>
-                    </div>
-                    <div class="space-y-1.5">
-                        <p class="text-[10px] text-slate-300 uppercase font-bold flex items-center gap-1.5">Rank <span class="text-black bg-gradient-to-r from-yellow-400 to-yellow-600 px-2 py-0.5 rounded-md font-black italic">#1</span></p>
-                        <p id="top-ref-id" class="text-sm font-black text-white truncate drop-shadow-md">Loading...</p>
-                        <div class="flex items-center gap-1.5 mt-2 bg-black/40 w-fit px-3 py-1 rounded-full border border-white/5">
-                            <i class="ph-fill ph-users text-yellow-500 text-xs"></i>
-                            <p id="top-ref-count" class="text-[11px] font-bold text-yellow-400">0 Referrals</p>
-                        </div>
-                    </div>
+        <!-- Navigation Links -->
+        <div class="flex flex-col space-y-2 flex-1">
+            <!-- Withdrawal History Button -->
+            <button onclick="openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+                <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner"><i class="ph-fill ph-receipt text-lg"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-xs text-white">Transaction History</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">View all your requests</p>
                 </div>
-            </div>
+            </button>
+
+            <!-- My Referral List Button -->
+            <button onclick="openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-users text-lg"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-xs text-white">My Referral List</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">View your invited friends</p>
+                </div>
+            </button>
+
+            <!-- Rank List Button -->
+            <button onclick="openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shadow-inner"><i class="ph-fill ph-trophy text-lg"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-xs text-white">Rank List</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">Top performing referrers</p>
+                </div>
+            </button>
+
+            <!-- App Version Button -->
+            <button onclick="closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner"><i class="ph-fill ph-info text-lg"></i></div>
+                <div class="text-left">
+                    <p class="font-bold text-xs text-white">App Version</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">Check release details</p>
+                </div>
+            </button>
         </div>
-        
-        <div class="mt-auto pt-8 text-center">
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Powered by EarnX24</p>
+
+        <!-- Footer inside Panel -->
+        <div class="mt-auto pt-6 border-t border-white/10 flex items-center justify-center">
+            <p class="text-[8px] text-slate-500 font-black uppercase tracking-widest">Powered by EarnX24</p>
         </div>
     </div>
 
-    <!-- Qullqi apsuña laphina -->
+    <!-- App Version Modal -->
+    <div id="version-sheet" class="bottom-sheet flex flex-col">
+        <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-info text-2xl"></i></div>
+            <div>
+                <h2 class="text-lg font-black text-white">App Version</h2>
+                <p class="text-[11px] text-slate-400 mt-0.5">Current Release Details</p>
+            </div>
+            <button onclick="closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        
+        <div class="flex-1 space-y-4 pb-4 overflow-y-auto">
+            <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
+                <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Up to date</p>
+            </div>
+
+            <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
+                <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
+                <ul class="text-xs text-slate-300 space-y-2">
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved UI and seamless animations.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Bank Transfer withdrawal method.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New active/inactive status functionality based on daily tasks.</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal History Modal -->
+    <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+        <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-cube text-2xl"></i></div>
+            <div>
+                <h2 class="text-lg font-black text-white">Transaction History</h2>
+                <p class="text-[11px] text-slate-400 mt-0.5">Total Records: <span id="w-history-count" class="font-bold text-white">0</span></p>
+            </div>
+            <button onclick="closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        
+        <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
+            <!-- Items loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Referral List Modal -->
+    <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+        <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
+            <div>
+                <h2 class="text-xl font-black text-white uppercase italic">My Referrals</h2>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Total Friends: <span id="ref-count-display" class="text-purple-400 font-bold">0</span></p>
+            </div>
+            <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        
+        <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
+            <!-- Items loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Rank List Modal -->
+    <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+        <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
+            <div>
+                <h2 class="text-xl font-black text-white uppercase italic">Top Referrers</h2>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Leaderboard Rankings</p>
+            </div>
+            <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        
+        <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
+            <!-- Items loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Withdraw Sheet -->
     <div id="withdraw-sheet" class="bottom-sheet">
         <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw</h2>
+        <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw Funds</h2>
         <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs 0.00</span></p>
         
-        <div class="grid grid-cols-2 gap-3 mb-8">
-            <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-4 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
-                <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase">Binance</span>
+        <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-3">Select Method</h3>
+        <!-- 3 Options -->
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+                <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Binance</span>
             </button>
-            <button onclick="selectMethod(this, 'RELOAD')" class="method-btn p-4 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
-                <i class="ph-fill ph-device-mobile-camera text-purple-500 text-2xl"></i><span class="text-[9px] font-black uppercase">Reload</span>
+            <button onclick="selectMethod(this, 'RELOAD')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+                <i class="ph-fill ph-device-mobile-camera text-purple-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Reload</span>
+            </button>
+            <button onclick="selectMethod(this, 'BANK')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+                <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
 
-        <div class="space-y-4">
-            <input id="w-address" type="text" inputmode="numeric" placeholder="Select a method first" disabled class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 opacity-50">
-            <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" disabled class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 opacity-50">
+        <div id="withdraw-inputs" class="space-y-4 hidden">
+            <input id="w-address" type="text" inputmode="text" placeholder="Select a method first" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-4 flex items-center justify-center gap-2">Submit Request</button>
         </div>
     </div>
 
-    <!-- Suerte t'ijru laphina -->
+    <!-- Lucky Wheel Sheet -->
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
         <h2 class="text-xl font-black text-white mb-1 text-center uppercase italic">Lucky Wheel</h2>
-        <p class="text-center text-[10px] text-slate-400 mb-4 uppercase tracking-wider">Test Your Luck & Win Big</p>
+        <p class="text-center text-[10px] text-slate-400 mb-4 uppercase tracking-wider">Test your luck & win big</p>
         
         <div class="relative w-48 h-48 mx-auto my-4">
             <div class="wheel-marker" style="top: -8px; border-top-width: 16px; border-left-width: 8px; border-right-width: 8px;"></div>
@@ -239,14 +377,15 @@
             <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
                 <div id="ad-progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-2.5 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Video Ad</button>
+            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-2.5 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Ad</button>
         </div>
     </div>
 
     <script>
-        // Telegram WebApp qalltaña
+        // Initialize Telegram WebApp
         const tg = window.Telegram?.WebApp || {};
         
+        // Supabase Database Connection
         const SUPABASE_URL = 'https://pwdhqahhuffczkqmlacp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_FP4kWPd5THLSBdVEBUTjyA_OPhSHEeX';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -254,7 +393,7 @@
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
-        // Suerte t'ijru variables
+        // Lucky Wheel variables
         let spinChances = 0, adViewsForSpin = 0, currentWheelRotation = 0;
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
@@ -265,20 +404,36 @@
             { label: 'Try Again', val: 0, type: 'none' }
         ];
 
-        // Telegram apnaqiri data apthapiña
+        // Fetch Telegram user data
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+
+        // Check if user is active (Did a task in last 3 days)
+        function checkIsActive(lastActiveDateStr, createdAtDateStr) {
+            const targetDateStr = lastActiveDateStr || createdAtDateStr;
+            if (!targetDateStr) return true; // fallback
+            const lastActive = new Date(targetDateStr);
+            const now = new Date();
+            const diffTime = now.getTime() - lastActive.getTime();
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            return diffDays <= 3;
+        }
 
         async function initApp() {
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
             
-            userId = tgUser ? String(tgUser.id) : "99999";
+            // Reverted back to 99999 for local testing, ensures DB works. Use real ID on Telegram.
+            userId = tgUser ? String(tgUser.id) : "99999"; 
             
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
             document.getElementById('user-display-name').innerText = fullName || "Guest User";
             
+            // Menu User details update
+            document.getElementById('menu-user-name').innerText = fullName || "Guest User";
+            document.getElementById('menu-user-id').innerText = "ID: " + userId;
+
             const usernameDisplay = document.getElementById('user-username-display');
             if (tgUser?.username) {
                 usernameDisplay.innerText = "@" + tgUser.username;
@@ -286,18 +441,20 @@
                 usernameDisplay.innerText = "ID: " + userId;
             }
 
-            document.getElementById('panel-u-id-display').innerText = userId;
-            
             if (tgUser?.photo_url) {
                 document.getElementById('profile-pic').src = tgUser.photo_url;
                 document.getElementById('profile-pic').style.display = 'block';
                 document.getElementById('default-pic').style.display = 'none';
+
+                document.getElementById('menu-profile-pic').src = tgUser.photo_url;
+                document.getElementById('menu-profile-pic').style.display = 'block';
+                document.getElementById('menu-default-pic').style.display = 'none';
             }
 
             await fetchUserData();
-            await fetchHistory(true);
-            await fetchTopReferrer(); // Jach'a irpiri apthapiña
+            await fetchHistory(true); // Fetch limit 5 on load
 
+            // Stop Loading animation
             let prog = 0;
             const timer = setInterval(() => {
                 prog += 2;
@@ -314,7 +471,9 @@
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
 
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
@@ -323,14 +482,17 @@
                         balance: 0,
                         username: tgUser?.username || '',
                         first_name: fullName || 'Guest User',
-                        photo_url: tgUser?.photo_url || '',
-                        referrer_id: startParam 
+                        photo_url: tgUser?.photo_url || ''
                     };
+                    
+                    if (startParam && startParam !== userId && startParam !== "99999") {
+                         newUser.referrer_id = startParam;
+                    }
                     
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
                     data = ins.data || newUser; 
                     
-                    if (startParam && startParam !== userId) {
+                    if (startParam && startParam !== userId && startParam !== "99999") {
                         let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
                         
                         if (referrerData) {
@@ -350,6 +512,30 @@
                         }
                     }
                 }
+
+                // Check Active Status
+                const isActive = checkIsActive(data.last_active, data.created_at);
+                const statusBadge = document.getElementById('menu-status-badge');
+                const statusDot = document.getElementById('menu-status-dot');
+                
+                if (isActive) {
+                    statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                    statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
+                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+                } else {
+                    statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                    statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive';
+                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
+                }
+
+                // Set exact Member Since Date (Month Day, Year format)
+                if (data && data.created_at) {
+                    const joinedDate = new Date(data.created_at);
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const day = joinedDate.getDate();
+                    const year = joinedDate.getFullYear();
+                    document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${day}, ${year}`;
+                }
                 
                 spinChances = parseInt(data.spin_chances || 0);
                 adViewsForSpin = parseInt(data.ad_views || 0);
@@ -364,51 +550,19 @@
             }
         }
         
-        // Jach'a irpiri apthapiña
-        async function fetchTopReferrer() {
-            try {
-                const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    let counts = {};
-                    let topId = "No Data";
-                    let maxRef = 0;
-                    
-                    data.forEach(item => {
-                        if(item.referrer_id !== "99999" && item.referrer_id !== null && item.referrer_id !== "") {
-                            counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1;
-                            if (counts[item.referrer_id] > maxRef) {
-                                maxRef = counts[item.referrer_id];
-                                topId = item.referrer_id;
-                            }
-                        }
-                    });
-                    
-                    if(maxRef > 0) {
-                        document.getElementById('top-ref-id').innerText = `ID: ${topId}`;
-                        document.getElementById('top-ref-count').innerText = `${maxRef} Referrals`;
-                    } else {
-                        document.getElementById('top-ref-id').innerText = "No Referrals Yet";
-                        document.getElementById('top-ref-count').innerText = "0 Referrals";
-                    }
-                } else {
-                    document.getElementById('top-ref-id').innerText = "No Referrals Yet";
-                    document.getElementById('top-ref-count').innerText = "0 Referrals";
-                }
-            } catch (e) {
-                console.error("Top referrer error:", e);
-                document.getElementById('top-ref-id').innerText = "Error Loading";
-            }
-        }
-
-        async function fetchHistory(limit) {
+        // Dashboard Recent Activity Logic
+        async function fetchHistory(limit = false) {
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
                 if (error) throw error;
                 
                 if (data) {
                     const items = limit ? data.slice(0, 5) : data;
+                    
+                    if (items.length === 0) {
+                        document.getElementById('history-list').innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`;
+                        return;
+                    }
                     document.getElementById('history-list').innerHTML = items.map(item => {
                         const isAdEarn = item.type === 'AD_REWARD';
                         const isRefEarn = item.type === 'REFERRAL_BONUS';
@@ -422,7 +576,7 @@
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         
                         const dateObj = new Date(item.created_at);
-                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item">
+                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div>
                                 <div>
@@ -436,44 +590,191 @@
                     }).join('');
                 }
             } catch(e) {
-                console.error("Error fetching history:", e);
+                console.error("History error:", e);
             }
         }
 
-        // Nayra sarnaqawi uñacht'ayaña
+        // Toggle history display function (View All / Hide)
         function toggleHistory() {
             isAllHistoryVisible = !isAllHistoryVisible;
             fetchHistory(!isAllHistoryVisible);
             document.getElementById('toggle-history-btn').innerText = isAllHistoryVisible ? "Hide" : "View All";
         }
 
+        // Fetch specifically Withdrawal History for modal
+        async function openWithdrawHistory() {
+            closeSidePanel();
+            openSheet('withdraw-history-sheet');
+            document.getElementById('w-history-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
+
+            try {
+                const { data, error } = await _supabase.from('transactions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('type', 'WITHDRAWAL')
+                    .order('created_at', { ascending: false });
+                    
+                if (error) throw error;
+
+                document.getElementById('w-history-count').innerText = data.length;
+
+                if (data.length === 0) {
+                    document.getElementById('w-history-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
+                    return;
+                }
+
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                document.getElementById('w-history-list-container').innerHTML = data.map(item => {
+                    const dateObj = new Date(item.created_at);
+                    const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                    
+                    let statusColor, iconClass, statusText;
+                    if(item.status === 'approved') {
+                        statusColor = 'bg-green-500/20 text-green-400 border border-green-500/30';
+                        iconClass = 'ph-check-circle';
+                        statusText = 'Approved';
+                    } else if(item.status === 'rejected') {
+                        statusColor = 'bg-red-500/20 text-red-400 border border-red-500/30';
+                        iconClass = 'ph-x-circle';
+                        statusText = 'Rejected';
+                    } else {
+                        statusColor = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                        iconClass = 'ph-clock-countdown';
+                        statusText = 'Pending';
+                    }
+
+                    // Parse compound address
+                    let destAddress = item.address || "N/A";
+                    let wMethod = "Unknown";
+                    let txId = item.id ? item.id.substring(0, 8).toUpperCase() : "N/A"; 
+                    
+                    if (item.address && item.address.includes('::')) {
+                        const parts = item.address.split('::');
+                        destAddress = parts[0];
+                        if(parts.length > 1) wMethod = parts[1];
+                        if(parts.length > 2) txId = parts[2];
+                    }
+
+                    // Dynamic UI elements based on Method
+                    let methodIcon = 'ph-wallet';
+                    let methodNiceName = 'Withdrawal';
+                    let destLabel = 'Account Details';
+                    
+                    if (wMethod === 'BINANCE') { 
+                        methodIcon = 'ph-currency-btc'; methodNiceName = 'Binance'; destLabel = 'Binance ID'; 
+                    } else if (wMethod === 'RELOAD') { 
+                        methodIcon = 'ph-device-mobile-camera'; methodNiceName = 'Mobile Reload'; destLabel = 'Phone No'; 
+                    } else if (wMethod === 'BANK') { 
+                        methodIcon = 'ph-bank'; methodNiceName = 'Bank Transfer'; destLabel = 'Bank Acc'; 
+                    }
+
+                    return `
+                    <div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5">
+                                    <i class="ph-fill ${methodIcon} text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p>
+                                    <p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p>
+                                <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">
+                                    ${statusText}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5">
+                            <div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5">
+                                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span>
+                                <span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span>
+                                <div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+                                    <span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span>
+                                    <i class="ph-bold ph-copy text-sky-400 text-[10px]"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } catch(e) {
+                console.error(e);
+                document.getElementById('w-history-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading history</p>';
+            }
+        }
+        
+        // Copy Tx ID function
+        function copyTxId(txId) {
+            const textArea = document.createElement("textarea");
+            textArea.value = txId;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotify("Transaction ID Copied!", "success");
+            } catch (err) {
+                showNotify("Failed to copy ID");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Set Method for Withdrawals
         function selectMethod(btn, name) {
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             selectedMethodName = name;
+            
+            // Show input section
+            document.getElementById('withdraw-inputs').classList.remove('hidden');
+            
             const addrInput = document.getElementById('w-address');
             const amtInput = document.getElementById('w-amount');
-            addrInput.disabled = false; addrInput.classList.remove('opacity-50');
-            addrInput.disabled = false; addrInput.classList.remove('opacity-50');
-            addrInput.placeholder = (name === 'BINANCE') ? "Enter Binance ID" : "Enter Phone Number";
-            addrInput.value = "";
-            addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
             
+            // Dynamic placeholders
+            if (name === 'BINANCE') addrInput.placeholder = "Enter Binance ID";
+            else if (name === 'RELOAD') addrInput.placeholder = "Enter Phone Number";
+            else if (name === 'BANK') addrInput.placeholder = "Enter Bank Acc. Number";
+            
+            // Allow text for bank names/accounts if needed
+            if (name === 'BANK') {
+                addrInput.setAttribute('inputmode', 'text');
+                addrInput.oninput = null; 
+            } else {
+                addrInput.setAttribute('inputmode', 'numeric');
+                addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+            }
+            
+            addrInput.value = "";
             setTimeout(() => { addrInput.focus(); }, 100);
         }
 
-        // Qullqi apsuña luraña
+        // Process withdrawal
         async function processWithdraw() {
             const addr = document.getElementById('w-address').value.trim();
             const amt = parseFloat(document.getElementById('w-amount').value);
 
             if (!selectedMethodName) return showNotify("Select a method first!");
-            if (!addr) return showNotify(selectedMethodName === 'BINANCE' ? "Enter Binance ID!" : "Enter Phone Number!");
+            if (!addr) {
+                if (selectedMethodName === 'BINANCE') return showNotify("Enter Binance ID!");
+                if (selectedMethodName === 'RELOAD') return showNotify("Enter Phone Number!");
+                if (selectedMethodName === 'BANK') return showNotify("Enter Bank Account!");
+            }
             if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 10)) return showNotify("Invalid Binance ID!");
             if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
+            if (selectedMethodName === 'BANK' && addr.length < 5) return showNotify("Invalid Bank Account!");
+            
             if (isNaN(amt) || amt <= 0) return showNotify("Enter a valid amount!");
             if (selectedMethodName === 'BINANCE' && amt < 5) return showNotify("Min Rs 5 for Binance");
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
+            if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             if (amt > currentBalance) return showNotify("Insufficient Balance!");
 
             const btn = document.getElementById('withdraw-btn');
@@ -481,19 +782,24 @@
             btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
 
             setTimeout(async () => {
+                // Highly unique ID for transactions
+                const txId = ("TX" + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)).toUpperCase();
+                const saveAddress = `${addr}::${selectedMethodName}::${txId}`;
+
                 try {
                     const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
                     if (!balError) {
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: addr }]);
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
                         
                         const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
-                        const label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
+                        let label = selectedMethodName === 'BINANCE' ? "Binance ID" : (selectedMethodName === 'RELOAD' ? "Mobile Number" : "Bank Account");
+                        
+                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
 
                         currentBalance -= amt; 
                         updateUI(); 
-                        fetchHistory(true);
+                        fetchHistory(true); // Update dashboard
                         showNotify("Request Sent!", "success"); 
                         closeAllSheets();
                     } else {
@@ -507,7 +813,7 @@
             }, 3000);
         }
 
-        // Yatiyawi uñjaña
+        // Watch Ad Logic
         async function earnReward() {
             const btn = document.getElementById('adBtn'); 
             btn.disabled = true; 
@@ -521,11 +827,25 @@
             
             setTimeout(async () => {
                 try {
-                    await _supabase.from('profiles').update({ balance: currentBalance + 1.5 }).eq('user_id', userId);
+                    const currentIsoDate = new Date().toISOString();
+                    await _supabase.from('profiles').update({ 
+                        balance: currentBalance + 1.5,
+                        last_active: currentIsoDate 
+                    }).eq('user_id', userId);
+
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
+                    
                     currentBalance += 1.5; 
                     updateUI(); 
                     fetchHistory(true);
+                    
+                    // Force active status on UI
+                    const statusBadge = document.getElementById('menu-status-badge');
+                    const statusDot = document.getElementById('menu-status-dot');
+                    statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                    statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
+                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+
                     showNotify("Reward Added!", "success"); 
                 } catch(e) {
                     showNotify("Error adding reward.");
@@ -535,6 +855,7 @@
             }, 5000);
         }
 
+        // Copy Referral Link Logic
         function copyRefLink() {
             const botUsername = "Earnx24webbot"; 
             const refLink = `https://t.me/${botUsername}/App?startapp=${userId}`;
@@ -552,13 +873,118 @@
             document.body.removeChild(textArea);
         }
 
-        // UI machaqanchaña
+        // Open my referral list
+        async function openReferralList() {
+            closeSidePanel();
+            openSheet('referral-sheet');
+            document.getElementById('referral-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
+
+            try {
+                const { data, error } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
+                if (error) throw error;
+
+                document.getElementById('ref-count-display').innerText = data.length;
+
+                if (data.length === 0) {
+                    document.getElementById('referral-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>';
+                    return;
+                }
+
+                document.getElementById('referral-list-container').innerHTML = data.map(user => {
+                    const name = user.first_name || 'Unknown';
+                    const idDisplay = String(user.user_id).substring(0, 8) + '...';
+                    
+                    const isUserActive = checkIsActive(user.last_active, user.created_at);
+                    const statusClass = isUserActive ? "text-green-400" : "text-red-400";
+                    const statusBg = isUserActive ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
+                    const statusText = isUserActive ? "Active" : "Inactive";
+
+                    return `<div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-user text-xl"></i></div>
+                            <div>
+                                <p class="font-bold text-sm text-white">${name}</p>
+                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">ID: ${idDisplay}</p>
+                            </div>
+                        </div>
+                        <div class="${statusBg} border px-2.5 py-1 rounded-md">
+                            <p class="text-[9px] font-black ${statusClass} uppercase">${statusText}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } catch(e) {
+                console.error(e);
+                document.getElementById('referral-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading list</p>';
+            }
+        }
+
+        // Open Rank List (Leaderboard) - Connected to DB
+        async function openRankList() {
+            closeSidePanel();
+            openSheet('rank-sheet');
+            document.getElementById('rank-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
+
+            try {
+                const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    let counts = {};
+                    
+                    data.forEach(item => {
+                        if(item.referrer_id && item.referrer_id !== "99999") {
+                            counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1;
+                        }
+                    });
+
+                    let sortedRanks = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                    
+                    if(sortedRanks.length === 0) {
+                        document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
+                        return;
+                    }
+
+                    document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
+                        const refUserId = rank[0];
+                        const refCount = rank[1];
+                        
+                        let badgeColor = "bg-slate-500/20 text-slate-400 border-slate-500/30";
+                        if (index === 0) badgeColor = "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+                        else if (index === 1) badgeColor = "bg-slate-300/20 text-slate-300 border-slate-300/30";
+                        else if (index === 2) badgeColor = "bg-amber-700/20 text-amber-600 border-amber-700/30";
+
+                        return `
+                        <div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5 relative overflow-hidden">
+                            ${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}
+                            <div class="flex items-center gap-4 relative z-10">
+                                <div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner">
+                                    #${index + 1}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-white">ID: ${refUserId}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users"></i> ${refCount} Invites</p>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById('rank-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading leaderboard</p>';
+            }
+        }
+
+        // Update UI
         function updateUI() {
             document.getElementById('bal-val-display').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('w-balance-val').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('coin-val').innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
         }
 
+        // Show Notification
         function showNotify(msg, type) {
             const box = document.getElementById('custom-notify');
             document.getElementById('notify-msg').innerText = msg;
@@ -567,7 +993,7 @@
             setTimeout(() => box.classList.remove('active'), 3000);
         }
         
-        // Panela ukat laphina jist'araña
+        // Panel and sheet toggles
         function openSidePanel() {
             document.getElementById('side-panel').classList.add('active');
             document.getElementById('sheet-overlay').style.display = 'block';
@@ -581,6 +1007,20 @@
         function openSheet(id) { 
             document.getElementById(id).classList.add('active'); 
             document.getElementById('sheet-overlay').style.display = 'block'; 
+            
+            // Withdraw sheet reset
+            if (id === 'withdraw-sheet') {
+                selectedMethodName = null;
+                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+                
+                const inputsDiv = document.getElementById('withdraw-inputs');
+                if (inputsDiv) inputsDiv.classList.add('hidden');
+                
+                const addrInput = document.getElementById('w-address');
+                const amtInput = document.getElementById('w-amount');
+                if (addrInput) addrInput.value = '';
+                if (amtInput) amtInput.value = '';
+            }
         }
         
         function closeSheet(id) { 
@@ -590,11 +1030,15 @@
         
         function closeAllSheets() { 
             closeSheet('withdraw-sheet'); 
-            closeSidePanel(); // Kupikha panela jist'antaña
+            closeSidePanel(); // Close right side panel
             closeSheet('wheel-sheet');
+            closeSheet('referral-sheet');
+            closeSheet('withdraw-history-sheet');
+            closeSheet('rank-sheet');
+            closeSheet('version-sheet');
         }
 
-        // --- Suerte t'ijru lurañanaka ---
+        // --- Lucky Wheel Functions ---
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
             document.getElementById('ad-progress-text').innerText = `${adViewsForSpin}/3`;
@@ -628,12 +1072,12 @@
                 } catch(e) { console.error("DB update error", e); }
                 
                 btn.disabled = false;
-                btn.innerText = "Watch Video Ad";
+                btn.innerText = "Watch Ad";
             }, 5000);
         }
 
         function spinWheel() {
-            if (spinChances <= 0) return showNotify("No spin chances left! Watch ads to earn.", "warning");
+            if (spinChances <= 0) return showNotify("No spin chances left! Watch ads to earn more.", "warning");
             
             const btn = document.getElementById('spin-btn');
             btn.disabled = true;
@@ -641,10 +1085,6 @@
             spinChances--;
             updateWheelUI();
             
-            try {
-                _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then();
-            } catch(e) {}
-
             const rand = Math.random();
             let prizeIdx = 5; 
             if (rand < 0.05) prizeIdx = 4; // Rs 50 (5% chance)
@@ -665,11 +1105,20 @@
             wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
 
             setTimeout(async () => {
+                const currentIsoDate = new Date().toISOString();
+                
+                try {
+                    _supabase.from('profiles').update({ 
+                        spin_chances: spinChances,
+                        last_active: currentIsoDate
+                    }).eq('user_id', userId).then();
+                } catch(e) {}
+
                 const prize = prizes[prizeIdx];
                 if (prize.type === 'cash' || prize.type === 'coin') {
                     currentBalance += prize.val;
                     try {
-                        await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                        await _supabase.from('profiles').update({ balance: currentBalance, last_active: currentIsoDate }).eq('user_id', userId);
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                     } catch(e) {}
                     
@@ -679,6 +1128,14 @@
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
                 }
+                
+                // Force active status on UI
+                const statusBadge = document.getElementById('menu-status-badge');
+                const statusDot = document.getElementById('menu-status-dot');
+                statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
+                statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+
                 btn.disabled = false;
             }, 4000); 
         }
