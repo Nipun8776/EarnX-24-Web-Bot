@@ -78,13 +78,11 @@
 
 <body onload="initApp()">
 
-    <!-- Notification Toast -->
     <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
         <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
         <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
     </div>
 
-    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting</p>
@@ -93,10 +91,8 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
-    <!-- Main Dashboard -->
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
-            <!-- User Info (Left) -->
             <div class="flex items-center gap-3 text-left">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0">
                     <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
@@ -108,12 +104,10 @@
                 </div>
             </div>
 
-            <!-- Side Panel Trigger Button (Right) -->
             <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
-            <!-- Balance Card -->
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
                 <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
                 <div class="flex items-center gap-2 mb-4">
@@ -127,7 +121,6 @@
                 </div>
             </div>
 
-            <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -137,7 +130,6 @@
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">SPIN</button>
             </div>
 
-            <!-- Watch Ad Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="ph-fill ph-play-circle text-2xl animate-pulse"></i></div>
@@ -146,7 +138,6 @@
                 <button id="adBtn" onclick="earnReward()" class="bg-sky-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">START</button>
             </div>
 
-            <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="ph-fill ph-users-three text-2xl animate-bounce"></i></div>
@@ -155,7 +146,6 @@
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
-            <!-- Recent Activity Section -->
             <div class="space-y-3">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
@@ -166,10 +156,8 @@
         </div>
     </div>
 
-    <!-- Overlay for Modals and Panels -->
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
-    <!-- Professional Side Panel -->
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
@@ -186,15 +174,12 @@
                         <i class="ph-regular ph-star"></i> Active
                     </span>
                 </div>
-                <!-- Dynamic Member Since Date -->
                 <p id="menu-member-since" class="text-[9px] text-slate-500 mt-2 flex items-center gap-1"><i class="ph-regular ph-calendar-blank"></i> Member since ---</p>
             </div>
             <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
 
-        <!-- Navigation Links -->
         <div class="flex flex-col space-y-2 flex-1">
-            <!-- Withdrawal History Button -->
             <button onclick="openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner"><i class="ph-fill ph-receipt text-lg"></i></div>
                 <div class="text-left">
@@ -203,7 +188,6 @@
                 </div>
             </button>
 
-            <!-- My Referral List Button -->
             <button onclick="openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-users text-lg"></i></div>
                 <div class="text-left">
@@ -212,7 +196,6 @@
                 </div>
             </button>
 
-            <!-- Rank List Button -->
             <button onclick="openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shadow-inner"><i class="ph-fill ph-trophy text-lg"></i></div>
                 <div class="text-left">
@@ -221,7 +204,6 @@
                 </div>
             </button>
 
-            <!-- App Version Button -->
             <button onclick="closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner"><i class="ph-fill ph-info text-lg"></i></div>
                 <div class="text-left">
@@ -231,13 +213,11 @@
             </button>
         </div>
 
-        <!-- Footer inside Panel -->
         <div class="mt-auto pt-6 border-t border-white/10 flex items-center justify-center">
             <p class="text-[8px] text-slate-500 font-black uppercase tracking-widest">Powered by EarnX24</p>
         </div>
     </div>
 
-    <!-- App Version Modal -->
     <div id="version-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-info text-2xl"></i></div>
@@ -262,13 +242,12 @@
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved UI and seamless animations.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Bank Transfer withdrawal method.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New active/inactive status functionality based on daily tasks.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed balance saving and referral exploit bugs.</span></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- Withdrawal History Modal -->
     <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-cube text-2xl"></i></div>
@@ -280,11 +259,9 @@
         </div>
         
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            <!-- Items loaded dynamically -->
-        </div>
+            </div>
     </div>
 
-    <!-- Referral List Modal -->
     <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -295,11 +272,9 @@
         </div>
         
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            <!-- Items loaded dynamically -->
-        </div>
+            </div>
     </div>
 
-    <!-- Rank List Modal -->
     <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -310,11 +285,9 @@
         </div>
         
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            <!-- Items loaded dynamically -->
-        </div>
+            </div>
     </div>
 
-    <!-- Withdraw Sheet -->
     <div id="withdraw-sheet" class="bottom-sheet">
         <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
@@ -322,7 +295,6 @@
         <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs 0.00</span></p>
         
         <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-3">Select Method</h3>
-        <!-- 3 Options -->
         <div class="grid grid-cols-3 gap-3 mb-8">
             <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Binance</span>
@@ -342,7 +314,6 @@
         </div>
     </div>
 
-    <!-- Lucky Wheel Sheet -->
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
@@ -412,7 +383,7 @@
         // Check if user is active (Did a task in last 3 days)
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
-            if (!targetDateStr) return true; // fallback
+            if (!targetDateStr) return true; 
             const lastActive = new Date(targetDateStr);
             const now = new Date();
             const diffTime = now.getTime() - lastActive.getTime();
@@ -424,7 +395,6 @@
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
             
-            // Reverted back to 99999 for local testing, ensures DB works. Use real ID on Telegram.
             userId = tgUser ? String(tgUser.id) : "99999"; 
             
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
@@ -452,7 +422,7 @@
             }
 
             await fetchUserData();
-            await fetchHistory(true); // Fetch limit 5 on load
+            await fetchHistory(true); 
 
             // Stop Loading animation
             let prog = 0;
@@ -489,32 +459,39 @@
                          newUser.referrer_id = startParam;
                     }
                     
+                    // FIXED: Only process referral reward if the user creation is actually successful
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
-                    data = ins.data || newUser; 
                     
-                    if (startParam && startParam !== userId && startParam !== "99999") {
-                        let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
+                    if (ins.error) {
+                        console.error("Failed to create new profile");
+                    } else {
+                        data = ins.data || newUser; 
                         
-                        if (referrerData) {
-                            let newBalance = parseFloat(referrerData.balance) + 5;
-                            await _supabase.from('profiles').update({ balance: newBalance }).eq('user_id', startParam);
+                        // User successfully created! Now reward the referrer ONCE.
+                        if (startParam && startParam !== userId && startParam !== "99999") {
+                            let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
                             
-                            await _supabase.from('transactions').insert([{ 
-                                user_id: startParam, 
-                                type: 'REFERRAL_BONUS', 
-                                amount: 5,
-                                status: 'approved'
-                            }]);
-                            
-                            const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                            const refText = `🎉 *New Referral Joined!*\n\n${refName} has joined EarnX24 using your referral link.\n\n💰 You received a bonus of Rs 5.00!`;
-                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
+                            if (referrerData) {
+                                let newBalance = parseFloat(referrerData.balance) + 5;
+                                await _supabase.from('profiles').update({ balance: newBalance }).eq('user_id', startParam);
+                                
+                                await _supabase.from('transactions').insert([{ 
+                                    user_id: startParam, 
+                                    type: 'REFERRAL_BONUS', 
+                                    amount: 5,
+                                    status: 'approved'
+                                }]);
+                                
+                                const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
+                                const refText = `🎉 *New Referral Joined!*\n\n${refName} has joined EarnX24 using your referral link.\n\n💰 You received a bonus of Rs 5.00!`;
+                                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
+                            }
                         }
                     }
                 }
 
                 // Check Active Status
-                const isActive = checkIsActive(data.last_active, data.created_at);
+                const isActive = checkIsActive(data?.last_active, data?.created_at);
                 const statusBadge = document.getElementById('menu-status-badge');
                 const statusDot = document.getElementById('menu-status-dot');
                 
@@ -528,7 +505,6 @@
                     statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
                 }
 
-                // Set exact Member Since Date (Month Day, Year format)
                 if (data && data.created_at) {
                     const joinedDate = new Date(data.created_at);
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -537,10 +513,10 @@
                     document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${day}, ${year}`;
                 }
                 
-                spinChances = parseInt(data.spin_chances || 0);
-                adViewsForSpin = parseInt(data.ad_views || 0);
+                spinChances = parseInt(data?.spin_chances || 0);
+                adViewsForSpin = parseInt(data?.ad_views || 0);
+                currentBalance = parseFloat(data?.balance || 0);
                 
-                currentBalance = parseFloat(data.balance || 0);
                 updateUI();
                 updateWheelUI();
             } catch(e) { 
@@ -550,7 +526,6 @@
             }
         }
         
-        // Dashboard Recent Activity Logic
         async function fetchHistory(limit = false) {
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
@@ -594,14 +569,12 @@
             }
         }
 
-        // Toggle history display function (View All / Hide)
         function toggleHistory() {
             isAllHistoryVisible = !isAllHistoryVisible;
             fetchHistory(!isAllHistoryVisible);
             document.getElementById('toggle-history-btn').innerText = isAllHistoryVisible ? "Hide" : "View All";
         }
 
-        // Fetch specifically Withdrawal History for modal
         async function openWithdrawHistory() {
             closeSidePanel();
             openSheet('withdraw-history-sheet');
@@ -644,7 +617,6 @@
                         statusText = 'Pending';
                     }
 
-                    // Parse compound address
                     let destAddress = item.address || "N/A";
                     let wMethod = "Unknown";
                     let txId = item.id ? item.id.substring(0, 8).toUpperCase() : "N/A"; 
@@ -656,7 +628,6 @@
                         if(parts.length > 2) txId = parts[2];
                     }
 
-                    // Dynamic UI elements based on Method
                     let methodIcon = 'ph-wallet';
                     let methodNiceName = 'Withdrawal';
                     let destLabel = 'Account Details';
@@ -711,7 +682,6 @@
             }
         }
         
-        // Copy Tx ID function
         function copyTxId(txId) {
             const textArea = document.createElement("textarea");
             textArea.value = txId;
@@ -726,24 +696,20 @@
             document.body.removeChild(textArea);
         }
 
-        // Set Method for Withdrawals
         function selectMethod(btn, name) {
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             selectedMethodName = name;
             
-            // Show input section
             document.getElementById('withdraw-inputs').classList.remove('hidden');
             
             const addrInput = document.getElementById('w-address');
             const amtInput = document.getElementById('w-amount');
             
-            // Dynamic placeholders
             if (name === 'BINANCE') addrInput.placeholder = "Enter Binance ID";
             else if (name === 'RELOAD') addrInput.placeholder = "Enter Phone Number";
             else if (name === 'BANK') addrInput.placeholder = "Enter Bank Acc. Number";
             
-            // Allow text for bank names/accounts if needed
             if (name === 'BANK') {
                 addrInput.setAttribute('inputmode', 'text');
                 addrInput.oninput = null; 
@@ -756,7 +722,6 @@
             setTimeout(() => { addrInput.focus(); }, 100);
         }
 
-        // Process withdrawal
         async function processWithdraw() {
             const addr = document.getElementById('w-address').value.trim();
             const amt = parseFloat(document.getElementById('w-amount').value);
@@ -782,7 +747,6 @@
             btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
 
             setTimeout(async () => {
-                // Highly unique ID for transactions
                 const txId = ("TX" + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)).toUpperCase();
                 const saveAddress = `${addr}::${selectedMethodName}::${txId}`;
 
@@ -799,7 +763,7 @@
 
                         currentBalance -= amt; 
                         updateUI(); 
-                        fetchHistory(true); // Update dashboard
+                        fetchHistory(true); 
                         showNotify("Request Sent!", "success"); 
                         closeAllSheets();
                     } else {
@@ -813,7 +777,6 @@
             }, 3000);
         }
 
-        // Watch Ad Logic
         async function earnReward() {
             const btn = document.getElementById('adBtn'); 
             btn.disabled = true; 
@@ -828,25 +791,30 @@
             setTimeout(async () => {
                 try {
                     const currentIsoDate = new Date().toISOString();
-                    await _supabase.from('profiles').update({ 
+                    
+                    // FIXED: Properly wait and check if balance saved to database first
+                    const { error } = await _supabase.from('profiles').update({ 
                         balance: currentBalance + 1.5,
                         last_active: currentIsoDate 
                     }).eq('user_id', userId);
 
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
-                    
-                    currentBalance += 1.5; 
-                    updateUI(); 
-                    fetchHistory(true);
-                    
-                    // Force active status on UI
-                    const statusBadge = document.getElementById('menu-status-badge');
-                    const statusDot = document.getElementById('menu-status-dot');
-                    statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                    statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
-                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+                    if (!error) {
+                        currentBalance += 1.5; 
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
+                        
+                        updateUI(); 
+                        fetchHistory(true);
+                        
+                        const statusBadge = document.getElementById('menu-status-badge');
+                        const statusDot = document.getElementById('menu-status-dot');
+                        statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                        statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
+                        statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
 
-                    showNotify("Reward Added!", "success"); 
+                        showNotify("Reward Added!", "success"); 
+                    } else {
+                        showNotify("Failed to save balance.", "warning");
+                    }
                 } catch(e) {
                     showNotify("Error adding reward.");
                 }
@@ -855,7 +823,6 @@
             }, 5000);
         }
 
-        // Copy Referral Link Logic
         function copyRefLink() {
             const botUsername = "Earnx24webbot"; 
             const refLink = `https://t.me/${botUsername}/App?startapp=${userId}`;
@@ -873,7 +840,6 @@
             document.body.removeChild(textArea);
         }
 
-        // Open my referral list
         async function openReferralList() {
             closeSidePanel();
             openSheet('referral-sheet');
@@ -919,7 +885,6 @@
             }
         }
 
-        // Open Rank List (Leaderboard) - Connected to DB
         async function openRankList() {
             closeSidePanel();
             openSheet('rank-sheet');
@@ -977,14 +942,12 @@
             }
         }
 
-        // Update UI
         function updateUI() {
             document.getElementById('bal-val-display').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('w-balance-val').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('coin-val').innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
         }
 
-        // Show Notification
         function showNotify(msg, type) {
             const box = document.getElementById('custom-notify');
             document.getElementById('notify-msg').innerText = msg;
@@ -993,7 +956,6 @@
             setTimeout(() => box.classList.remove('active'), 3000);
         }
         
-        // Panel and sheet toggles
         function openSidePanel() {
             document.getElementById('side-panel').classList.add('active');
             document.getElementById('sheet-overlay').style.display = 'block';
@@ -1008,7 +970,6 @@
             document.getElementById(id).classList.add('active'); 
             document.getElementById('sheet-overlay').style.display = 'block'; 
             
-            // Withdraw sheet reset
             if (id === 'withdraw-sheet') {
                 selectedMethodName = null;
                 document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
@@ -1030,7 +991,7 @@
         
         function closeAllSheets() { 
             closeSheet('withdraw-sheet'); 
-            closeSidePanel(); // Close right side panel
+            closeSidePanel(); 
             closeSheet('wheel-sheet');
             closeSheet('referral-sheet');
             closeSheet('withdraw-history-sheet');
@@ -1038,7 +999,6 @@
             closeSheet('version-sheet');
         }
 
-        // --- Lucky Wheel Functions ---
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
             document.getElementById('ad-progress-text').innerText = `${adViewsForSpin}/3`;
@@ -1087,12 +1047,12 @@
             
             const rand = Math.random();
             let prizeIdx = 5; 
-            if (rand < 0.05) prizeIdx = 4; // Rs 50 (5% chance)
-            else if (rand < 0.15) prizeIdx = 2; // Rs 10 (10% chance)
-            else if (rand < 0.35) prizeIdx = 1; // Rs 5 (20% chance)
-            else if (rand < 0.60) prizeIdx = 3; // 50 Coins (25% chance)
-            else if (rand < 0.85) prizeIdx = 0; // Rs 1 (25% chance)
-            else prizeIdx = 5; // Try Again (15% chance)
+            if (rand < 0.05) prizeIdx = 4; 
+            else if (rand < 0.15) prizeIdx = 2; 
+            else if (rand < 0.35) prizeIdx = 1; 
+            else if (rand < 0.60) prizeIdx = 3; 
+            else if (rand < 0.85) prizeIdx = 0; 
+            else prizeIdx = 5; 
 
             const segmentAngle = 60;
             const targetRotation = 360 - (30 + prizeIdx * segmentAngle);
@@ -1108,28 +1068,36 @@
                 const currentIsoDate = new Date().toISOString();
                 
                 try {
-                    _supabase.from('profiles').update({ 
+                    await _supabase.from('profiles').update({ 
                         spin_chances: spinChances,
                         last_active: currentIsoDate
-                    }).eq('user_id', userId).then();
+                    }).eq('user_id', userId);
                 } catch(e) {}
 
                 const prize = prizes[prizeIdx];
                 if (prize.type === 'cash' || prize.type === 'coin') {
-                    currentBalance += prize.val;
-                    try {
-                        await _supabase.from('profiles').update({ balance: currentBalance, last_active: currentIsoDate }).eq('user_id', userId);
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
-                    } catch(e) {}
                     
-                    showNotify(`Congratulations! You won ${prize.label}!`, "success");
-                    updateUI();
-                    fetchHistory(true);
+                    // FIXED: Ensure prize balance updates in database correctly before showing
+                    try {
+                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
+                        
+                        if(!error) {
+                            currentBalance += prize.val;
+                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
+                            showNotify(`Congratulations! You won ${prize.label}!`, "success");
+                            updateUI();
+                            fetchHistory(true);
+                        } else {
+                            showNotify("Failed to save prize to account.", "warning");
+                        }
+                    } catch(e) {
+                         showNotify("Error updating balance.", "warning");
+                    }
+                    
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
                 }
                 
-                // Force active status on UI
                 const statusBadge = document.getElementById('menu-status-badge');
                 const statusDot = document.getElementById('menu-status-dot');
                 statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
