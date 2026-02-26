@@ -33,7 +33,7 @@
             -webkit-touch-callout: none;
         }
 
-        input, textarea {
+        input, textarea, select {
             -webkit-user-select: auto;
             -moz-user-select: auto;
             -ms-user-select: auto;
@@ -68,6 +68,9 @@
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+        
+        /* Select element custom styling */
+        select option { background-color: #0f172a; color: white; }
     </style>
 </head>
 
@@ -227,9 +230,9 @@
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Recurring Auto-Play Ad Monetization.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Changed Spin unlock logic to 5 Referrals = 1 Spin.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Continuous Auto-Play Ad Monetization.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Full Bank Transfer Details Form.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Rank List profile picture security.</span></li>
                 </ul>
             </div>
         </div>
@@ -287,9 +290,41 @@
                 <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
+
         <div id="withdraw-inputs" class="space-y-4 hidden">
-            <input id="w-address" type="text" inputmode="text" placeholder="Select a method first" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            
+            <div id="standard-input-group" class="space-y-4 hidden">
+                <input id="w-address" type="text" inputmode="text" placeholder="Account Details" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            </div>
+
+            <div id="bank-input-group" class="space-y-4 hidden">
+                <div class="relative w-full">
+                    <select id="w-bank-name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 appearance-none cursor-pointer">
+                        <option value="" disabled selected class="text-slate-500">Select Your Bank</option>
+                        <option value="Bank of Ceylon (BOC)">Bank of Ceylon (BOC)</option>
+                        <option value="Commercial Bank">Commercial Bank</option>
+                        <option value="Hatton National Bank (HNB)">Hatton National Bank (HNB)</option>
+                        <option value="Sampath Bank">Sampath Bank</option>
+                        <option value="People's Bank">People's Bank</option>
+                        <option value="National Development Bank (NDB)">National Development Bank (NDB)</option>
+                        <option value="Nations Trust Bank (NTB)">Nations Trust Bank (NTB)</option>
+                        <option value="Seylan Bank">Seylan Bank</option>
+                        <option value="Pan Asia Bank">Pan Asia Bank</option>
+                        <option value="DFCC Bank">DFCC Bank</option>
+                        <option value="Cargills Bank">Cargills Bank</option>
+                        <option value="Amana Bank">Amana Bank</option>
+                        <option value="Union Bank">Union Bank</option>
+                        <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                    </select>
+                    <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+                <input id="w-bank-branch" type="text" placeholder="Branch Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+                <input id="w-bank-acc-name" type="text" placeholder="Account Holder Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+                <input id="w-bank-acc-no" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Account Number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            </div>
+
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            
             <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-4 flex items-center justify-center gap-2">Submit Request</button>
         </div>
     </div>
@@ -408,32 +443,48 @@
                     clearInterval(timer); 
                     setTimeout(() => { 
                         document.getElementById('loading-screen').style.display = 'none'; 
-                        startAutoAd(); // Trigger auto recurring ad after loading finishes
+                        startAutoAdLoop(); 
                     }, 500); 
                 }
             }, 30);
         }
 
-        // --- AUTO PLAY AD SYSTEM (RECURRING) ---
-        function startAutoAd() {
-            // First ad shows quickly (between 5 to 15 seconds)
+        // --- NEW: ROBUST AUTO PLAY AD LOOP ---
+        function startAutoAdLoop() {
+            function scheduleNext() {
+                // Next ad will play randomly between 45 seconds to 2 minutes
+                const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
+                setTimeout(triggerAd, nextDelay);
+            }
+
+            function triggerAd() {
+                if (typeof show_10365806 === 'function') {
+                    try {
+                        let adPromise = show_10365806({
+                            type: 'inApp',
+                            inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                        });
+                        
+                        // Wait for the ad to completely finish/close before scheduling the next one
+                        if (adPromise && typeof adPromise.finally === 'function') {
+                            adPromise.finally(() => {
+                                scheduleNext();
+                            });
+                        } else {
+                            scheduleNext(); 
+                        }
+                    } catch(e) { 
+                        console.error("Auto Ad Error", e); 
+                        scheduleNext();
+                    }
+                } else {
+                    scheduleNext();
+                }
+            }
+
+            // First ad will play randomly between 5 seconds to 15 seconds after app opens
             const firstDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
             setTimeout(triggerAd, firstDelay);
-        }
-
-        function triggerAd() {
-            if (typeof show_10365806 === 'function') {
-                try {
-                    show_10365806({
-                        type: 'inApp',
-                        inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                    });
-                } catch(e) { console.error("Auto Ad Error", e); }
-            }
-            
-            // Schedule the NEXT ad randomly between 45 seconds to 2 minutes
-            const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
-            setTimeout(triggerAd, nextDelay);
         }
 
         async function fetchUserData() {
@@ -461,21 +512,18 @@
                     if (!ins.error) {
                         data = ins.data || newUser; 
                         
-                        // Handle Referral Rewards logic for the Referrer
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances').eq('user_id', startParam).maybeSingle();
                             
                             if (referrerData) {
                                 let newBalance = parseFloat(referrerData.balance) + 5;
                                 
-                                // Count how many referrals the referrer now has
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
                                 
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                // Every 5th referral gives 1 spin chance
                                 if (currentRefs > 0 && currentRefs % 5 === 0) {
                                     newSpinChances += 1;
                                     gotSpin = true;
@@ -526,7 +574,6 @@
                 spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
                 
-                // Fetch the current user's total referrals to update UI
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
                 
@@ -584,11 +631,14 @@
                     const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                     let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
                     let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                    
                     let parts = (item.address || "N/A").split('::');
                     let destAddress = parts[0], wMethod = parts[1] || "Unknown", txId = parts[2] || (item.id ? item.id.substring(0, 8).toUpperCase() : "N/A");
+                    
                     let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
                     let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
-                    let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Bank Acc');
+                    let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
+                    
                     return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
             } catch(e) { console.error(e); }
@@ -601,40 +651,96 @@
         }
 
         function selectMethod(btn, name) {
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedMethodName = name;
+            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); 
+            btn.classList.add('selected'); 
+            selectedMethodName = name;
+            
             document.getElementById('withdraw-inputs').classList.remove('hidden');
+            
+            const stdGroup = document.getElementById('standard-input-group');
+            const bankGroup = document.getElementById('bank-input-group');
             const addrInput = document.getElementById('w-address');
-            addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : (name === 'RELOAD' ? "Enter Phone Number" : "Enter Bank Acc. Number");
-            if (name === 'BANK') { addrInput.setAttribute('inputmode', 'text'); addrInput.oninput = null; } 
-            else { addrInput.setAttribute('inputmode', 'numeric'); addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); }; }
-            addrInput.value = ""; setTimeout(() => { addrInput.focus(); }, 100);
+
+            if (name === 'BANK') {
+                stdGroup.classList.add('hidden');
+                bankGroup.classList.remove('hidden');
+            } else {
+                bankGroup.classList.add('hidden');
+                stdGroup.classList.remove('hidden');
+                
+                addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
+                addrInput.setAttribute('inputmode', 'numeric'); 
+                addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+                addrInput.value = ""; 
+                setTimeout(() => { addrInput.focus(); }, 100);
+            }
         }
 
         async function processWithdraw() {
-            const addr = document.getElementById('w-address').value.trim();
+            let addr = "", bankName = "", bankBranch = "", accName = "";
             const amt = parseFloat(document.getElementById('w-amount').value);
+            
             if (!selectedMethodName) return showNotify("Select a method first!");
-            if (!addr) return showNotify("Enter Details!");
-            if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 10)) return showNotify("Invalid Binance ID!");
-            if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
-            if (selectedMethodName === 'BANK' && addr.length < 5) return showNotify("Invalid Bank Account!");
+            
+            if (selectedMethodName === 'BANK') {
+                bankName = document.getElementById('w-bank-name').value;
+                bankBranch = document.getElementById('w-bank-branch').value.trim();
+                accName = document.getElementById('w-bank-acc-name').value.trim();
+                addr = document.getElementById('w-bank-acc-no').value.trim();
+                
+                if (!bankName) return showNotify("Select a Bank!");
+                if (!bankBranch) return showNotify("Enter Branch Name!");
+                if (!accName) return showNotify("Enter Account Name!");
+                if (!addr || addr.length < 5) return showNotify("Invalid Account Number!");
+            } else {
+                addr = document.getElementById('w-address').value.trim();
+                if (!addr) return showNotify("Enter Details!");
+                if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
+                if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
+            }
+
             if (isNaN(amt) || amt <= 0) return showNotify("Enter a valid amount!");
             if (selectedMethodName === 'BINANCE' && amt < 5) return showNotify("Min Rs 5 for Binance");
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
             if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             if (amt > currentBalance) return showNotify("Insufficient Balance!");
 
-            const btn = document.getElementById('withdraw-btn'); btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
+            const btn = document.getElementById('withdraw-btn'); 
+            btn.disabled = true; 
+            btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
+            
             setTimeout(async () => {
                 const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
-                const saveAddress = `${addr}::${selectedMethodName}::${txId}`;
+                
+                let saveAddress = "";
+                if (selectedMethodName === 'BANK') {
+                    saveAddress = `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}`;
+                } else {
+                    saveAddress = `${addr}::${selectedMethodName}::${txId}`;
+                }
+
                 try {
                     const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
                     if (!balError) {
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
-                        const text = `✅ *Withdrawal Request*\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *Account:* ${addr}\n⏳ *Status:* Processing`;
+                        
+                        let text = "";
+                        const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
+                        
+                        if (selectedMethodName === 'BANK') {
+                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* Bank Transfer\n🏢 *Bank:* ${bankName}\n📍 *Branch:* ${bankBranch}\n👤 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing`;
+                        } else {
+                            let label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
+                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing`;
+                        }
+
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
-                        currentBalance -= amt; updateUI(); fetchHistory(true); showNotify("Request Sent!", "success"); closeAllSheets();
+                        
+                        currentBalance -= amt; 
+                        updateUI(); 
+                        fetchHistory(true); 
+                        showNotify("Request Sent!", "success"); 
+                        closeAllSheets();
                     } else showNotify("Error processing request.");
                 } catch(e) { showNotify("Error processing request."); }
                 btn.disabled = false; btn.innerText = "Submit Request";
@@ -698,7 +804,10 @@
                     document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
                         const refProfile = profileMap[rank[0]] || {};
                         let badgeColor = index === 0 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : (index === 1 ? "bg-slate-300/20 text-slate-300 border-slate-300/30" : (index === 2 ? "bg-amber-700/20 text-amber-600 border-amber-700/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"));
-                        let photoHtml = refProfile.photo_url ? `<img src="${refProfile.photo_url}" class="w-full h-full object-cover">` : `<i class="ph-fill ph-user text-lg text-slate-400"></i>`;
+                        
+                        // Fix for Image Long press
+                        let photoHtml = refProfile.photo_url ? `<img src="${refProfile.photo_url}" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">` : `<i class="ph-fill ph-user text-lg text-slate-400"></i>`;
+                        
                         return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
                     }).join('');
                 } else document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
@@ -724,7 +833,14 @@
             if (id === 'withdraw-sheet') {
                 selectedMethodName = null; document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
                 document.getElementById('withdraw-inputs').classList.add('hidden');
-                document.getElementById('w-address').value = ''; document.getElementById('w-amount').value = '';
+                
+                // Clear all input fields
+                document.getElementById('w-address').value = ''; 
+                document.getElementById('w-amount').value = '';
+                document.getElementById('w-bank-name').value = '';
+                document.getElementById('w-bank-branch').value = '';
+                document.getElementById('w-bank-acc-name').value = '';
+                document.getElementById('w-bank-acc-no').value = '';
             }
         }
         function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
