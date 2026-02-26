@@ -5,10 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Polyfill for Telegram CloudStorage on older versions (v6.0) to prevent Ad SDK console errors -->
+    <script>
+        // Suppress specific Telegram WebApp console errors that bypass standard polyfills
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
+                return; // Ignore this specific error spam
+            }
+            originalConsoleError.apply(console, args);
+        };
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            if (!window.Telegram.WebApp.isVersionAtLeast('6.9')) {
+                const cloudPolyfill = {
+                    setItem: function(key, value, callback) {
+                        try { localStorage.setItem('tg_cloud_' + key, value); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
+                        return this;
+                    },
+                    getItem: function(key, callback) {
+                        try { let val = localStorage.getItem('tg_cloud_' + key); if(callback) callback(null, val); } catch(e) { if(callback) callback(e); }
+                        return this;
+                    },
+                    getItems: function(keys, callback) {
+                        try { let res = {}; keys.forEach(function(k) { res[k] = localStorage.getItem('tg_cloud_' + k); }); if(callback) callback(null, res); } catch(e) { if(callback) callback(e); }
+                        return this;
+                    },
+                    removeItem: function(key, callback) {
+                        try { localStorage.removeItem('tg_cloud_' + key); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
+                        return this;
+                    },
+                    removeItems: function(keys, callback) {
+                        try { keys.forEach(function(k) { localStorage.removeItem('tg_cloud_' + k); }); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
+                        return this;
+                    },
+                    getKeys: function(callback) {
+                        try {
+                            let keys = [];
+                            for(let i=0; i<localStorage.length; i++) {
+                                let k = localStorage.key(i);
+                                if(k.startsWith('tg_cloud_')) keys.push(k.replace('tg_cloud_', ''));
+                            }
+                            if(callback) callback(null, keys);
+                        } catch(e) { if(callback) callback(e); }
+                        return this;
+                    }
+                };
+
+                // Carefully assign to existing object to bypass read-only property restrictions
+                if (window.Telegram.WebApp.CloudStorage) {
+                    Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
+                } else {
+                    window.Telegram.WebApp.CloudStorage = cloudPolyfill;
+                }
+            }
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Ad Network SDK Integration (Async loaded to prevent screen freeze) -->
     <script async src="https://libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
 
     <style>
@@ -66,32 +125,65 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         
         @keyframes spin-slow { to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin-slow 4s linear infinite; }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+        
+        /* Smooth Referral Icon Reverse Spin */
+        @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+        .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
+
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
 
         select option { background-color: #0f172a; color: white; }
+
+        /* Super Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            20% { transform: translateX(-10px) translateY(-5px) rotate(-3deg); }
+            40% { transform: translateX(10px) translateY(5px) rotate(3deg); }
+            60% { transform: translateX(-10px) translateY(5px) rotate(-3deg); }
+            80% { transform: translateX(10px) translateY(-5px) rotate(3deg); }
+        }
+        .shake-screen { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+        }
+        
+        /* Game Icon Pulse Animation (Google Play Style) */
+        @keyframes play-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); }
+            50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); }
+        }
+        .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
 
         /* Game Full Screen Styles */
         .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
-        .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .tile:active { transform: scale(0.85); }
         .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
         .tile.match-anim { transform: scale(0) rotate(180deg); opacity: 0; }
-        .tile.bomb { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; animation: pulse-red 1s infinite; }
-        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 5px #ef4444; } 50% { box-shadow: 0 0 20px #ef4444; } }
+        .tile.bomb { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; animation: pulse-red 1s infinite; z-index: 15; }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 5px #ef4444; transform: scale(1); } 50% { box-shadow: 0 0 25px #ef4444; transform: scale(1.1); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .bomb-icon { transition: all 0.3s ease; }
+        .bomb-hit { color: #ef4444; transform: scale(1.2); filter: drop-shadow(0 0 8px #ef4444); }
     </style>
 </head>
 
 <body onload="initApp()">
 
+    <!-- Notification Toast -->
     <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
         <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
         <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
     </div>
 
+    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting</p>
@@ -100,15 +192,26 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
+    <!-- Match-3 Game Full Screen -->
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-8 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
-                <div>
-                    <h2 class="text-sm font-black uppercase">Match & Earn</h2>
-                    <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Avoid the Bombs!</p>
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
+                    <div>
+                        <h2 class="text-sm font-black uppercase">Match & Earn</h2>
+                        <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Max Rs 10.00</p>
+                    </div>
+                </div>
+                <!-- Permanent Bomb Tracker -->
+                <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10 w-fit mt-1">
+                    <span class="text-[8px] font-bold uppercase text-slate-400 mr-1">Bombs:</span>
+                    <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                    <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                    <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
                 </div>
             </div>
+            
             <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 text-right shadow-inner">
                 <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Earnings</p>
                 <p id="game-session-earning" class="text-lg font-black text-green-400 leading-tight">Rs 0.00</p>
@@ -116,18 +219,26 @@
         </div>
 
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
-            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]"></div>
+            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
+                <!-- Locked Overlay (Hidden by default) -->
+                <div id="game-locked-overlay" class="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm z-50 rounded-3xl hidden flex-col items-center justify-center">
+                    <i class="ph-fill ph-lock-key text-5xl text-red-500 mb-2 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]"></i>
+                    <p class="text-white font-black text-xl tracking-widest">LOCKED</p>
+                    <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest mt-1">3 Bombs Hit!</p>
+                </div>
+            </div>
         </div>
 
         <div class="mt-8 space-y-4 shrink-0">
             <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
-                <span>Status: <span class="text-sky-400">Active</span></span>
+                <span id="game-status-text">Status: <span class="text-sky-400">Active</span></span>
                 <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
             </div>
             <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3 text-left">
@@ -148,6 +259,7 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
+            <!-- Balance Card -->
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
                 <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
                 <div class="flex items-center gap-2 mb-4">
@@ -159,11 +271,13 @@
                 </div>
             </div>
 
+            <!-- Mini Game Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
-                        <i class="ph-fill ph-game-controller text-2xl"></i>
+                    <!-- Google Play Style Animated Icon -->
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon">
+                        <i class="ph-fill ph-game-controller text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
                         <p class="font-bold text-sm">Match & Earn</p>
@@ -173,6 +287,7 @@
                 <button onclick="startMatchGame()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
+            <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -182,14 +297,23 @@
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
+            <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="ph-fill ph-users-three text-2xl animate-bounce"></i></div>
+                    <!-- Smooth Rotating Referral Avatars -->
+                    <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
+                        <div class="absolute inset-0 animate-spin-slow">
+                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                            <div class="absolute bottom-0 left-0 w-6 h-6 bg-pink-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                            <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                        </div>
+                    </div>
                     <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs 5.00</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
+            <!-- Recent Activity -->
             <div class="space-y-3 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
@@ -200,8 +324,10 @@
         </div>
     </div>
 
+    <!-- Modals Overlay -->
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
+    <!-- Side Panel -->
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
@@ -258,6 +384,7 @@
         </div>
     </div>
 
+    <!-- Energy Shop Sheet -->
     <div id="energy-sheet" class="bottom-sheet flex flex-col">
         <button onclick="closeSheet('energy-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
@@ -275,6 +402,7 @@
         </div>
     </div>
 
+    <!-- App Version Modal -->
     <div id="version-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-info text-2xl"></i></div>
@@ -288,21 +416,22 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.1.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Pro Edition</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.2.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Dynamics Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Advanced Match-3 Game with Bombs.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Energy System Integration for Games.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Full Bank Transfer Form with Fees.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Continuous Auto-Play Ad Monetization.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Bombs based on earnings limit.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>3 Bomb Lock Limit & Advanced Animations.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Rs 10 Max Earning cap per game.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Smooth UI Icon animations.</span></li>
                 </ul>
             </div>
         </div>
     </div>
 
+    <!-- Withdrawal History Modal -->
     <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-cube text-2xl"></i></div>
@@ -315,6 +444,7 @@
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Referral List Modal -->
     <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -326,6 +456,7 @@
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Rank List Modal -->
     <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -337,6 +468,7 @@
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Withdraw Sheet -->
     <div id="withdraw-sheet" class="bottom-sheet">
         <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
@@ -358,10 +490,12 @@
 
         <div id="withdraw-inputs" class="space-y-4 hidden">
             
+            <!-- Default Input (Binance / Reload) -->
             <div id="standard-input-group" class="space-y-4 hidden">
                 <input id="w-address" type="text" inputmode="text" placeholder="Account Details" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             </div>
 
+            <!-- Full Bank Details Form -->
             <div id="bank-input-group" class="space-y-4 hidden">
                 <div class="relative w-full">
                     <select id="w-bank-name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 appearance-none cursor-pointer">
@@ -393,11 +527,11 @@
             </div>
 
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
-            
-            <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-4 flex items-center justify-center gap-2">Submit Request</button>
+            <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">Submit Request</button>
         </div>
     </div>
 
+    <!-- Lucky Wheel Sheet -->
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
@@ -479,34 +613,40 @@
             userId = tgUser ? String(tgUser.id) : "99999"; 
             
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
-            document.getElementById('user-display-name').innerText = fullName || "Guest User";
-            document.getElementById('menu-user-name').innerText = fullName || "Guest User";
-            document.getElementById('menu-user-id').innerText = "ID: " + userId;
+            
+            if(document.getElementById('user-display-name')) document.getElementById('user-display-name').innerText = fullName || "Guest User";
+            if(document.getElementById('menu-user-name')) document.getElementById('menu-user-name').innerText = fullName || "Guest User";
+            if(document.getElementById('menu-user-id')) document.getElementById('menu-user-id').innerText = "ID: " + userId;
 
             const usernameDisplay = document.getElementById('user-username-display');
-            if (tgUser?.username) {
-                usernameDisplay.innerText = "@" + tgUser.username;
-            } else {
-                usernameDisplay.innerText = "ID: " + userId;
+            if (usernameDisplay) {
+                if (tgUser?.username) {
+                    usernameDisplay.innerText = "@" + tgUser.username;
+                } else {
+                    usernameDisplay.innerText = "ID: " + userId;
+                }
             }
 
             if (tgUser?.photo_url) {
-                document.getElementById('profile-pic').src = tgUser.photo_url;
-                document.getElementById('profile-pic').style.display = 'block';
-                document.getElementById('default-pic').style.display = 'none';
+                if(document.getElementById('profile-pic')) {
+                    document.getElementById('profile-pic').src = tgUser.photo_url;
+                    document.getElementById('profile-pic').style.display = 'block';
+                }
+                if(document.getElementById('default-pic')) document.getElementById('default-pic').style.display = 'none';
 
-                document.getElementById('menu-profile-pic').src = tgUser.photo_url;
-                document.getElementById('menu-profile-pic').style.display = 'block';
-                document.getElementById('menu-default-pic').style.display = 'none';
+                if(document.getElementById('menu-profile-pic')) {
+                    document.getElementById('menu-profile-pic').src = tgUser.photo_url;
+                    document.getElementById('menu-profile-pic').style.display = 'block';
+                }
+                if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
-            // Immediately start visual progress to ensure UI doesn't hang
             let prog = 0;
             let isDataReady = false;
             
             const timer = setInterval(() => {
                 prog += 3;
-                if(prog >= 85 && !isDataReady) prog = 85; // Wait at 85% until database is ready
+                if(prog >= 85 && !isDataReady) prog = 85; 
                 
                 const pb = document.getElementById('progress-bar');
                 const pc = document.getElementById('percentage');
@@ -536,7 +676,7 @@
             } catch(e) { 
                 console.error(e); 
             } finally {
-                isDataReady = true; // Release the 85% hold
+                isDataReady = true; 
             }
         }
 
@@ -636,19 +776,24 @@
                 const statusDot = document.getElementById('menu-status-dot');
                 
                 if (isActive) {
-                    statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                    statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
-                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+                    if(statusBadge) {
+                        statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                        statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
+                    }
+                    if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
                 } else {
-                    statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                    statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive';
-                    statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
+                    if(statusBadge) {
+                        statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
+                        statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive';
+                    }
+                    if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
                 }
 
                 if (data && data.created_at) {
                     const joinedDate = new Date(data.created_at);
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
+                    const ms = document.getElementById('menu-member-since');
+                    if(ms) ms.innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
                 }
                 
                 spinChances = parseInt(data?.spin_chances || 0);
@@ -672,11 +817,14 @@
                 if (error) throw error;
                 if (data) {
                     const items = limit ? data.slice(0, 5) : data;
+                    const hList = document.getElementById('history-list');
+                    if(!hList) return;
+                    
                     if (items.length === 0) {
-                        document.getElementById('history-list').innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`;
+                        hList.innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`;
                         return;
                     }
-                    document.getElementById('history-list').innerHTML = items.map(item => {
+                    hList.innerHTML = items.map(item => {
                         const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'TASK_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
@@ -692,22 +840,25 @@
         function toggleHistory() {
             isAllHistoryVisible = !isAllHistoryVisible;
             fetchHistory(!isAllHistoryVisible);
-            document.getElementById('toggle-history-btn').innerText = isAllHistoryVisible ? "Hide" : "View All";
+            const btn = document.getElementById('toggle-history-btn');
+            if(btn) btn.innerText = isAllHistoryVisible ? "Hide" : "View All";
         }
 
         async function openWithdrawHistory() {
             closeSidePanel(); openSheet('withdraw-history-sheet');
-            document.getElementById('w-history-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
+            const listCont = document.getElementById('w-history-list-container');
+            if(listCont) listCont.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
                 if (error) throw error;
-                document.getElementById('w-history-count').innerText = data.length;
+                const hc = document.getElementById('w-history-count');
+                if(hc) hc.innerText = data.length;
                 if (data.length === 0) {
-                    document.getElementById('w-history-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
+                    if(listCont) listCont.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
                     return;
                 }
                 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                document.getElementById('w-history-list-container').innerHTML = data.map(item => {
+                if(listCont) listCont.innerHTML = data.map(item => {
                     const dateObj = new Date(item.created_at);
                     const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                     let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
@@ -734,41 +885,55 @@
         function selectMethod(btn, name) {
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); 
             btn.classList.add('selected'); selectedMethodName = name;
-            document.getElementById('withdraw-inputs').classList.remove('hidden');
+            
+            const wi = document.getElementById('withdraw-inputs');
+            if(wi) wi.classList.remove('hidden');
             
             const stdGroup = document.getElementById('standard-input-group');
             const bankGroup = document.getElementById('bank-input-group');
             const addrInput = document.getElementById('w-address');
 
             if (name === 'BANK') {
-                stdGroup.classList.add('hidden'); bankGroup.classList.remove('hidden');
+                if(stdGroup) stdGroup.classList.add('hidden'); 
+                if(bankGroup) bankGroup.classList.remove('hidden');
             } else {
-                bankGroup.classList.add('hidden'); stdGroup.classList.remove('hidden');
-                addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
-                addrInput.setAttribute('inputmode', 'numeric'); 
-                addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
-                addrInput.value = ""; setTimeout(() => { addrInput.focus(); }, 100);
+                if(bankGroup) bankGroup.classList.add('hidden'); 
+                if(stdGroup) stdGroup.classList.remove('hidden');
+                if(addrInput) {
+                    addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
+                    addrInput.setAttribute('inputmode', 'numeric'); 
+                    addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+                    addrInput.value = ""; 
+                    setTimeout(() => { addrInput.focus(); }, 100);
+                }
             }
         }
 
         async function processWithdraw() {
             let addr = "", bankName = "", bankBranch = "", accName = "";
-            const amt = parseFloat(document.getElementById('w-amount').value);
+            let amtElement = document.getElementById('w-amount');
+            const amt = amtElement ? parseFloat(amtElement.value) : 0;
             
             if (!selectedMethodName) return showNotify("Select a method first!");
             
             if (selectedMethodName === 'BANK') {
-                bankName = document.getElementById('w-bank-name').value;
-                bankBranch = document.getElementById('w-bank-branch').value.trim();
-                accName = document.getElementById('w-bank-acc-name').value.trim();
-                addr = document.getElementById('w-bank-acc-no').value.trim();
+                const bn = document.getElementById('w-bank-name');
+                const bb = document.getElementById('w-bank-branch');
+                const ban = document.getElementById('w-bank-acc-name');
+                const bno = document.getElementById('w-bank-acc-no');
+                
+                bankName = bn ? bn.value : "";
+                bankBranch = bb ? bb.value.trim() : "";
+                accName = ban ? ban.value.trim() : "";
+                addr = bno ? bno.value.trim() : "";
                 
                 if (!bankName) return showNotify("Select a Bank!");
                 if (!bankBranch) return showNotify("Enter Branch Name!");
                 if (!accName) return showNotify("Enter Account Name!");
                 if (!addr || addr.length < 5) return showNotify("Invalid Account Number!");
             } else {
-                addr = document.getElementById('w-address').value.trim();
+                const adrEl = document.getElementById('w-address');
+                addr = adrEl ? adrEl.value.trim() : "";
                 if (!addr) return showNotify("Enter Details!");
                 if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
                 if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
@@ -784,7 +949,9 @@
 
             if (totalDeduction > currentBalance) return showNotify(selectedMethodName === 'BANK' ? `Need Rs ${totalDeduction} including fee.` : "Insufficient Balance!");
 
-            const btn = document.getElementById('withdraw-btn'); btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
+            const btn = document.getElementById('withdraw-btn'); 
+            if(btn) { btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`; }
+            
             setTimeout(async () => {
                 const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
                 let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
@@ -809,12 +976,13 @@
                         currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent!", "success"); closeAllSheets();
                     } else showNotify("Error processing request.");
                 } catch(e) { showNotify("Error processing request."); }
-                btn.disabled = false; btn.innerText = "Submit Request";
+                if(btn) { btn.disabled = false; btn.innerText = "Submit Request"; }
             }, 3000);
         }
 
         async function earnReward() {
-            const btn = document.getElementById('adBtn'); btn.disabled = true; btn.innerText = "WAITING...";
+            const btn = document.getElementById('adBtn'); 
+            if(btn) { btn.disabled = true; btn.innerText = "WAITING..."; }
             if (tg.openLink) tg.openLink("https://otieu.com/4/10387375"); else window.open("https://otieu.com/4/10387375", "_blank");
             setTimeout(async () => {
                 try {
@@ -825,7 +993,7 @@
                         updateUI(); fetchHistory(true); showNotify("Reward Added!", "success"); 
                     } else showNotify("Failed to save balance.", "warning");
                 } catch(e) { showNotify("Error adding reward."); }
-                btn.disabled = false; btn.innerText = "START";
+                if(btn) { btn.disabled = false; btn.innerText = "START"; }
             }, 5000);
         }
 
@@ -837,13 +1005,18 @@
         }
 
         async function openReferralList() {
-            closeSidePanel(); openSheet('referral-sheet'); document.getElementById('referral-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
+            closeSidePanel(); openSheet('referral-sheet'); 
+            const rlc = document.getElementById('referral-list-container');
+            if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
             try {
                 const { data, error } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
                 if (error) throw error;
-                document.getElementById('ref-count-display').innerText = data.length;
-                if (data.length === 0) { document.getElementById('referral-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; }
-                document.getElementById('referral-list-container').innerHTML = data.map(user => {
+                const rcd = document.getElementById('ref-count-display');
+                if(rcd) rcd.innerText = data.length;
+                if (data.length === 0) { 
+                    if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; 
+                }
+                if(rlc) rlc.innerHTML = data.map(user => {
                     const statusClass = checkIsActive(user.last_active, user.created_at) ? "text-green-400" : "text-red-400";
                     const statusBg = checkIsActive(user.last_active, user.created_at) ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
                     const statusText = checkIsActive(user.last_active, user.created_at) ? "Active" : "Inactive";
@@ -853,7 +1026,9 @@
         }
 
         async function openRankList() {
-            closeSidePanel(); openSheet('rank-sheet'); document.getElementById('rank-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
+            closeSidePanel(); openSheet('rank-sheet'); 
+            const rlc = document.getElementById('rank-list-container');
+            if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
             try {
                 const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
                 if (error) throw error;
@@ -861,62 +1036,88 @@
                     let counts = {};
                     data.forEach(item => { if(item.referrer_id && item.referrer_id !== "99999") counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1; });
                     let sortedRanks = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                    if(sortedRanks.length === 0) { document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; }
+                    if(sortedRanks.length === 0) { 
+                        if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; 
+                    }
                     
                     const topIds = sortedRanks.map(r => r[0]);
                     const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
                     const profileMap = {}; if (profilesData) profilesData.forEach(p => profileMap[p.user_id] = p);
 
-                    document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
+                    if(rlc) rlc.innerHTML = sortedRanks.map((rank, index) => {
                         const refProfile = profileMap[rank[0]] || {};
                         let badgeColor = index === 0 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : (index === 1 ? "bg-slate-300/20 text-slate-300 border-slate-300/30" : (index === 2 ? "bg-amber-700/20 text-amber-600 border-amber-700/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"));
                         let photoHtml = refProfile.photo_url ? `<img src="${refProfile.photo_url}" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">` : `<i class="ph-fill ph-user text-lg text-slate-400 pointer-events-none"></i>`;
-                        return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
+                        return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md pointer-events-none">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
                     }).join('');
-                } else document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
+                } else if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
             } catch(e) { console.error(e); }
         }
 
+        // --- FIXED UI UPDATE FUNCTION ---
         function updateUI() {
-            document.getElementById('bal-val-display').innerText = `Rs ${currentBalance.toFixed(2)}`;
-            document.getElementById('w-balance-val').innerText = `Rs ${currentBalance.toFixed(2)}`;
-            document.getElementById('coin-val').innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
-            document.getElementById('energy-display').innerHTML = `<i class="ph-fill ph-lightning"></i> Energy: ${currentEnergy}`;
+            const balValDisplay = document.getElementById('bal-val-display');
+            if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
+            
+            const wBalanceVal = document.getElementById('w-balance-val');
+            if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
+            
+            const coinVal = document.getElementById('coin-val');
+            if (coinVal) coinVal.innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
+            
+            const energyDisplay = document.getElementById('energy-display');
+            if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning"></i> Energy: ${currentEnergy}`;
         }
 
         function showNotify(msg, type = 'warning') {
-            const box = document.getElementById('custom-notify'); document.getElementById('notify-msg').innerText = msg;
-            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; box.classList.add('active'); 
-            setTimeout(() => box.classList.remove('active'), 3000);
+            const box = document.getElementById('custom-notify'); 
+            if(box) {
+                const nMsg = document.getElementById('notify-msg');
+                if(nMsg) nMsg.innerText = msg;
+                box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; 
+                box.classList.add('active'); 
+                setTimeout(() => box.classList.remove('active'), 3000);
+            }
         }
         
-        function openSidePanel() { document.getElementById('side-panel').classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; }
-        function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
+        function openSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.add('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'block'; }
+        function closeSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
         function openSheet(id) { 
-            document.getElementById(id).classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; 
+            const sh = document.getElementById(id);
+            if(sh) sh.classList.add('active'); 
+            const so = document.getElementById('sheet-overlay');
+            if(so) so.style.display = 'block'; 
+            
             if (id === 'withdraw-sheet') {
-                selectedMethodName = null; document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-                document.getElementById('withdraw-inputs').classList.add('hidden');
+                selectedMethodName = null; 
+                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+                const wi = document.getElementById('withdraw-inputs');
+                if(wi) wi.classList.add('hidden');
                 
-                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(id => {
-                    const el = document.getElementById(id);
+                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(fid => {
+                    const el = document.getElementById(fid);
                     if(el) el.value = '';
                 });
             }
         }
-        function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
+        function closeSheet(id) { const sh = document.getElementById(id); if(sh) sh.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
         function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('energy-sheet'); }
 
         function updateWheelUI() {
-            document.getElementById('spin-chances-display').innerText = spinChances;
+            const scd = document.getElementById('spin-chances-display');
+            if(scd) scd.innerText = spinChances;
+            
             let currentStep = myReferralCount % 5;
-            document.getElementById('ref-progress-text').innerText = `${currentStep}/5`;
-            document.getElementById('ref-progress-bar').style.width = `${(currentStep / 5) * 100}%`;
+            const rpt = document.getElementById('ref-progress-text');
+            if(rpt) rpt.innerText = `${currentStep}/5`;
+            const rpb = document.getElementById('ref-progress-bar');
+            if(rpb) rpb.style.width = `${(currentStep / 5) * 100}%`;
         }
 
         function spinWheel() {
             if (spinChances <= 0) return showNotify("No spin chances left! Invite friends to earn more.", "warning");
-            const btn = document.getElementById('spin-btn'); btn.disabled = true;
+            const btn = document.getElementById('spin-btn'); 
+            if(btn) btn.disabled = true;
             spinChances--; updateWheelUI();
             try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
             
@@ -925,7 +1126,8 @@
 
             const targetRotation = 360 - (30 + prizeIdx * 60);
             currentWheelRotation += (5 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
-            document.getElementById('lucky-wheel').style.transform = `rotate(${currentWheelRotation}deg)`;
+            const lw = document.getElementById('lucky-wheel');
+            if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
 
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
@@ -939,7 +1141,7 @@
                         } else showNotify("Failed to save prize.", "warning");
                     } catch(e) { showNotify("Error updating balance.", "warning"); }
                 } else showNotify("Oops! Try again next time.", "warning");
-                btn.disabled = false;
+                if(btn) btn.disabled = false;
             }, 4000); 
         }
 
@@ -947,7 +1149,7 @@
         async function buyEnergyPack() {
             if (currentBalance < 5) return showNotify("Insufficient Funds! Need Rs. 5.00", "warning");
             const btn = document.getElementById('buy-energy-btn');
-            btn.disabled = true; btn.innerText = "Processing...";
+            if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
             
             try {
                 const newBalance = currentBalance - 5;
@@ -961,13 +1163,27 @@
                     closeSheet('energy-sheet');
                 } else showNotify("Purchase failed. Try again.");
             } catch(e) { showNotify("Purchase Error"); }
-            btn.disabled = false; btn.innerText = "Purchase Now";
+            if(btn) { btn.disabled = false; btn.innerText = "Purchase Now"; }
         }
 
         // --- ADVANCED MATCH-3 GAME ENGINE ---
         let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
+        let bombsHit = 0; // Track blown up bombs
+        let gameLocked = false;
+        
         const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
         const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
+
+        function showFloatingText(text, x, y, isRed = false) {
+            let el = document.createElement('div');
+            el.className = `absolute font-black text-xl pointer-events-none drop-shadow-lg z-50 ${isRed ? 'text-red-500' : 'text-green-400'}`;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.animation = 'floatUp 1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards';
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
 
         function startMatchGame() {
             if (currentEnergy < 1) {
@@ -979,37 +1195,78 @@
             try { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); } catch(e) {}
             updateUI();
             
+            // Reset Game variables
             sessionEarnings = 0;
-            document.getElementById('game-session-earning').innerText = "Rs 0.00";
-            document.getElementById('game-full-screen').classList.add('active');
+            bombsHit = 0;
+            gameLocked = false;
+            
+            // Reset UI
+            for(let i=1; i<=3; i++) {
+                let bt = document.getElementById(`b-tracker-${i}`);
+                if(bt) {
+                    bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
+                }
+            }
+            
+            const glo = document.getElementById('game-locked-overlay');
+            if(glo) glo.classList.add('hidden');
+            
+            const gst = document.getElementById('game-status-text');
+            if(gst) gst.innerHTML = `Status: <span class="text-sky-400">Active</span>`;
+            
+            const gse = document.getElementById('game-session-earning');
+            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
+            
+            const btn = document.getElementById("claim-exit-btn");
+            if(btn) { btn.innerText = "Claim & Exit"; btn.classList.remove('from-red-600', 'to-rose-700'); btn.classList.add('from-emerald-500', 'to-teal-600'); }
+            
+            const gfs = document.getElementById('game-full-screen');
+            if(gfs) gfs.classList.add('active');
+            
             initBoard();
+        }
+
+        function getDynamicBombChance() {
+            // Base chance 2%, scaling up to ~27% as earnings reach 10
+            return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
         function initBoard() {
             const grid = document.getElementById('match3-board');
-            grid.innerHTML = ''; gameBoard = [];
+            if(!grid) return;
+            // Clear existing tiles but keep the overlay
+            Array.from(grid.children).forEach(child => {
+                if(child.id !== 'game-locked-overlay') child.remove();
+            });
+            
+            gameBoard = [];
+            let chance = getDynamicBombChance();
+            
             for(let r=0; r<6; r++) {
                 let row = [];
                 for(let c=0; c<6; c++) {
-                    let type;
-                    do { type = Math.floor(Math.random() * 5); } 
-                    while((c >= 2 && row[c-1] === type && row[c-2] === type) || (r >= 2 && gameBoard[r-1][c] === type && gameBoard[r-2][c] === type));
+                    let vType;
+                    do { vType = Math.floor(Math.random() * 5); } 
+                    while((c >= 2 && (row[c-1]%10) === vType && (row[c-2]%10) === vType) || (r >= 2 && (gameBoard[r-1][c]%10) === vType && (gameBoard[r-2][c]%10) === vType));
+                    
+                    let type = Math.random() < chance ? vType + 10 : vType;
                     
                     row.push(type);
                     const tile = document.createElement('div');
                     tile.className = `tile`;
                     tile.id = `t-${r}-${c}`;
-                    tile.innerHTML = `<i class="ph-fill ${ICONS[type]} ${COLORS[type]} pointer-events-none drop-shadow-md"></i>`;
-                    tile.onclick = () => onTileClick(r, c);
+                    tile.innerHTML = `<i class="ph-fill ${ICONS[vType]} ${COLORS[vType]} pointer-events-none drop-shadow-md"></i>`;
+                    tile.onclick = (e) => onTileClick(r, c, e);
                     grid.appendChild(tile);
                 }
                 gameBoard.push(row);
             }
         }
 
-        async function onTileClick(r, c) {
-            if(isAnimating) return;
+        async function onTileClick(r, c, e) {
+            if(isAnimating || gameLocked) return;
             const clicked = document.getElementById(`t-${r}-${c}`);
+            if(!clicked) return;
             
             if (!firstSelection) {
                 firstSelection = { r, c };
@@ -1053,48 +1310,136 @@
             for(let r=0; r<6; r++) {
                 for(let c=0; c<4; c++) {
                     let type = gameBoard[r][c];
-                    if (type !== -1 && type === gameBoard[r][c+1] && type === gameBoard[r][c+2]) {
+                    if (type !== -1 && (type%10) === (gameBoard[r][c+1]%10) && (type%10) === (gameBoard[r][c+2]%10)) {
                         matched.push({r, c}, {r, c:c+1}, {r, c:c+2});
-                        if (c<3 && type === gameBoard[r][c+3]) matched.push({r, c:c+3});
-                        if (c<2 && type === gameBoard[r][c+4]) matched.push({r, c:c+4});
+                        if (c<3 && (type%10) === (gameBoard[r][c+3]%10)) matched.push({r, c:c+3});
+                        if (c<2 && (type%10) === (gameBoard[r][c+4]%10)) matched.push({r, c:c+4});
                     }
                 }
             }
             for(let c=0; c<6; c++) {
                 for(let r=0; r<4; r++) {
                     let type = gameBoard[r][c];
-                    if (type !== -1 && type === gameBoard[r+1][c] && type === gameBoard[r+2][c]) {
+                    if (type !== -1 && (type%10) === (gameBoard[r+1][c]%10) && (type%10) === (gameBoard[r+2][c]%10)) {
                         matched.push({r, c}, {r:r+1, c}, {r:r+2, c});
-                        if (r<3 && type === gameBoard[r+3][c]) matched.push({r:r+3, c});
-                        if (r<2 && type === gameBoard[r+4][c]) matched.push({r:r+4, c});
+                        if (r<3 && (type%10) === (gameBoard[r+3][c]%10)) matched.push({r:r+3, c});
+                        if (r<2 && (type%10) === (gameBoard[r+4][c]%10)) matched.push({r:r+4, c});
                     }
                 }
             }
             return matched.filter((v, i, a) => a.findIndex(t => (t.r === v.r && t.c === v.c)) === i);
         }
 
+        function triggerScreenShake() {
+            const fs = document.getElementById('game-full-screen');
+            if(fs) {
+                fs.classList.add('shake-screen');
+                setTimeout(() => fs.classList.remove('shake-screen'), 400);
+            }
+        }
+
         async function processMatches(matches) {
             let isBombTriggered = false;
             let matchCount = matches.length;
+            let lastTileRect = null;
             
             matches.forEach(m => {
-                if (gameBoard[m.r][m.c] === 5) isBombTriggered = true; 
-                gameBoard[m.r][m.c] = -1;
+                let val = gameBoard[m.r][m.c];
                 let el = document.getElementById(`t-${m.r}-${m.c}`);
-                if(el) el.classList.add('match-anim');
+                
+                if (el) {
+                    lastTileRect = el.getBoundingClientRect();
+                }
+
+                if (val >= 10) { 
+                    isBombTriggered = true; 
+                    if(el) {
+                        el.classList.add('bomb');
+                        el.innerHTML = `<i class="ph-fill ph-bomb text-red-500 pointer-events-none drop-shadow-md text-[32px]"></i>`;
+                    }
+                } else {
+                    if(el) el.classList.add('match-anim');
+                }
+                gameBoard[m.r][m.c] = -1;
             });
 
             if (isBombTriggered) {
+                bombsHit++;
+                triggerScreenShake();
+                
+                // Update Permanent Tracker UI
+                if(bombsHit <= 3) {
+                    let trackerEl = document.getElementById(`b-tracker-${bombsHit}`);
+                    if(trackerEl) {
+                        trackerEl.classList.add('bomb-hit');
+                        trackerEl.classList.remove('text-slate-600');
+                    }
+                }
+
                 sessionEarnings = sessionEarnings / 2;
-                showNotify("💥 BOMB HIT! Earnings Halved!", "warning");
+                
+                if (lastTileRect) {
+                    showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                }
+                
+                if (bombsHit >= 3) {
+                    gameLocked = true;
+                    showNotify("💀 3 BOMBS HIT! Game Locked.", "warning");
+                    
+                    const gst = document.getElementById('game-status-text');
+                    if(gst) gst.innerHTML = `Status: <span class="text-red-500">LOCKED</span>`;
+                    
+                    const btn = document.getElementById("claim-exit-btn");
+                    if(btn) { 
+                        btn.innerText = "GAME OVER - EXIT"; 
+                        btn.classList.remove('from-emerald-500', 'to-teal-600'); 
+                        btn.classList.add('from-red-600', 'to-rose-700'); 
+                    }
+                } else {
+                    showNotify("💥 BOOM! Earnings Halved!", "warning");
+                }
+
+                await new Promise(res => setTimeout(res, 600)); 
+                
+                matches.forEach(m => {
+                    let el = document.getElementById(`t-${m.r}-${m.c}`);
+                    if(el && el.classList.contains('bomb')) el.classList.add('match-anim');
+                });
             } else {
                 let bonus = matchCount > 3 ? (matchCount - 3) * 0.05 : 0;
-                sessionEarnings += 0.05 + bonus;
+                let earnedNow = 0.05 + bonus;
+                
+                if (sessionEarnings + earnedNow >= 10) {
+                    earnedNow = 10 - sessionEarnings;
+                    sessionEarnings = 10;
+                    showNotify("🎉 Maximum Limit Rs 10 Reached!", "success");
+                } else {
+                    sessionEarnings += earnedNow;
+                }
+
+                if (lastTileRect && earnedNow > 0) {
+                    showFloatingText(`+Rs ${earnedNow.toFixed(2)}`, lastTileRect.left, lastTileRect.top);
+                }
             }
             
-            document.getElementById('game-session-earning').innerText = `Rs ${sessionEarnings.toFixed(2)}`;
+            const gse = document.getElementById('game-session-earning');
+            if(gse) {
+                gse.innerText = `Rs ${sessionEarnings.toFixed(2)}`;
+                if(gameLocked) {
+                    gse.classList.remove('text-green-400');
+                    gse.classList.add('text-red-400');
+                }
+            }
+
             await new Promise(res => setTimeout(res, 300));
             
+            if (gameLocked) {
+                const glo = document.getElementById('game-locked-overlay');
+                if(glo) glo.classList.remove('hidden');
+                isAnimating = true; // Permanently lock grid interaction
+                return; // Stop processing further physics
+            }
+
             for(let c=0; c<6; c++) {
                 for(let r=5; r>=0; r--) {
                     if (gameBoard[r][c] === -1) {
@@ -1109,10 +1454,12 @@
                 }
             }
 
+            let newChance = getDynamicBombChance();
             for(let r=0; r<6; r++) {
                 for(let c=0; c<6; c++) {
                     if (gameBoard[r][c] === -1) {
-                        gameBoard[r][c] = Math.random() < 0.08 ? 5 : Math.floor(Math.random() * 5);
+                        let vType = Math.floor(Math.random() * 5);
+                        gameBoard[r][c] = Math.random() < newChance ? vType + 10 : vType; 
                     }
                 }
             }
@@ -1121,7 +1468,7 @@
             await new Promise(res => setTimeout(res, 300));
 
             let nextMatches = findMatches();
-            if (nextMatches.length > 0) {
+            if (nextMatches.length > 0 && !gameLocked && sessionEarnings < 10) {
                 await processMatches(nextMatches);
             } else {
                 isAnimating = false;
@@ -1135,9 +1482,9 @@
                     if(tile) {
                         tile.classList.remove('match-anim', 'bomb');
                         let type = gameBoard[r][c];
-                        if (type === 5) tile.classList.add('bomb');
                         if (type !== -1) {
-                            tile.innerHTML = `<i class="ph-fill ${ICONS[type]} ${COLORS[type]} pointer-events-none drop-shadow-md"></i>`;
+                            let vType = type % 10; 
+                            tile.innerHTML = `<i class="ph-fill ${ICONS[vType]} ${COLORS[vType]} pointer-events-none drop-shadow-md"></i>`;
                         }
                     }
                 }
@@ -1146,7 +1493,7 @@
 
         async function claimAndExitGame() {
             const btn = document.getElementById("claim-exit-btn");
-            btn.disabled = true; btn.innerText = "SAVING...";
+            if(btn) { btn.disabled = true; btn.innerText = "SAVING..."; }
 
             if (sessionEarnings > 0) {
                 try {
@@ -1160,10 +1507,11 @@
                 } catch(e) { showNotify("Failed to save game earnings", "warning"); }
             }
             
-            document.getElementById('game-full-screen').classList.remove('active');
+            const gfs = document.getElementById('game-full-screen');
+            if(gfs) gfs.classList.remove('active');
             updateUI();
             fetchHistory(true);
-            btn.disabled = false; btn.innerText = "CLAIM & EXIT";
+            if(btn) { btn.disabled = false; btn.innerText = "CLAIM & EXIT"; }
         }
     </script>
 </body>
