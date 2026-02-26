@@ -68,8 +68,20 @@
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-        
+
         select option { background-color: #0f172a; color: white; }
+
+        /* Game Full Screen Styles */
+        .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
+        .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
+        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
+        .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .tile:active { transform: scale(0.85); }
+        .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
+        .tile.match-anim { transform: scale(0) rotate(180deg); opacity: 0; }
+        .tile.bomb { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 5px #ef4444; } 50% { box-shadow: 0 0 20px #ef4444; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 
@@ -88,6 +100,34 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
+    <div id="game-full-screen" class="game-full-screen p-6 pb-12">
+        <div class="flex justify-between items-center mb-8 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
+                <div>
+                    <h2 class="text-sm font-black uppercase">Match & Earn</h2>
+                    <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Avoid the Bombs!</p>
+                </div>
+            </div>
+            <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 text-right shadow-inner">
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Earnings</p>
+                <p id="game-session-earning" class="text-lg font-black text-green-400 leading-tight">Rs 0.00</p>
+            </div>
+        </div>
+
+        <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
+            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]"></div>
+        </div>
+
+        <div class="mt-8 space-y-4 shrink-0">
+            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
+                <span>Status: <span class="text-sky-400">Active</span></span>
+                <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
+            </div>
+            <button onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
+        </div>
+    </div>
+
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3 text-left">
@@ -97,23 +137,25 @@
                 </div>
                 <div class="overflow-hidden">
                     <h3 id="user-display-name" class="font-bold text-sm text-white truncate">Loading...</h3>
-                    <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5 truncate"></p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1 shadow-sm">
+                            <i class="ph-fill ph-lightning"></i> Energy: 0
+                        </span>
+                    </div>
                 </div>
             </div>
             <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
+        <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
                 <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
                 <div class="flex items-center gap-2 mb-4">
                     <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs 0.00</h1>
                 </div>
-                <div class="flex justify-between items-center pt-4 border-t border-white/5">
-                    <div class="bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full flex items-center gap-2">
-                        <i class="ph-fill ph-coin text-yellow-500 text-xs"></i><span id="coin-val" class="font-bold text-[10px] text-yellow-200 uppercase">0 COINS</span>
-                    </div>
-                    <button onclick="openSheet('withdraw-sheet')" class="bg-[#0ea5e9] px-6 py-2 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw Funds</button>
+                <div class="flex gap-2">
+                    <button onclick="openSheet('withdraw-sheet')" class="flex-1 bg-[#0ea5e9] py-3 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
+                    <button onclick="openSheet('energy-sheet')" class="flex-1 bg-amber-500/20 border border-amber-500/30 py-3 rounded-xl text-[10px] font-black uppercase text-amber-500 btn-animate">+ Get Energy</button>
                 </div>
             </div>
 
@@ -125,30 +167,22 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Match & Earn</p>
-                        <p class="text-[10px] text-pink-300 font-bold uppercase">Play & Win Cash</p>
+                        <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Energy</p>
                     </div>
                 </div>
-                <button onclick="startGame()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">PLAY</button>
+                <button onclick="startMatchGame()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30"><i class="ph-fill ph-aperture text-2xl animate-spin-slow"></i></div>
-                    <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[10px] text-purple-300 font-bold uppercase">Win up to Rs 50</p></div>
+                    <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to Rs 50</p></div>
                 </div>
-                <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10">SPIN</button>
+                <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="ph-fill ph-users-three text-2xl animate-bounce"></i></div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs 5.00</p></div>
-                </div>
-                <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
-            </div>
-
-            <div class="space-y-3">
+            <div class="space-y-3 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
                     <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
@@ -216,6 +250,23 @@
         </div>
     </div>
 
+    <div id="energy-sheet" class="bottom-sheet flex flex-col">
+        <button onclick="closeSheet('energy-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
+        <h2 class="text-xl font-black text-amber-500 mb-1 flex items-center gap-2"><i class="ph-bold ph-lightning"></i> Energy Shop</h2>
+        <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Buy energy to play more games</p>
+        
+        <div class="glass p-6 rounded-3xl border border-amber-500/20 text-center relative overflow-hidden bg-gradient-to-b from-amber-500/10 to-transparent">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/20 rounded-full blur-xl"></div>
+            <i class="ph-fill ph-lightning-bolt text-6xl text-amber-400 mb-3 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]"></i>
+            <h3 class="text-2xl font-black text-white tracking-wider">+5 ENERGY</h3>
+            <div class="flex items-center justify-center gap-2 mt-2">
+                <p class="text-[12px] text-slate-300 font-bold uppercase tracking-widest">Cost: <span class="text-sky-400">Rs 5.00</span></p>
+            </div>
+            <button id="buy-energy-btn" onclick="buyEnergyPack()" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-colors btn-animate">Purchase Now</button>
+        </div>
+    </div>
+
     <div id="version-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-info text-2xl"></i></div>
@@ -229,15 +280,16 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.0.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Up to date</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.1.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Pro Edition</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Match & Earn Mini Game.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Full Bank Transfer Details Form with Rs. 15 Fee.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Rank List profile picture security.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Advanced Match-3 Game with Bombs.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Energy System Integration for Games.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Full Bank Transfer Form with Fees.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Continuous Auto-Play Ad Monetization.</span></li>
                 </ul>
             </div>
         </div>
@@ -275,30 +327,6 @@
             <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
-    </div>
-
-    <div id="game-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
-        <div class="flex justify-between items-center mb-4 shrink-0 border-b border-white/10 pb-4">
-            <div>
-                <h2 class="text-xl font-black text-pink-400 uppercase italic">Match & Earn</h2>
-                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Match 3 to earn rewards</p>
-            </div>
-            <button onclick="closeSheet('game-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
-        </div>
-        
-        <div class="flex-1 flex flex-col items-center justify-center overflow-y-auto pb-4">
-            <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl mb-6 text-center shadow-inner">
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Session Earnings</p>
-                <p id="game-earnings" class="text-3xl font-black text-green-400">Rs 0.00</p>
-            </div>
-
-            <div id="match3-board" class="grid grid-cols-6 gap-1.5 w-full max-w-[300px] mx-auto bg-[#0f172a] p-2.5 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                </div>
-            
-            <p class="text-[9px] text-slate-500 mt-6 text-center max-w-[250px]">Tap two adjacent items to swap them. Every successful match gives you Rs 0.05!</p>
-
-            <button id="claim-game-btn" onclick="claimGameEarnings()" class="w-full mt-auto bg-gradient-to-r from-green-500 to-emerald-600 py-3.5 rounded-xl font-black text-white text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 btn-animate shadow-lg shadow-green-500/20">Claim & Exit</button>
-        </div>
     </div>
 
     <div id="withdraw-sheet" class="bottom-sheet">
@@ -350,7 +378,10 @@
                 <input id="w-bank-branch" type="text" placeholder="Branch Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
                 <input id="w-bank-acc-name" type="text" placeholder="Account Holder Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
                 <input id="w-bank-acc-no" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Account Number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
-                <p class="text-[9px] text-amber-400 font-bold mt-2"><i class="ph-fill ph-info"></i> Note: A processing fee of Rs. 15.00 applies to Bank Transfers.</p>
+                <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2">
+                    <i class="ph-fill ph-warning-circle text-amber-500 mt-0.5"></i>
+                    <p class="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight">Note: A processing fee of Rs. 15.00 applies to Bank Transfers.</p>
+                </div>
             </div>
 
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
@@ -403,11 +434,10 @@
         const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        let currentBalance = 0, userId = null, selectedMethodName = null;
+        let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
-        let spinChances = 0, currentWheelRotation = 0;
-        let myReferralCount = 0;
+        let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
 
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
@@ -478,6 +508,7 @@
             }, 30);
         }
 
+        // --- AUTO PLAY AD SYSTEM (RECURRING) ---
         function startAutoAdLoop() {
             function scheduleNext() {
                 const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
@@ -506,28 +537,62 @@
         async function fetchUserData() {
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+                
                 if (error) throw error;
+
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
-                    const newUser = { user_id: userId, balance: 0, username: tgUser?.username || '', first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || '' };
-                    if (startParam && startParam !== userId && startParam !== "99999") newUser.referrer_id = startParam;
+                    const newUser = { 
+                        user_id: userId, 
+                        balance: 0,
+                        energy: 10,
+                        username: tgUser?.username || '',
+                        first_name: fullName || 'Guest User',
+                        photo_url: tgUser?.photo_url || ''
+                    };
+                    
+                    if (startParam && startParam !== userId && startParam !== "99999") {
+                         newUser.referrer_id = startParam;
+                    }
+                    
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
+                    
                     if (!ins.error) {
                         data = ins.data || newUser; 
+                        
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances').eq('user_id', startParam).maybeSingle();
+                            
                             if (referrerData) {
                                 let newBalance = parseFloat(referrerData.balance) + 5;
+                                
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
+                                
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
-                                if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; gotSpin = true; }
+                                
+                                if (currentRefs > 0 && currentRefs % 5 === 0) {
+                                    newSpinChances += 1;
+                                    gotSpin = true;
+                                }
+
                                 await _supabase.from('profiles').update({ balance: newBalance, spin_chances: newSpinChances }).eq('user_id', startParam);
-                                await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 5, status: 'approved' }]);
+                                
+                                await _supabase.from('transactions').insert([{ 
+                                    user_id: startParam, 
+                                    type: 'REFERRAL_BONUS', 
+                                    amount: 5,
+                                    status: 'approved'
+                                }]);
+                                
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
                                 let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n💰 You received Rs 5.00!`;
-                                if (gotSpin) refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
+                                
+                                if (gotSpin) {
+                                    refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
+                                }
+                                
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                             }
                         }
@@ -537,6 +602,7 @@
                 const isActive = checkIsActive(data?.last_active, data?.created_at);
                 const statusBadge = document.getElementById('menu-status-badge');
                 const statusDot = document.getElementById('menu-status-dot');
+                
                 if (isActive) {
                     statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
                     statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
@@ -555,12 +621,17 @@
                 
                 spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
+                currentEnergy = parseInt(data?.energy || 0);
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
                 
+                updateUI();
+                updateWheelUI();
+            } catch(e) { 
+                console.error(e); 
                 updateUI(); updateWheelUI();
-            } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
+            }
         }
         
         async function fetchHistory(limit = false) {
@@ -587,7 +658,8 @@
         }
 
         function toggleHistory() {
-            isAllHistoryVisible = !isAllHistoryVisible; fetchHistory(!isAllHistoryVisible);
+            isAllHistoryVisible = !isAllHistoryVisible;
+            fetchHistory(!isAllHistoryVisible);
             document.getElementById('toggle-history-btn').innerText = isAllHistoryVisible ? "Hide" : "View All";
         }
 
@@ -675,13 +747,11 @@
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
             if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             
-            // Add Rs 15 fee for Bank Transfers
+            // Adding Rs 15 fee for bank transfer
             const fee = selectedMethodName === 'BANK' ? 15 : 0;
             const totalDeduction = amt + fee;
 
-            if (totalDeduction > currentBalance) {
-                return showNotify(selectedMethodName === 'BANK' ? `Need Rs ${totalDeduction} including fee.` : "Insufficient Balance!");
-            }
+            if (totalDeduction > currentBalance) return showNotify(selectedMethodName === 'BANK' ? `Need Rs ${totalDeduction} including fee.` : "Insufficient Balance!");
 
             const btn = document.getElementById('withdraw-btn'); btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
             setTimeout(async () => {
@@ -769,7 +839,10 @@
                     document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
                         const refProfile = profileMap[rank[0]] || {};
                         let badgeColor = index === 0 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : (index === 1 ? "bg-slate-300/20 text-slate-300 border-slate-300/30" : (index === 2 ? "bg-amber-700/20 text-amber-600 border-amber-700/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"));
+                        
+                        // Fixed: Locked profile photo
                         let photoHtml = refProfile.photo_url ? `<img src="${refProfile.photo_url}" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">` : `<i class="ph-fill ph-user text-lg text-slate-400 pointer-events-none"></i>`;
+                        
                         return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md pointer-events-none">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
                     }).join('');
                 } else document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
@@ -780,11 +853,14 @@
             document.getElementById('bal-val-display').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('w-balance-val').innerText = `Rs ${currentBalance.toFixed(2)}`;
             document.getElementById('coin-val').innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
+            document.getElementById('energy-display').innerHTML = `<i class="ph-fill ph-lightning"></i> Energy: ${currentEnergy}`;
         }
 
-        function showNotify(msg, type) {
-            const box = document.getElementById('custom-notify'); document.getElementById('notify-msg').innerText = msg;
-            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; box.classList.add('active'); 
+        function showNotify(msg, type = 'warning') {
+            const box = document.getElementById('custom-notify'); 
+            document.getElementById('notify-msg').innerText = msg;
+            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; 
+            box.classList.add('active'); 
             setTimeout(() => box.classList.remove('active'), 3000);
         }
         
@@ -801,7 +877,7 @@
             }
         }
         function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-sheet'); }
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('energy-sheet'); }
 
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
@@ -839,161 +915,235 @@
             }, 4000); 
         }
 
-        // --- MATCH & EARN GAME LOGIC ---
-        const rows = 6;
-        const cols = 6;
-        const gameTypes = ['ph-heart text-pink-500', 'ph-star text-yellow-400', 'ph-diamond text-blue-400', 'ph-leaf text-emerald-400', 'ph-lightning text-purple-400'];
-        let board = [], selectedTile = null, isAnimating = false;
-        let gameEarnings = 0;
+        // --- ENERGY SHOP ---
+        async function buyEnergyPack() {
+            if (currentBalance < 5) return showNotify("Insufficient Funds! Need Rs. 5.00", "warning");
+            const btn = document.getElementById('buy-energy-btn');
+            btn.disabled = true; btn.innerText = "Processing...";
+            
+            try {
+                const newBalance = currentBalance - 5;
+                const newEnergy = currentEnergy + 5;
+                const { error } = await _supabase.from('profiles').update({ balance: newBalance, energy: newEnergy }).eq('user_id', userId);
+                if(!error) {
+                    currentBalance = newBalance; currentEnergy = newEnergy;
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'ENERGY_BUY', amount: 5, status: 'approved' }]);
+                    updateUI(); fetchHistory(true);
+                    showNotify("Purchased 5 Energy successfully!", "success");
+                    closeSheet('energy-sheet');
+                } else showNotify("Purchase failed. Try again.");
+            } catch(e) { showNotify("Purchase Error"); }
+            btn.disabled = false; btn.innerText = "Purchase Now";
+        }
 
-        function startGame() {
-            gameEarnings = 0;
-            document.getElementById('game-earnings').innerText = 'Rs 0.00';
+        // --- ADVANCED MATCH-3 GAME ENGINE ---
+        let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
+        const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
+        const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
+
+        function startMatchGame() {
+            if (currentEnergy < 1) {
+                showNotify("Not enough Energy! Buy more in the shop.", "warning");
+                return openSheet('energy-sheet');
+            }
+            
+            currentEnergy -= 1;
+            _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then();
+            updateUI();
+            
+            sessionEarnings = 0;
+            document.getElementById('game-session-earning').innerText = "Rs 0.00";
+            document.getElementById('game-full-screen').classList.add('active');
             initBoard();
-            openSheet('game-sheet');
         }
 
         function initBoard() {
-            const boardEl = document.getElementById('match3-board');
-            boardEl.innerHTML = '';
-            board = [];
-            for(let r=0; r<rows; r++) {
+            const grid = document.getElementById('match3-board');
+            grid.innerHTML = ''; gameBoard = [];
+            for(let r=0; r<6; r++) {
                 let row = [];
-                for(let c=0; c<cols; c++) {
-                    let randomType;
-                    do { randomType = Math.floor(Math.random() * gameTypes.length); } 
-                    while((c >= 2 && row[c-1] === randomType && row[c-2] === randomType) || (r >= 2 && board[r-1][c] === randomType && board[r-2][c] === randomType));
+                for(let c=0; c<6; c++) {
+                    let type;
+                    // Prevent matches on load and prevent bombs (ID 5) initially
+                    do { type = Math.floor(Math.random() * 5); } 
+                    while((c >= 2 && row[c-1] === type && row[c-2] === type) || (r >= 2 && gameBoard[r-1][c] === type && gameBoard[r-2][c] === type));
                     
-                    row.push(randomType);
-                    let tile = document.createElement('div');
-                    tile.className = 'w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center cursor-pointer border border-white/10 text-2xl transition-all active:scale-90';
-                    tile.id = `tile-${r}-${c}`;
-                    tile.innerHTML = `<i class="ph-fill ${gameTypes[randomType]} pointer-events-none drop-shadow-md"></i>`;
-                    tile.onclick = () => handleTileClick(r, c);
-                    boardEl.appendChild(tile);
+                    row.push(type);
+                    const tile = document.createElement('div');
+                    tile.className = `tile`;
+                    tile.id = `t-${r}-${c}`;
+                    tile.innerHTML = `<i class="ph-fill ${ICONS[type]} ${COLORS[type]} pointer-events-none drop-shadow-md"></i>`;
+                    tile.onclick = () => onTileClick(r, c);
+                    grid.appendChild(tile);
                 }
-                board.push(row);
+                gameBoard.push(row);
             }
         }
 
-        async function handleTileClick(r, c) {
+        async function onTileClick(r, c) {
             if(isAnimating) return;
-            if(!selectedTile) {
-                selectedTile = {r, c};
-                document.getElementById(`tile-${r}-${c}`).classList.add('border-pink-500', 'bg-pink-500/20');
+            const clicked = document.getElementById(`t-${r}-${c}`);
+            
+            if (!firstSelection) {
+                firstSelection = { r, c };
+                clicked.classList.add('selected');
             } else {
-                let tr = selectedTile.r, tc = selectedTile.c;
-                document.getElementById(`tile-${tr}-${tc}`).classList.remove('border-pink-500', 'bg-pink-500/20');
+                const prev = document.getElementById(`t-${firstSelection.r}-${firstSelection.c}`);
+                prev.classList.remove('selected');
                 
-                let isAdj = (Math.abs(r - tr) === 1 && c === tc) || (Math.abs(c - tc) === 1 && r === tr);
-                if(isAdj) {
+                const isAdjacent = (Math.abs(r - firstSelection.r) === 1 && c === firstSelection.c) || (Math.abs(c - firstSelection.c) === 1 && r === firstSelection.r);
+                
+                if (isAdjacent) {
                     isAnimating = true;
-                    let temp = board[r][c]; board[r][c] = board[tr][tc]; board[tr][tc] = temp;
-                    updateBoardUI();
+                    await swapTiles(firstSelection.r, firstSelection.c, r, c);
+                }
+                firstSelection = null;
+            }
+        }
 
-                    let matches = checkMatches();
-                    if(matches.length > 0) {
-                        await resolveMatches(matches);
-                    } else {
-                        setTimeout(() => {
-                            temp = board[r][c]; board[r][c] = board[tr][tc]; board[tr][tc] = temp;
-                            updateBoardUI();
-                            isAnimating = false;
-                        }, 400);
+        async function swapTiles(r1, c1, r2, c2) {
+            let temp = gameBoard[r1][c1];
+            gameBoard[r1][c1] = gameBoard[r2][c2];
+            gameBoard[r2][c2] = temp;
+            renderBoard();
+            
+            let matches = findMatches();
+            if (matches.length > 0) {
+                await processMatches(matches);
+            } else {
+                // Invalid swap, revert
+                setTimeout(() => {
+                    temp = gameBoard[r1][c1];
+                    gameBoard[r1][c1] = gameBoard[r2][c2];
+                    gameBoard[r2][c2] = temp;
+                    renderBoard();
+                    isAnimating = false;
+                }, 300);
+            }
+        }
+
+        function findMatches() {
+            let matched = [];
+            // Horizontal
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<4; c++) {
+                    let type = gameBoard[r][c];
+                    if (type !== -1 && type === gameBoard[r][c+1] && type === gameBoard[r][c+2]) {
+                        matched.push({r, c}, {r, c:c+1}, {r, c:c+2});
+                        // Check for 4 or 5
+                        if (c<3 && type === gameBoard[r][c+3]) matched.push({r, c:c+3});
+                        if (c<2 && type === gameBoard[r][c+4]) matched.push({r, c:c+4});
                     }
                 }
-                selectedTile = null;
             }
-        }
-
-        function checkMatches() {
-            let matches = [];
-            for(let r=0; r<rows; r++) {
-                for(let c=0; c<cols-2; c++) {
-                    let type = board[r][c];
-                    if(type !== -1 && type === board[r][c+1] && type === board[r][c+2]) matches.push({r, c}, {r, c:c+1}, {r, c:c+2});
+            // Vertical
+            for(let c=0; c<6; c++) {
+                for(let r=0; r<4; r++) {
+                    let type = gameBoard[r][c];
+                    if (type !== -1 && type === gameBoard[r+1][c] && type === gameBoard[r+2][c]) {
+                        matched.push({r, c}, {r:r+1, c}, {r:r+2, c});
+                        // Check for 4 or 5
+                        if (r<3 && type === gameBoard[r+3][c]) matched.push({r:r+3, c});
+                        if (r<2 && type === gameBoard[r+4][c]) matched.push({r:r+4, c});
+                    }
                 }
             }
-            for(let c=0; c<cols; c++) {
-                for(let r=0; r<rows-2; r++) {
-                    let type = board[r][c];
-                    if(type !== -1 && type === board[r+1][c] && type === board[r+2][c]) matches.push({r, c}, {r:r+1, c}, {r:r+2, c});
-                }
-            }
-            return matches.filter((v, i, a) => a.findIndex(t => (t.r === v.r && t.c === v.c)) === i);
+            // Remove duplicates
+            return matched.filter((v, i, a) => a.findIndex(t => (t.r === v.r && t.c === v.c)) === i);
         }
 
-        async function resolveMatches(matches) {
-            gameEarnings += 0.05;
-            document.getElementById('game-earnings').innerText = `Rs ${gameEarnings.toFixed(2)}`;
-
+        async function processMatches(matches) {
+            let isBombTriggered = false;
+            let matchCount = matches.length;
+            
             matches.forEach(m => {
-                let el = document.getElementById(`tile-${m.r}-${m.c}`);
-                if(el) { el.innerHTML = ''; el.classList.add('bg-white/20'); setTimeout(()=>el.classList.remove('bg-white/20'), 200); }
-                board[m.r][m.c] = -1;
+                if (gameBoard[m.r][m.c] === 5) isBombTriggered = true; // Bomb
+                gameBoard[m.r][m.c] = -1;
+                let el = document.getElementById(`t-${m.r}-${m.c}`);
+                el.classList.add('match-anim');
             });
 
+            if (isBombTriggered) {
+                sessionEarnings = sessionEarnings / 2;
+                showNotify("💥 BOMB HIT! Earnings Halved!", "warning");
+            } else {
+                // Bonus for more than 3 matches
+                let bonus = matchCount > 3 ? (matchCount - 3) * 0.05 : 0;
+                sessionEarnings += 0.05 + bonus;
+            }
+            
+            document.getElementById('game-session-earning').innerText = `Rs ${sessionEarnings.toFixed(2)}`;
             await new Promise(res => setTimeout(res, 300));
-
-            for(let c=0; c<cols; c++) {
-                for(let r=rows-1; r>=0; r--) {
-                    if(board[r][c] === -1) {
+            
+            // Gravity fall
+            for(let c=0; c<6; c++) {
+                for(let r=5; r>=0; r--) {
+                    if (gameBoard[r][c] === -1) {
                         for(let k=r-1; k>=0; k--) {
-                            if(board[k][c] !== -1) {
-                                board[r][c] = board[k][c]; board[k][c] = -1; break;
+                            if (gameBoard[k][c] !== -1) {
+                                gameBoard[r][c] = gameBoard[k][c];
+                                gameBoard[k][c] = -1;
+                                break;
                             }
                         }
                     }
                 }
             }
-            
-            for(let r=0; r<rows; r++) {
-                for(let c=0; c<cols; c++) {
-                    if(board[r][c] === -1) board[r][c] = Math.floor(Math.random() * gameTypes.length);
+
+            // Refill with random (small chance for bombs)
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    if (gameBoard[r][c] === -1) {
+                        gameBoard[r][c] = Math.random() < 0.08 ? 5 : Math.floor(Math.random() * 5);
+                    }
                 }
             }
-
-            updateBoardUI();
+            
+            renderBoard();
             await new Promise(res => setTimeout(res, 300));
 
-            let newMatches = checkMatches();
-            if(newMatches.length > 0) await resolveMatches(newMatches);
-            else isAnimating = false;
+            let nextMatches = findMatches();
+            if (nextMatches.length > 0) {
+                await processMatches(nextMatches);
+            } else {
+                isAnimating = false;
+            }
         }
 
-        function updateBoardUI() {
-            for(let r=0; r<rows; r++) {
-                for(let c=0; c<cols; c++) {
-                    let el = document.getElementById(`tile-${r}-${c}`);
-                    let type = board[r][c];
-                    if(type !== -1) el.innerHTML = `<i class="ph-fill ${gameTypes[type]} pointer-events-none drop-shadow-md"></i>`;
-                    else el.innerHTML = '';
+        function renderBoard() {
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    const tile = document.getElementById(`t-${r}-${c}`);
+                    tile.classList.remove('match-anim', 'bomb');
+                    let type = gameBoard[r][c];
+                    if (type === 5) tile.classList.add('bomb');
+                    if (type !== -1) {
+                        tile.innerHTML = `<i class="ph-fill ${ICONS[type]} ${COLORS[type]} pointer-events-none drop-shadow-md"></i>`;
+                    }
                 }
             }
         }
 
-        async function claimGameEarnings() {
-            if(gameEarnings <= 0) return closeSheet('game-sheet');
-            
-            const btn = document.getElementById('claim-game-btn');
-            btn.disabled = true; btn.innerText = "CLAIMING...";
+        async function claimAndExitGame() {
+            const btn = document.querySelector("#game-full-screen button");
+            btn.disabled = true; btn.innerText = "SAVING...";
 
-            try {
-                const currentIsoDate = new Date().toISOString();
-                const { error } = await _supabase.from('profiles').update({ balance: currentBalance + gameEarnings, last_active: currentIsoDate }).eq('user_id', userId);
-
-                if (!error) {
-                    currentBalance += gameEarnings; 
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'TASK_REWARD', amount: gameEarnings, status: 'approved' }]);
-                    
-                    updateUI(); fetchHistory(true); 
-                    showNotify(`You claimed Rs ${gameEarnings.toFixed(2)} from playing!`, "success"); 
-                    gameEarnings = 0; document.getElementById('game-earnings').innerText = "Rs 0.00";
-                    closeSheet('game-sheet');
-                } else showNotify("Error saving earnings.", "warning");
-            } catch(e) { showNotify("Error saving earnings.", "warning"); }
+            if (sessionEarnings > 0) {
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentBalance += sessionEarnings;
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'TASK_REWARD', amount: sessionEarnings, status: 'approved' }]);
+                        showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
+                    }
+                } catch(e) { showNotify("Failed to save game earnings", "warning"); }
+            }
             
-            btn.disabled = false; btn.innerText = "CLAIM & EXIT";
+            document.getElementById('game-full-screen').classList.remove('active');
+            updateUI();
+            fetchHistory(true);
+            btn.disabled = false; btn.innerText = "CLAIM EARNINGS & EXIT";
         }
     </script>
 </body>
