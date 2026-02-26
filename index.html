@@ -459,7 +459,6 @@
                          newUser.referrer_id = startParam;
                     }
                     
-                    // FIXED: Only process referral reward if the user creation is actually successful
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
                     
                     if (ins.error) {
@@ -467,7 +466,6 @@
                     } else {
                         data = ins.data || newUser; 
                         
-                        // User successfully created! Now reward the referrer ONCE.
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
                             
@@ -747,7 +745,8 @@
             btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
 
             setTimeout(async () => {
-                const txId = ("TX" + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)).toUpperCase();
+                // Generate a highly unique 9-digit numerical Transaction ID
+                const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
                 const saveAddress = `${addr}::${selectedMethodName}::${txId}`;
 
                 try {
@@ -758,7 +757,7 @@
                         const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         let label = selectedMethodName === 'BINANCE' ? "Binance ID" : (selectedMethodName === 'RELOAD' ? "Mobile Number" : "Bank Account");
                         
-                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
+                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
 
                         currentBalance -= amt; 
@@ -792,7 +791,6 @@
                 try {
                     const currentIsoDate = new Date().toISOString();
                     
-                    // FIXED: Properly wait and check if balance saved to database first
                     const { error } = await _supabase.from('profiles').update({ 
                         balance: currentBalance + 1.5,
                         last_active: currentIsoDate 
@@ -910,25 +908,44 @@
                         return;
                     }
 
+                    // Fetch profile details for the top referrers
+                    const topIds = sortedRanks.map(r => r[0]);
+                    const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
+                    
+                    const profileMap = {};
+                    if (profilesData) {
+                        profilesData.forEach(p => profileMap[p.user_id] = p);
+                    }
+
                     document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
                         const refUserId = rank[0];
                         const refCount = rank[1];
+                        const refProfile = profileMap[refUserId] || {};
+                        const refName = refProfile.first_name || 'Unknown User';
+                        const refPhoto = refProfile.photo_url || '';
                         
                         let badgeColor = "bg-slate-500/20 text-slate-400 border-slate-500/30";
                         if (index === 0) badgeColor = "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
                         else if (index === 1) badgeColor = "bg-slate-300/20 text-slate-300 border-slate-300/30";
                         else if (index === 2) badgeColor = "bg-amber-700/20 text-amber-600 border-amber-700/30";
 
+                        let photoHtml = refPhoto 
+                            ? `<img src="${refPhoto}" class="w-full h-full object-cover">`
+                            : `<i class="ph-fill ph-user text-lg text-slate-400"></i>`;
+
                         return `
-                        <div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5 relative overflow-hidden">
+                        <div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5 relative overflow-hidden mb-2">
                             ${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}
-                            <div class="flex items-center gap-4 relative z-10">
-                                <div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner">
+                            <div class="flex items-center gap-4 relative z-10 w-full">
+                                <div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">
                                     #${index + 1}
                                 </div>
-                                <div>
-                                    <p class="font-bold text-sm text-white">ID: ${refUserId}</p>
-                                    <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users"></i> ${refCount} Invites</p>
+                                <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                                    ${photoHtml}
+                                </div>
+                                <div class="flex-1 overflow-hidden">
+                                    <p class="font-bold text-sm text-white truncate">${refName}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${refCount}</span> Invites</p>
                                 </div>
                             </div>
                         </div>`;
@@ -1077,7 +1094,6 @@
                 const prize = prizes[prizeIdx];
                 if (prize.type === 'cash' || prize.type === 'coin') {
                     
-                    // FIXED: Ensure prize balance updates in database correctly before showing
                     try {
                         const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
                         
