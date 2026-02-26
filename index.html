@@ -200,7 +200,7 @@
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
                     <div>
                         <h2 class="text-sm font-black uppercase">Match & Earn</h2>
-                        <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Max Rs 10.00</p>
+                        <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</p>
                     </div>
                 </div>
                 <!-- Permanent Bomb Tracker -->
@@ -229,12 +229,13 @@
             </div>
         </div>
 
-        <div class="mt-8 space-y-4 shrink-0">
+        <div class="mt-8 space-y-3 shrink-0">
             <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
                 <span id="game-status-text">Status: <span class="text-sky-400">Active</span></span>
                 <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
             </div>
             <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
+            <button onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Back to Menu</button>
         </div>
     </div>
 
@@ -248,7 +249,8 @@
                 </div>
                 <div class="overflow-hidden">
                     <h3 id="user-display-name" class="font-bold text-sm text-white truncate">Loading...</h3>
-                    <div class="flex items-center gap-2 mt-0.5">
+                    <p id="user-username-display" class="text-[10px] text-slate-400 font-mono mt-0.5">@username</p>
+                    <div class="flex items-center gap-2 mt-1">
                         <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1 shadow-sm">
                             <i class="ph-fill ph-lightning"></i> Energy: 0
                         </span>
@@ -266,8 +268,7 @@
                     <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs 0.00</h1>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="openSheet('withdraw-sheet')" class="flex-1 bg-[#0ea5e9] py-3 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
-                    <button onclick="openSheet('energy-sheet')" class="flex-1 bg-amber-500/20 border border-amber-500/30 py-3 rounded-xl text-[10px] font-black uppercase text-amber-500 btn-animate">+ Get Energy</button>
+                    <button onclick="openSheet('withdraw-sheet')" class="w-full bg-[#0ea5e9] py-3 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
                 </div>
             </div>
 
@@ -308,7 +309,7 @@
                             <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs 5.00</p></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs 5.00 + ⚡1</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
@@ -384,24 +385,6 @@
         </div>
     </div>
 
-    <!-- Energy Shop Sheet -->
-    <div id="energy-sheet" class="bottom-sheet flex flex-col">
-        <button onclick="closeSheet('energy-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
-        <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
-        <h2 class="text-xl font-black text-amber-500 mb-1 flex items-center gap-2"><i class="ph-bold ph-lightning"></i> Energy Shop</h2>
-        <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Buy energy to play more games</p>
-        
-        <div class="glass p-6 rounded-3xl border border-amber-500/20 text-center relative overflow-hidden bg-gradient-to-b from-amber-500/10 to-transparent">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/20 rounded-full blur-xl"></div>
-            <i class="ph-fill ph-lightning-bolt text-6xl text-amber-400 mb-3 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]"></i>
-            <h3 class="text-2xl font-black text-white tracking-wider">+5 ENERGY</h3>
-            <div class="flex items-center justify-center gap-2 mt-2">
-                <p class="text-[12px] text-slate-300 font-bold uppercase tracking-widest">Cost: <span class="text-sky-400">Rs 5.00</span></p>
-            </div>
-            <button id="buy-energy-btn" onclick="buyEnergyPack()" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-colors btn-animate">Purchase Now</button>
-        </div>
-    </div>
-
     <!-- App Version Modal -->
     <div id="version-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
@@ -425,7 +408,7 @@
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Bombs based on earnings limit.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>3 Bomb Lock Limit & Advanced Animations.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Rs 10 Max Earning cap per game.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Smooth UI Icon animations.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Free energy per successful referral.</span></li>
                 </ul>
             </div>
         </div>
@@ -561,12 +544,12 @@
         <div class="bg-purple-500/10 p-3 rounded-2xl border border-purple-500/20">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1"><i class="ph-fill ph-users"></i> Invite For Spins</p>
-                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/5</p>
+                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/10</p>
             </div>
             <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
                 <div id="ref-progress-bar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 5 friends you invite</p>
+            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 10 friends you invite</p>
         </div>
     </div>
 
@@ -696,7 +679,7 @@
                         });
                         
                         if (adPromise && typeof adPromise.finally === 'function') {
-                            adPromise.finally(() => { scheduleNext(); });
+                            adPromise.catch(e => { /* Ignore adex timeout rejection */ }).finally(() => { scheduleNext(); });
                         } else { scheduleNext(); }
                     } catch(e) { console.error("Auto Ad Error", e); scheduleNext(); }
                 } else { scheduleNext(); }
@@ -733,10 +716,11 @@
                         data = ins.data || newUser; 
                         
                         if (startParam && startParam !== userId && startParam !== "99999") {
-                            let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances').eq('user_id', startParam).maybeSingle();
+                            let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             
                             if (referrerData) {
                                 let newBalance = parseFloat(referrerData.balance || 0) + 5;
+                                let newEnergy = parseInt(referrerData.energy || 0) + 1; // 1 Energy from invite
                                 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
@@ -744,12 +728,12 @@
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                if (currentRefs > 0 && currentRefs % 5 === 0) {
+                                if (currentRefs > 0 && currentRefs % 10 === 0) { // Changed to 10 invites
                                     newSpinChances += 1;
                                     gotSpin = true;
                                 }
 
-                                await _supabase.from('profiles').update({ balance: newBalance, spin_chances: newSpinChances }).eq('user_id', startParam);
+                                await _supabase.from('profiles').update({ balance: newBalance, spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
                                 
                                 await _supabase.from('transactions').insert([{ 
                                     user_id: startParam, 
@@ -759,7 +743,7 @@
                                 }]);
                                 
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n💰 You received Rs 5.00!`;
+                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n💰 You received Rs 5.00 & ⚡ 1 Energy!`;
                                 
                                 if (gotSpin) {
                                     refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
@@ -1101,17 +1085,17 @@
             }
         }
         function closeSheet(id) { const sh = document.getElementById(id); if(sh) sh.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('energy-sheet'); }
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); }
 
         function updateWheelUI() {
             const scd = document.getElementById('spin-chances-display');
             if(scd) scd.innerText = spinChances;
             
-            let currentStep = myReferralCount % 5;
+            let currentStep = myReferralCount % 10;
             const rpt = document.getElementById('ref-progress-text');
-            if(rpt) rpt.innerText = `${currentStep}/5`;
+            if(rpt) rpt.innerText = `${currentStep}/10`;
             const rpb = document.getElementById('ref-progress-bar');
-            if(rpb) rpb.style.width = `${(currentStep / 5) * 100}%`;
+            if(rpb) rpb.style.width = `${(currentStep / 10) * 100}%`;
         }
 
         function spinWheel() {
@@ -1145,27 +1129,6 @@
             }, 4000); 
         }
 
-        // --- ENERGY SHOP LOGIC ---
-        async function buyEnergyPack() {
-            if (currentBalance < 5) return showNotify("Insufficient Funds! Need Rs. 5.00", "warning");
-            const btn = document.getElementById('buy-energy-btn');
-            if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
-            
-            try {
-                const newBalance = currentBalance - 5;
-                const newEnergy = currentEnergy + 5;
-                const { error } = await _supabase.from('profiles').update({ balance: newBalance, energy: newEnergy }).eq('user_id', userId);
-                if(!error) {
-                    currentBalance = newBalance; currentEnergy = newEnergy;
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'ENERGY_BUY', amount: 5, status: 'approved' }]);
-                    updateUI(); fetchHistory(true);
-                    showNotify("Purchased 5 Energy successfully!", "success");
-                    closeSheet('energy-sheet');
-                } else showNotify("Purchase failed. Try again.");
-            } catch(e) { showNotify("Purchase Error"); }
-            if(btn) { btn.disabled = false; btn.innerText = "Purchase Now"; }
-        }
-
         // --- ADVANCED MATCH-3 GAME ENGINE ---
         let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
         let bombsHit = 0; // Track blown up bombs
@@ -1187,8 +1150,8 @@
 
         function startMatchGame() {
             if (currentEnergy < 1) {
-                showNotify("Not enough Energy! Buy more in the shop.", "warning");
-                return openSheet('energy-sheet');
+                showNotify("Not enough Energy! Invite friends to earn more.", "warning");
+                return openSheet('referral-sheet');
             }
             
             currentEnergy -= 1;
@@ -1199,6 +1162,8 @@
             sessionEarnings = 0;
             bombsHit = 0;
             gameLocked = false;
+            isAnimating = false;
+            firstSelection = null;
             
             // Reset UI
             for(let i=1; i<=3; i++) {
@@ -1218,12 +1183,20 @@
             if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
             
             const btn = document.getElementById("claim-exit-btn");
-            if(btn) { btn.innerText = "Claim & Exit"; btn.classList.remove('from-red-600', 'to-rose-700'); btn.classList.add('from-emerald-500', 'to-teal-600'); }
+            if(btn) { btn.innerText = "Claim & Exit"; btn.classList.remove('from-red-600', 'to-rose-700'); btn.classList.add('from-emerald-500', 'to-teal-600'); btn.disabled = false; }
             
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.add('active');
             
             initBoard();
+        }
+
+        function closeGame() {
+            if (isAnimating && !gameLocked) return; // Wait for animations to finish before closing
+            const gfs = document.getElementById('game-full-screen');
+            if(gfs) gfs.classList.remove('active');
+            isAnimating = false;
+            gameLocked = false;
         }
 
         function getDynamicBombChance() {
@@ -1468,7 +1441,7 @@
             await new Promise(res => setTimeout(res, 300));
 
             let nextMatches = findMatches();
-            if (nextMatches.length > 0 && !gameLocked && sessionEarnings < 10) {
+            if (nextMatches.length > 0 && !gameLocked) {
                 await processMatches(nextMatches);
             } else {
                 isAnimating = false;
@@ -1492,6 +1465,8 @@
         }
 
         async function claimAndExitGame() {
+            if (isAnimating && !gameLocked) return; // Prevent clicking during animation unless the game is over
+
             const btn = document.getElementById("claim-exit-btn");
             if(btn) { btn.disabled = true; btn.innerText = "SAVING..."; }
 
@@ -1511,7 +1486,10 @@
             if(gfs) gfs.classList.remove('active');
             updateUI();
             fetchHistory(true);
+            
             if(btn) { btn.disabled = false; btn.innerText = "CLAIM & EXIT"; }
+            isAnimating = false;
+            gameLocked = false;
         }
     </script>
 </body>
