@@ -9,12 +9,11 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <script src='//libtl.com/sdk.js' data-zone='10365806' data-sdk='show_10365806'></script>
+    <script src="https://libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         
-        /* Keyboard bug prevention and text selection disabled */
         body { 
             background-color: #020617; 
             font-family: 'Inter', sans-serif; 
@@ -27,8 +26,6 @@
             flex-direction: column; 
             position: relative; 
             overscroll-behavior: none; 
-            
-            /* Prevent text selection and copy across the app */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -36,7 +33,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* Allow typing inside input fields and textareas */
         input, textarea {
             -webkit-user-select: auto;
             -moz-user-select: auto;
@@ -54,11 +50,9 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        /* Bottom Sheet Styles */
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
         
-        /* Side Panel Styles */
         .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
         .side-panel.active { right: 0; }
 
@@ -71,7 +65,6 @@
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Lucky Wheel Styles */
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
@@ -189,7 +182,6 @@
                     <p class="text-[9px] text-slate-400 mt-0.5">View all your requests</p>
                 </div>
             </button>
-
             <button onclick="openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-users text-lg"></i></div>
                 <div class="text-left">
@@ -197,7 +189,6 @@
                     <p class="text-[9px] text-slate-400 mt-0.5">View your invited friends</p>
                 </div>
             </button>
-
             <button onclick="openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shadow-inner"><i class="ph-fill ph-trophy text-lg"></i></div>
                 <div class="text-left">
@@ -205,7 +196,6 @@
                     <p class="text-[9px] text-slate-400 mt-0.5">Top performing referrers</p>
                 </div>
             </button>
-
             <button onclick="closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner"><i class="ph-fill ph-info text-lg"></i></div>
                 <div class="text-left">
@@ -214,7 +204,6 @@
                 </div>
             </button>
         </div>
-
         <div class="mt-auto pt-6 border-t border-white/10 flex items-center justify-center">
             <p class="text-[8px] text-slate-500 font-black uppercase tracking-widest">Powered by EarnX24</p>
         </div>
@@ -229,7 +218,6 @@
             </div>
             <button onclick="closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
-        
         <div class="flex-1 space-y-4 pb-4 overflow-y-auto">
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
@@ -237,15 +225,12 @@
                 <h3 class="text-2xl font-black text-white tracking-wider">v1.0.0</h3>
                 <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Up to date</p>
             </div>
-
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved UI and seamless animations.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Bank Transfer withdrawal method.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad loading and strict watch timers.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed balance saving and referral exploit bugs.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added SDK-based Ad network for Spin Chances.</span></li>
                 </ul>
             </div>
         </div>
@@ -260,7 +245,6 @@
             </div>
             <button onclick="closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
-        
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
@@ -272,7 +256,6 @@
             </div>
             <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
-        
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
@@ -284,7 +267,6 @@
             </div>
             <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
-        
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
@@ -306,7 +288,6 @@
                 <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
-
         <div id="withdraw-inputs" class="space-y-4 hidden">
             <input id="w-address" type="text" inputmode="text" placeholder="Select a method first" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
@@ -353,10 +334,8 @@
     </div>
 
     <script>
-        // Initialize Telegram WebApp
         const tg = window.Telegram?.WebApp || {};
         
-        // Supabase Database Connection
         const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
         const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -524,17 +503,7 @@
                         let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : 'ph-play-circle')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
-                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div>
-                                <div>
-                                    <p class="text-[11px] font-black uppercase tracking-tight">${label}</p>
-                                    <p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p>
-                                    <p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p>
-                                </div>
-                            </div>
-                            <p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p>
-                        </div>`;
+                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div><p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p></div>`;
                     }).join('');
                 }
             } catch(e) { console.error(e); }
@@ -568,9 +537,7 @@
                     let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
                     let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
                     let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Bank Acc');
-                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1">
-                        <div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div>
-                        <div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
+                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
             } catch(e) { console.error(e); }
         }
@@ -717,14 +684,13 @@
             document.getElementById('ad-progress-bar').style.width = `${(adViewsForSpin / 3) * 100}%`;
         }
 
-        // --- UPDATED: Promise-based Ad System ---
+        // --- FIXED AD SYSTEM ---
         function watchAdForSpin() {
             const btn = document.getElementById('spin-ad-btn');
             btn.disabled = true;
-            btn.innerText = "WAITING...";
+            btn.innerText = "LOADING AD...";
 
             if (typeof show_10365806 === 'function') {
-                // The Promise will only resolve when the ad is completely finished/closed by the user
                 show_10365806({
                     type: 'inApp',
                     inAppSettings: {
@@ -735,32 +701,37 @@
                         everyPage: false
                     }
                 }).then(() => {
-                    // This block runs ONLY AFTER the ad is closed
-                    adViewsForSpin++;
-                    if (adViewsForSpin >= 3) {
-                        adViewsForSpin = 0;
-                        spinChances++;
-                        showNotify("You earned 1 Spin Chance!", "success");
-                    } else {
-                        showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
-                    }
-                    updateWheelUI();
+                    // Ad is now showing on the screen.
+                    // Start a mandatory 5-second wait timer BEFORE giving the reward.
+                    btn.innerText = "WATCHING AD...";
                     
-                    try {
-                        _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId).then();
-                    } catch(e) { console.error("DB update error", e); }
-                    
-                    btn.disabled = false;
-                    btn.innerText = "Watch Ad";
+                    setTimeout(() => {
+                        adViewsForSpin++;
+                        if (adViewsForSpin >= 3) {
+                            adViewsForSpin = 0;
+                            spinChances++;
+                            showNotify("You earned 1 Spin Chance!", "success");
+                        } else {
+                            showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
+                        }
+                        updateWheelUI();
+                        
+                        try {
+                            _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId).then();
+                        } catch(e) { console.error("DB update error", e); }
+                        
+                        btn.disabled = false;
+                        btn.innerText = "Watch Ad";
+                    }, 5000); // 5 seconds mandatory wait
+
                 }).catch((error) => {
-                    // Runs if ad gets blocked, fails, or is skipped illegally
                     console.error("Ad failed or blocked:", error);
-                    showNotify("Ad failed to load. Try again.", "warning");
+                    showNotify("Ad failed to load. Disable Adblockers.", "warning");
                     btn.disabled = false;
                     btn.innerText = "Watch Ad";
                 });
             } else {
-                showNotify("Ad script is still loading. Try again in a moment.", "warning");
+                showNotify("Ad Network is not loading. Try again.", "warning");
                 btn.disabled = false;
                 btn.innerText = "Watch Ad";
             }
