@@ -6,9 +6,8 @@
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Polyfill for Telegram CloudStorage on older versions (v6.0) to prevent Ad SDK console errors -->
+    <!-- Telegram CloudStorage polyfill (To prevent ad SDK errors on older versions) -->
     <script>
-        // Suppress specific Telegram WebApp console errors that bypass standard polyfills
         const originalConsoleError = console.error;
         console.error = function(...args) {
             if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
@@ -16,6 +15,13 @@
             }
             originalConsoleError.apply(console, args);
         };
+
+        // To prevent unhandled promise rejections (adex timeout) from Ad SDK
+        window.addEventListener('unhandledrejection', function(event) {
+            if (event.reason && event.reason.toString().includes('adex timeout')) {
+                event.preventDefault(); // Prevent the error from logging
+            }
+        });
 
         if (window.Telegram && window.Telegram.WebApp) {
             if (!window.Telegram.WebApp.isVersionAtLeast('6.9')) {
@@ -53,7 +59,6 @@
                     }
                 };
 
-                // Carefully assign to existing object to bypass read-only property restrictions
                 if (window.Telegram.WebApp.CloudStorage) {
                     Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
                 } else {
@@ -67,7 +72,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Ad Network SDK Integration (Async loaded to prevent screen freeze) -->
+    <!-- Ad Network SDK -->
     <script async src="https://libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
 
     <style>
@@ -127,7 +132,6 @@
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
         
-        /* Smooth Referral Icon Reverse Spin */
         @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
 
@@ -135,22 +139,48 @@
 
         select option { background-color: #0f172a; color: white; }
 
-        /* Super Animations */
+        /* Super Animations - Smooth bottom-to-top floating */
+        @keyframes floatUpSmooth {
+            0% { transform: translateY(15px) scale(0.6); opacity: 0; }
+            20% { transform: translateY(-5px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 12px rgba(74,222,128,0.9)); }
+            80% { transform: translateY(-50px) scale(1); opacity: 1; filter: brightness(1) drop-shadow(0 0 5px rgba(74,222,128,0.4)); }
+            100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
+        }
+        .float-anim-smooth { animation: floatUpSmooth 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        @keyframes floatDownRed {
+            0% { transform: translateY(0px) scale(0.8); opacity: 0; }
+            20% { transform: translateY(20px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 10px rgba(239,68,68,0.8)); }
+            80% { transform: translateY(60px) scale(1.1); opacity: 1; filter: brightness(1); }
+            100% { transform: translateY(80px) scale(0.8); opacity: 0; }
+        }
+        .float-anim-red { animation: floatDownRed 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0) translateY(0); }
-            20% { transform: translateX(-10px) translateY(-5px) rotate(-3deg); }
-            40% { transform: translateX(10px) translateY(5px) rotate(3deg); }
-            60% { transform: translateX(-10px) translateY(5px) rotate(-3deg); }
-            80% { transform: translateX(10px) translateY(-5px) rotate(3deg); }
+            20% { transform: translateX(-15px) translateY(-8px) rotate(-4deg); }
+            40% { transform: translateX(15px) translateY(8px) rotate(4deg); }
+            60% { transform: translateX(-15px) translateY(8px) rotate(-4deg); }
+            80% { transform: translateX(15px) translateY(-8px) rotate(4deg); }
         }
-        .shake-screen { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
-        }
+        .shake-screen { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* Game Icon Pulse Animation (Google Play Style) */
+        /* New Tile Match Blast Animation */
+        @keyframes tile-match-blast {
+            0% { transform: scale(1); filter: brightness(1); }
+            40% { transform: scale(1.4); filter: brightness(2) drop-shadow(0 0 15px rgba(255,255,255,0.8)); opacity: 0.9; }
+            100% { transform: scale(0); filter: brightness(3); opacity: 0; }
+        }
+        .match-blast-anim { animation: tile-match-blast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 20; position: relative; }
+
+        /* Bomb Blast Animation */
+        @keyframes bomb-blast {
+            0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px red); }
+            30% { transform: scale(1.8); filter: brightness(2) drop-shadow(0 0 40px red) hue-rotate(-20deg); z-index: 40; }
+            100% { transform: scale(3); opacity: 0; filter: brightness(3) drop-shadow(0 0 60px yellow); }
+        }
+        .bomb-blast-anim { animation: bomb-blast 0.7s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; z-index: 40; position: relative; }
+
         @keyframes play-pulse {
             0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); }
             50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); }
@@ -158,17 +188,24 @@
         }
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
 
-        /* Game Full Screen Styles */
+        @keyframes slideDownText {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .animation-slide-down { animation: slideDownText 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* Game Full Screen */
         .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
         .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .tile:active { transform: scale(0.85); }
         .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
-        .tile.match-anim { transform: scale(0) rotate(180deg); opacity: 0; }
-        .tile.bomb { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; animation: pulse-red 1s infinite; z-index: 15; }
-        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 5px #ef4444; transform: scale(1); } 50% { box-shadow: 0 0 25px #ef4444; transform: scale(1.1); } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* Lucky Wheel Super Smooth Animation - Slight bounce at the end */
+        #lucky-wheel {
+            transition: transform 7s cubic-bezier(0.1, 0.85, 0.1, 1.05); 
+        }
         
         .bomb-icon { transition: all 0.3s ease; }
         .bomb-hit { color: #ef4444; transform: scale(1.2); filter: drop-shadow(0 0 8px #ef4444); }
@@ -186,7 +223,7 @@
     <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="loader-ring"></div>
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting</p>
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
         <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
@@ -194,7 +231,8 @@
 
     <!-- Match-3 Game Full Screen -->
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
-        <div class="flex justify-between items-center mb-8 shrink-0">
+        <!-- Normal Header -->
+        <div id="game-header-normal" class="flex justify-between items-center mb-6 shrink-0">
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
@@ -218,14 +256,18 @@
             </div>
         </div>
 
+        <!-- Game Over Top Text (Shows up above the board on loss) -->
+        <div id="game-over-top-text" class="hidden flex-col items-center justify-center mb-6 shrink-0 animation-slide-down">
+            <h2 class="text-4xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">GAME OVER</h2>
+            <p class="text-red-400 text-[11px] font-bold uppercase tracking-widest mt-1">3 Bombs Hit!</p>
+        </div>
+
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
             <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
-                <!-- Locked Overlay (Hidden by default) -->
-                <div id="game-locked-overlay" class="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm z-50 rounded-3xl hidden flex-col items-center justify-center">
-                    <i class="ph-fill ph-lock-key text-5xl text-red-500 mb-2 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]"></i>
-                    <p class="text-white font-black text-xl tracking-widest">LOCKED</p>
-                    <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest mt-1">3 Bombs Hit!</p>
-                </div>
+                
+                <!-- Game locked overlay (Only blurs the board) -->
+                <div id="game-locked-overlay" class="absolute inset-0 bg-[#0f172a]/70 backdrop-blur-md z-50 rounded-3xl hidden"></div>
+
             </div>
         </div>
 
@@ -234,8 +276,9 @@
                 <span id="game-status-text">Status: <span class="text-sky-400">Active</span></span>
                 <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
             </div>
-            <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
-            <button onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Back to Menu</button>
+            <!-- Claim button exactly below the board -->
+            <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
+            <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Back to Menu</button>
         </div>
     </div>
 
@@ -250,11 +293,6 @@
                 <div class="overflow-hidden">
                     <h3 id="user-display-name" class="font-bold text-sm text-white truncate">Loading...</h3>
                     <p id="user-username-display" class="text-[10px] text-slate-400 font-mono mt-0.5">@username</p>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1 shadow-sm">
-                            <i class="ph-fill ph-lightning"></i> Energy: 0
-                        </span>
-                    </div>
                 </div>
             </div>
             <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
@@ -262,8 +300,15 @@
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
             <!-- Balance Card -->
-            <div class="glass p-6 rounded-[2.5rem] border-t border-white/10">
-                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left">Available Balance</p>
+            <div class="glass p-6 rounded-[2.5rem] border-t border-white/10 relative">
+                <!-- Energy display moved to the right of balance card -->
+                <div class="absolute top-6 right-6">
+                    <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 shadow-sm">
+                        <i class="ph-fill ph-lightning"></i> Energy: 0
+                    </span>
+                </div>
+                
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left mt-2">Available Balance</p>
                 <div class="flex items-center gap-2 mb-4">
                     <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs 0.00</h1>
                 </div>
@@ -276,8 +321,7 @@
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <!-- Google Play Style Animated Icon -->
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon shadow-lg shadow-pink-500/30">
                         <i class="ph-fill ph-game-controller text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
@@ -292,7 +336,10 @@
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30"><i class="ph-fill ph-aperture text-2xl animate-spin-slow"></i></div>
+                    <!-- New Premium Lucky Wheel Icon -->
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10">
+                        <i class="ph-fill ph-aperture text-[32px] animate-spin-slow drop-shadow-md"></i>
+                    </div>
                     <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to Rs 50</p></div>
                 </div>
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
@@ -301,7 +348,6 @@
             <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
-                    <!-- Smooth Rotating Referral Avatars -->
                     <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
                         <div class="absolute inset-0 animate-spin-slow">
                             <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover ref-img-spin-reverse"></div>
@@ -399,16 +445,16 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.2.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Dynamics Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.4.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Global English Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Bombs based on earnings limit.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>3 Bomb Lock Limit & Advanced Animations.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Rs 10 Max Earning cap per game.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Free energy per successful referral.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete UI translated to English.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Premium Lucky Wheel Icon & UI.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game Over screen redesign (Top text & Bottom button).</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game Earnings tracked as "GAME REWARD".</span></li>
                 </ul>
             </div>
         </div>
@@ -473,12 +519,10 @@
 
         <div id="withdraw-inputs" class="space-y-4 hidden">
             
-            <!-- Default Input (Binance / Reload) -->
             <div id="standard-input-group" class="space-y-4 hidden">
                 <input id="w-address" type="text" inputmode="text" placeholder="Account Details" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             </div>
 
-            <!-- Full Bank Details Form -->
             <div id="bank-input-group" class="space-y-4 hidden">
                 <div class="relative w-full">
                     <select id="w-bank-name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 appearance-none cursor-pointer">
@@ -523,11 +567,12 @@
         
         <div class="relative w-48 h-48 mx-auto my-4">
             <div class="wheel-marker" style="top: -8px; border-top-width: 16px; border-left-width: 8px; border-right-width: 8px;"></div>
-            <div id="lucky-wheel" class="w-full h-full rounded-full border-[5px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden transition-all duration-[4000ms] ease-[cubic-bezier(0.17,0.67,0.12,0.99)] relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
+            <!-- Wheel UI without 50 Coins (Replaced with Rs 2) -->
+            <div id="lucky-wheel" class="w-full h-full rounded-full border-[5px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(30deg) translateY(-72px);">Rs 1</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(90deg) translateY(-72px);">Rs 5</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(150deg) translateY(-72px);">Rs 10</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(210deg) translateY(-72px);">50C</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(210deg) translateY(-72px);">Rs 2</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(270deg) translateY(-72px);">Rs 50</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[9px] leading-tight drop-shadow-md" style="transform: rotate(330deg) translateY(-72px);">Try<br>Again</div>
             </div>
@@ -564,11 +609,12 @@
         
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
 
+        // Baksheelu list (Prizes array updated)
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
             { label: 'Rs 5', val: 5, type: 'cash' },
             { label: 'Rs 10', val: 10, type: 'cash' },
-            { label: '50 Coins', val: 0.75, type: 'coin' }, 
+            { label: 'Rs 2', val: 2, type: 'cash' }, 
             { label: 'Rs 50', val: 50, type: 'cash' },
             { label: 'Try Again', val: 0, type: 'none' }
         ];
@@ -576,6 +622,15 @@
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+
+        // Vibration (Haptic feedback) function
+        function triggerHaptic(style) {
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred(style);
+            } else if (navigator.vibrate) {
+                navigator.vibrate(style === 'heavy' ? [200, 100, 200] : 50);
+            }
+        }
 
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
@@ -654,7 +709,7 @@
                     await fetchUserData();
                     await fetchHistory(true); 
                 } else {
-                    showNotify("Database connection failed. Check adblockers.", "warning");
+                    showNotify("Database connection failed.", "warning");
                 }
             } catch(e) { 
                 console.error(e); 
@@ -663,7 +718,6 @@
             }
         }
 
-        // --- CONTINUOUS AUTO PLAY AD SYSTEM ---
         function startAutoAdLoop() {
             function scheduleNext() {
                 const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
@@ -679,7 +733,7 @@
                         });
                         
                         if (adPromise && typeof adPromise.finally === 'function') {
-                            adPromise.catch(e => { /* Ignore adex timeout rejection */ }).finally(() => { scheduleNext(); });
+                            adPromise.catch(e => { /* Ignore adex timeout */ }).finally(() => { scheduleNext(); });
                         } else { scheduleNext(); }
                     } catch(e) { console.error("Auto Ad Error", e); scheduleNext(); }
                 } else { scheduleNext(); }
@@ -720,7 +774,7 @@
                             
                             if (referrerData) {
                                 let newBalance = parseFloat(referrerData.balance || 0) + 5;
-                                let newEnergy = parseInt(referrerData.energy || 0) + 1; // 1 Energy from invite
+                                let newEnergy = parseInt(referrerData.energy || 0) + 1; 
                                 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
@@ -728,7 +782,7 @@
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                if (currentRefs > 0 && currentRefs % 10 === 0) { // Changed to 10 invites
+                                if (currentRefs > 0 && currentRefs % 10 === 0) { 
                                     newSpinChances += 1;
                                     gotSpin = true;
                                 }
@@ -742,7 +796,7 @@
                                     status: 'approved'
                                 }]);
                                 
-                                const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
+                                const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "New User";
                                 let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n💰 You received Rs 5.00 & ⚡ 1 Energy!`;
                                 
                                 if (gotSpin) {
@@ -809,7 +863,7 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'TASK_REWARD'].includes(item.type);
+                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : 'ph-play-circle')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
@@ -898,7 +952,7 @@
             let amtElement = document.getElementById('w-amount');
             const amt = amtElement ? parseFloat(amtElement.value) : 0;
             
-            if (!selectedMethodName) return showNotify("Select a method first!");
+            if (!selectedMethodName) return showNotify("Please select a method first!");
             
             if (selectedMethodName === 'BANK') {
                 const bn = document.getElementById('w-bank-name');
@@ -911,14 +965,14 @@
                 accName = ban ? ban.value.trim() : "";
                 addr = bno ? bno.value.trim() : "";
                 
-                if (!bankName) return showNotify("Select a Bank!");
+                if (!bankName) return showNotify("Please select a Bank!");
                 if (!bankBranch) return showNotify("Enter Branch Name!");
                 if (!accName) return showNotify("Enter Account Name!");
-                if (!addr || addr.length < 5) return showNotify("Invalid Account Number!");
+                if (!addr || addr.length < 5) return showNotify("Enter a valid Account Number!");
             } else {
                 const adrEl = document.getElementById('w-address');
                 addr = adrEl ? adrEl.value.trim() : "";
-                if (!addr) return showNotify("Enter Details!");
+                if (!addr) return showNotify("Please enter details!");
                 if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
                 if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
             }
@@ -957,28 +1011,11 @@
 
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
                         
-                        currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent!", "success"); closeAllSheets();
+                        currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); closeAllSheets();
                     } else showNotify("Error processing request.");
                 } catch(e) { showNotify("Error processing request."); }
                 if(btn) { btn.disabled = false; btn.innerText = "Submit Request"; }
             }, 3000);
-        }
-
-        async function earnReward() {
-            const btn = document.getElementById('adBtn'); 
-            if(btn) { btn.disabled = true; btn.innerText = "WAITING..."; }
-            if (tg.openLink) tg.openLink("https://otieu.com/4/10387375"); else window.open("https://otieu.com/4/10387375", "_blank");
-            setTimeout(async () => {
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + 1.5, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentBalance += 1.5; await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
-                        updateUI(); fetchHistory(true); showNotify("Reward Added!", "success"); 
-                    } else showNotify("Failed to save balance.", "warning");
-                } catch(e) { showNotify("Error adding reward."); }
-                if(btn) { btn.disabled = false; btn.innerText = "START"; }
-            }, 5000);
         }
 
         function copyRefLink() {
@@ -1038,7 +1075,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- FIXED UI UPDATE FUNCTION ---
         function updateUI() {
             const balValDisplay = document.getElementById('bal-val-display');
             if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
@@ -1046,11 +1082,8 @@
             const wBalanceVal = document.getElementById('w-balance-val');
             if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
             
-            const coinVal = document.getElementById('coin-val');
-            if (coinVal) coinVal.innerText = `${Math.floor((currentBalance / 1.5) * 100)} COINS`;
-            
             const energyDisplay = document.getElementById('energy-display');
-            if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning"></i> Energy: ${currentEnergy}`;
+            if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning text-sm"></i> Energy: ${currentEnergy}`;
         }
 
         function showNotify(msg, type = 'warning') {
@@ -1099,7 +1132,7 @@
         }
 
         function spinWheel() {
-            if (spinChances <= 0) return showNotify("No spin chances left! Invite friends to earn more.", "warning");
+            if (spinChances <= 0) return showNotify("No spins left! Invite friends to earn more.", "warning");
             const btn = document.getElementById('spin-btn'); 
             if(btn) btn.disabled = true;
             spinChances--; updateWheelUI();
@@ -1108,10 +1141,13 @@
             const rand = Math.random(); let prizeIdx = 5; 
             if (rand < 0.05) prizeIdx = 4; else if (rand < 0.15) prizeIdx = 2; else if (rand < 0.35) prizeIdx = 1; else if (rand < 0.60) prizeIdx = 3; else if (rand < 0.85) prizeIdx = 0; else prizeIdx = 5; 
 
+            // Wheel spin animation with multiple rotations
             const targetRotation = 360 - (30 + prizeIdx * 60);
-            currentWheelRotation += (5 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
+            currentWheelRotation += (12 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+            triggerHaptic('medium');
 
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
@@ -1122,30 +1158,34 @@
                         if(!error) {
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
+                            triggerHaptic('heavy');
                         } else showNotify("Failed to save prize.", "warning");
                     } catch(e) { showNotify("Error updating balance.", "warning"); }
-                } else showNotify("Oops! Try again next time.", "warning");
+                } else {
+                    showNotify("Oops! Try again next time.", "warning");
+                    triggerHaptic('light');
+                }
                 if(btn) btn.disabled = false;
-            }, 4000); 
+            }, 7000); // Matches the animation duration
         }
 
-        // --- ADVANCED MATCH-3 GAME ENGINE ---
+        // --- MATCH-3 GAME ENGINE ---
         let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
-        let bombsHit = 0; // Track blown up bombs
+        let bombsHit = 0; 
         let gameLocked = false;
         
         const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
         const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
 
+        // Float effect and haptic vibration
         function showFloatingText(text, x, y, isRed = false) {
             let el = document.createElement('div');
-            el.className = `absolute font-black text-xl pointer-events-none drop-shadow-lg z-50 ${isRed ? 'text-red-500' : 'text-green-400'}`;
+            el.className = `absolute font-black text-2xl pointer-events-none z-50 ${isRed ? 'text-red-500 float-anim-red' : 'text-green-400 float-anim-smooth'}`;
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
-            el.style.animation = 'floatUp 1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards';
             el.innerText = text;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
+            setTimeout(() => el.remove(), 1500);
         }
 
         function startMatchGame() {
@@ -1158,14 +1198,12 @@
             try { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); } catch(e) {}
             updateUI();
             
-            // Reset Game variables
             sessionEarnings = 0;
             bombsHit = 0;
             gameLocked = false;
             isAnimating = false;
             firstSelection = null;
             
-            // Reset UI
             for(let i=1; i<=3; i++) {
                 let bt = document.getElementById(`b-tracker-${i}`);
                 if(bt) {
@@ -1182,8 +1220,24 @@
             const gse = document.getElementById('game-session-earning');
             if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
             
-            const btn = document.getElementById("claim-exit-btn");
-            if(btn) { btn.innerText = "Claim & Exit"; btn.classList.remove('from-red-600', 'to-rose-700'); btn.classList.add('from-emerald-500', 'to-teal-600'); btn.disabled = false; }
+            const topText = document.getElementById('game-over-top-text');
+            if(topText) { topText.classList.add('hidden'); topText.classList.remove('flex'); }
+
+            const headerNorm = document.getElementById('game-header-normal');
+            if(headerNorm) { headerNorm.classList.remove('hidden'); headerNorm.classList.add('flex'); }
+
+            // Show bottom button and enable
+            const bottomBtn = document.getElementById("claim-exit-btn");
+            if(bottomBtn) { 
+                bottomBtn.style.display = 'block'; 
+                bottomBtn.innerText = "Claim & Exit"; 
+                bottomBtn.classList.remove('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
+                bottomBtn.classList.add('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
+                bottomBtn.disabled = false; 
+            }
+            
+            const backBtn = document.getElementById("back-menu-btn");
+            if(backBtn) backBtn.style.display = 'block';
             
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.add('active');
@@ -1192,7 +1246,7 @@
         }
 
         function closeGame() {
-            if (isAnimating && !gameLocked) return; // Wait for animations to finish before closing
+            if (isAnimating && !gameLocked) return; 
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.remove('active');
             isAnimating = false;
@@ -1200,14 +1254,12 @@
         }
 
         function getDynamicBombChance() {
-            // Base chance 2%, scaling up to ~27% as earnings reach 10
             return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
         function initBoard() {
             const grid = document.getElementById('match3-board');
             if(!grid) return;
-            // Clear existing tiles but keep the overlay
             Array.from(grid.children).forEach(child => {
                 if(child.id !== 'game-locked-overlay') child.remove();
             });
@@ -1307,7 +1359,7 @@
             const fs = document.getElementById('game-full-screen');
             if(fs) {
                 fs.classList.add('shake-screen');
-                setTimeout(() => fs.classList.remove('shake-screen'), 400);
+                setTimeout(() => fs.classList.remove('shake-screen'), 600);
             }
         }
 
@@ -1327,11 +1379,11 @@
                 if (val >= 10) { 
                     isBombTriggered = true; 
                     if(el) {
-                        el.classList.add('bomb');
-                        el.innerHTML = `<i class="ph-fill ph-bomb text-red-500 pointer-events-none drop-shadow-md text-[32px]"></i>`;
+                        el.classList.add('bomb-blast-anim'); // CSS bomb blast animation
+                        el.innerHTML = `<i class="ph-fill ph-bomb text-red-500 pointer-events-none drop-shadow-md text-[40px]"></i>`;
                     }
                 } else {
-                    if(el) el.classList.add('match-anim');
+                    if(el) el.classList.add('match-blast-anim'); // Regular match blast
                 }
                 gameBoard[m.r][m.c] = -1;
             });
@@ -1339,8 +1391,8 @@
             if (isBombTriggered) {
                 bombsHit++;
                 triggerScreenShake();
+                triggerHaptic('heavy');
                 
-                // Update Permanent Tracker UI
                 if(bombsHit <= 3) {
                     let trackerEl = document.getElementById(`b-tracker-${bombsHit}`);
                     if(trackerEl) {
@@ -1357,22 +1409,33 @@
                 
                 if (bombsHit >= 3) {
                     gameLocked = true;
-                    showNotify("💀 3 BOMBS HIT! Game Locked.", "warning");
+                    showNotify("💀 3 BOMBS HIT! Game Over.", "warning");
                     
                     const gst = document.getElementById('game-status-text');
-                    if(gst) gst.innerHTML = `Status: <span class="text-red-500">LOCKED</span>`;
+                    if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
+
+                    // Show Top Game Over Text
+                    const topText = document.getElementById('game-over-top-text');
+                    if(topText) { topText.classList.remove('hidden'); topText.classList.add('flex'); }
+
+                    const headerNorm = document.getElementById('game-header-normal');
+                    if(headerNorm) { headerNorm.classList.add('hidden'); headerNorm.classList.remove('flex'); }
                     
-                    const btn = document.getElementById("claim-exit-btn");
-                    if(btn) { 
-                        btn.innerText = "GAME OVER - EXIT"; 
-                        btn.classList.remove('from-emerald-500', 'to-teal-600'); 
-                        btn.classList.add('from-red-600', 'to-rose-700'); 
+                    // Turn claim button to red and hide back button
+                    const bottomBtn = document.getElementById("claim-exit-btn");
+                    if(bottomBtn) { 
+                        bottomBtn.style.display = 'block'; 
+                        bottomBtn.classList.remove('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
+                        bottomBtn.classList.add('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
                     }
+                    const backBtn = document.getElementById("back-menu-btn");
+                    if(backBtn) backBtn.style.display = 'none';
+
                 } else {
                     showNotify("💥 BOOM! Earnings Halved!", "warning");
                 }
 
-                await new Promise(res => setTimeout(res, 600)); 
+                await new Promise(res => setTimeout(res, 700)); 
                 
                 matches.forEach(m => {
                     let el = document.getElementById(`t-${m.r}-${m.c}`);
@@ -1392,6 +1455,7 @@
 
                 if (lastTileRect && earnedNow > 0) {
                     showFloatingText(`+Rs ${earnedNow.toFixed(2)}`, lastTileRect.left, lastTileRect.top);
+                    triggerHaptic('light'); // Vibration for earnings
                 }
             }
             
@@ -1409,8 +1473,8 @@
             if (gameLocked) {
                 const glo = document.getElementById('game-locked-overlay');
                 if(glo) glo.classList.remove('hidden');
-                isAnimating = true; // Permanently lock grid interaction
-                return; // Stop processing further physics
+                isAnimating = true; 
+                return; 
             }
 
             for(let c=0; c<6; c++) {
@@ -1453,7 +1517,7 @@
                 for(let c=0; c<6; c++) {
                     const tile = document.getElementById(`t-${r}-${c}`);
                     if(tile) {
-                        tile.classList.remove('match-anim', 'bomb');
+                        tile.classList.remove('match-anim', 'bomb', 'bomb-blast-anim', 'match-blast-anim');
                         let type = gameBoard[r][c];
                         if (type !== -1) {
                             let vType = type % 10; 
@@ -1465,10 +1529,11 @@
         }
 
         async function claimAndExitGame() {
-            if (isAnimating && !gameLocked) return; // Prevent clicking during animation unless the game is over
+            if (isAnimating && !gameLocked) return; 
 
-            const btn = document.getElementById("claim-exit-btn");
-            if(btn) { btn.disabled = true; btn.innerText = "SAVING..."; }
+            // Disable buttons during saving
+            const btns = document.querySelectorAll("#claim-exit-btn, #back-menu-btn");
+            btns.forEach(b => { b.disabled = true; if(b.id === 'claim-exit-btn') b.innerText = "SAVING..."; });
 
             if (sessionEarnings > 0) {
                 try {
@@ -1476,7 +1541,8 @@
                     const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
                     if (!error) {
                         currentBalance += sessionEarnings;
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'TASK_REWARD', amount: sessionEarnings, status: 'approved' }]);
+                        // Transaction history type: GAME_REWARD
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
                         showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
                     }
                 } catch(e) { showNotify("Failed to save game earnings", "warning"); }
@@ -1487,7 +1553,7 @@
             updateUI();
             fetchHistory(true);
             
-            if(btn) { btn.disabled = false; btn.innerText = "CLAIM & EXIT"; }
+            btns.forEach(b => { b.disabled = false; if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; });
             isAnimating = false;
             gameLocked = false;
         }
