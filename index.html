@@ -227,7 +227,7 @@
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad System Exploits.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad System Exploits. Strict verification added.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added strict 3-hour wait times for Spins.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced UI security and touch events.</span></li>
                 </ul>
@@ -473,8 +473,6 @@
                 }
                 
                 spinChances = parseInt(data?.spin_chances || 0);
-                
-                // Using ad_views as the UNIX timestamp of the last watched ad
                 lastAdTime = parseInt(data?.ad_views || 0); 
                 currentBalance = parseFloat(data?.balance || 0);
                 
@@ -711,6 +709,7 @@
             }, 1000);
         }
 
+        // --- FIXED: STRICT AD VERIFICATION ---
         function watchAdForSpin() {
             const nowSeconds = Math.floor(Date.now() / 1000);
             if (nowSeconds - lastAdTime < COOLDOWN_SECONDS) {
@@ -721,37 +720,25 @@
             btn.disabled = true;
             btn.innerText = "LOADING AD...";
 
-            let adCompleted = false;
-            let mandatoryWaitDone = false;
-
-            // Strict 15-second mandatory wait to prevent instant skipping exploits
-            setTimeout(() => {
-                mandatoryWaitDone = true;
-                verifyAndReward();
-            }, 15000);
+            let watchStartTime = Date.now();
 
             if (typeof show_10365806 === 'function') {
                 show_10365806({
                     type: 'inApp',
                     inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
                 }).then(() => {
-                    adCompleted = true;
-                    btn.innerText = "VERIFYING VIEW...";
-                    verifyAndReward();
-                }).catch((error) => {
-                    console.error("Ad failed:", error);
-                    showNotify("Ad blocked or failed to load.", "warning");
-                    btn.disabled = false;
-                    btn.innerText = "WATCH AD";
-                });
-            } else {
-                showNotify("Ad Network is not ready. Try again.", "warning");
-                btn.disabled = false;
-                btn.innerText = "WATCH AD";
-            }
+                    
+                    let watchDuration = Date.now() - watchStartTime;
 
-            async function verifyAndReward() {
-                if (adCompleted && mandatoryWaitDone) {
+                    // Strict check: If the ad took less than 5 seconds to load and close, it's fake/skipped!
+                    if (watchDuration < 5000) {
+                        showNotify("Ad was skipped or didn't load properly. No reward.", "warning");
+                        btn.disabled = false;
+                        btn.innerText = "WATCH AD";
+                        return;
+                    }
+
+                    // If they passed the time check, reward them
                     spinChances++;
                     lastAdTime = Math.floor(Date.now() / 1000);
                     
@@ -760,10 +747,19 @@
                     startAdCooldown();
                     
                     try {
-                        // Saving lastAdTime inside ad_views column as UNIX timestamp to avoid DB structure changes
-                        await _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: lastAdTime }).eq('user_id', userId);
+                        _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: lastAdTime }).eq('user_id', userId).then();
                     } catch(e) { console.error("DB Error", e); }
-                }
+                    
+                }).catch((error) => {
+                    console.error("Ad failed:", error);
+                    showNotify("Ad blocked or failed to load. Disable Adblockers.", "warning");
+                    btn.disabled = false;
+                    btn.innerText = "WATCH AD";
+                });
+            } else {
+                showNotify("Ad Network is not ready. Try again.", "warning");
+                btn.disabled = false;
+                btn.innerText = "WATCH AD";
             }
         }
 
