@@ -98,7 +98,6 @@
                     <p id="user-username-display" class="text-[11px] text-slate-400 font-medium mb-0.5 truncate"></p>
                 </div>
             </div>
-
             <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
@@ -228,9 +227,9 @@
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved UI and seamless animations.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad loading and strict watch timers.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad System Exploits.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added strict 3-hour wait times for Spins.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced UI security and touch events.</span></li>
                 </ul>
             </div>
         </div>
@@ -322,14 +321,11 @@
         </div>
 
         <div class="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/20">
-            <div class="flex justify-between items-center mb-2">
-                <p class="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><i class="ph-fill ph-video-camera"></i> Watch Ads for Spins</p>
-                <p id="ad-progress-text" class="text-[10px] font-black text-white">0/3</p>
+            <div class="flex justify-between items-center mb-3">
+                <p class="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><i class="ph-fill ph-video-camera"></i> Watch Ad for 1 Spin</p>
+                <p class="text-[9px] font-black text-white bg-blue-500/20 px-2 py-0.5 rounded-md">1 Ad = 1 Spin</p>
             </div>
-            <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
-                <div id="ad-progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
-            </div>
-            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-2.5 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase">Watch Ad</button>
+            <button id="spin-ad-btn" onclick="watchAdForSpin()" class="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 py-2.5 rounded-xl text-[10px] font-black text-blue-300 btn-animate uppercase transition-colors">Watch Ad</button>
         </div>
     </div>
 
@@ -343,7 +339,10 @@
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
-        let spinChances = 0, adViewsForSpin = 0, currentWheelRotation = 0;
+        let spinChances = 0, lastAdTime = 0, currentWheelRotation = 0;
+        let adCooldownInterval = null;
+        const COOLDOWN_SECONDS = 10800; // 3 Hours
+
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
             { label: 'Rs 5', val: 5, type: 'cash' },
@@ -362,8 +361,7 @@
             if (!targetDateStr) return true; 
             const lastActive = new Date(targetDateStr);
             const now = new Date();
-            const diffTime = now.getTime() - lastActive.getTime();
-            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            const diffDays = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
             return diffDays <= 3;
         }
 
@@ -475,11 +473,14 @@
                 }
                 
                 spinChances = parseInt(data?.spin_chances || 0);
-                adViewsForSpin = parseInt(data?.ad_views || 0);
+                
+                // Using ad_views as the UNIX timestamp of the last watched ad
+                lastAdTime = parseInt(data?.ad_views || 0); 
                 currentBalance = parseFloat(data?.balance || 0);
                 
                 updateUI();
                 updateWheelUI();
+                startAdCooldown(); 
             } catch(e) { 
                 console.error(e); 
                 updateUI(); updateWheelUI();
@@ -680,60 +681,89 @@
 
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
-            document.getElementById('ad-progress-text').innerText = `${adViewsForSpin}/3`;
-            document.getElementById('ad-progress-bar').style.width = `${(adViewsForSpin / 3) * 100}%`;
         }
 
-        // --- FIXED AD SYSTEM ---
+        function startAdCooldown() {
+            clearInterval(adCooldownInterval);
+            const btn = document.getElementById('spin-ad-btn');
+
+            adCooldownInterval = setInterval(() => {
+                const nowSeconds = Math.floor(Date.now() / 1000);
+                const timePassed = nowSeconds - lastAdTime;
+                const timeLeft = COOLDOWN_SECONDS - timePassed;
+
+                if (timeLeft <= 0) {
+                    clearInterval(adCooldownInterval);
+                    btn.disabled = false;
+                    btn.innerText = "WATCH AD";
+                    btn.classList.remove('bg-slate-700', 'text-slate-400', 'border-slate-600');
+                    btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30');
+                } else {
+                    btn.disabled = true;
+                    const h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
+                    const m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
+                    const s = (timeLeft % 60).toString().padStart(2, '0');
+                    btn.innerText = `WAIT ${h}:${m}:${s}`;
+                    
+                    btn.classList.add('bg-slate-700', 'text-slate-400', 'border-slate-600');
+                    btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30');
+                }
+            }, 1000);
+        }
+
         function watchAdForSpin() {
+            const nowSeconds = Math.floor(Date.now() / 1000);
+            if (nowSeconds - lastAdTime < COOLDOWN_SECONDS) {
+                return showNotify("You must wait 3 hours between ads.", "warning");
+            }
+
             const btn = document.getElementById('spin-ad-btn');
             btn.disabled = true;
             btn.innerText = "LOADING AD...";
 
+            let adCompleted = false;
+            let mandatoryWaitDone = false;
+
+            // Strict 15-second mandatory wait to prevent instant skipping exploits
+            setTimeout(() => {
+                mandatoryWaitDone = true;
+                verifyAndReward();
+            }, 15000);
+
             if (typeof show_10365806 === 'function') {
                 show_10365806({
                     type: 'inApp',
-                    inAppSettings: {
-                        frequency: 2,
-                        capping: 0.1,
-                        interval: 30,
-                        timeout: 5,
-                        everyPage: false
-                    }
+                    inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
                 }).then(() => {
-                    // Ad is now showing on the screen.
-                    // Start a mandatory 5-second wait timer BEFORE giving the reward.
-                    btn.innerText = "WATCHING AD...";
-                    
-                    setTimeout(() => {
-                        adViewsForSpin++;
-                        if (adViewsForSpin >= 3) {
-                            adViewsForSpin = 0;
-                            spinChances++;
-                            showNotify("You earned 1 Spin Chance!", "success");
-                        } else {
-                            showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
-                        }
-                        updateWheelUI();
-                        
-                        try {
-                            _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId).then();
-                        } catch(e) { console.error("DB update error", e); }
-                        
-                        btn.disabled = false;
-                        btn.innerText = "Watch Ad";
-                    }, 5000); // 5 seconds mandatory wait
-
+                    adCompleted = true;
+                    btn.innerText = "VERIFYING VIEW...";
+                    verifyAndReward();
                 }).catch((error) => {
-                    console.error("Ad failed or blocked:", error);
-                    showNotify("Ad failed to load. Disable Adblockers.", "warning");
+                    console.error("Ad failed:", error);
+                    showNotify("Ad blocked or failed to load.", "warning");
                     btn.disabled = false;
-                    btn.innerText = "Watch Ad";
+                    btn.innerText = "WATCH AD";
                 });
             } else {
-                showNotify("Ad Network is not loading. Try again.", "warning");
+                showNotify("Ad Network is not ready. Try again.", "warning");
                 btn.disabled = false;
-                btn.innerText = "Watch Ad";
+                btn.innerText = "WATCH AD";
+            }
+
+            async function verifyAndReward() {
+                if (adCompleted && mandatoryWaitDone) {
+                    spinChances++;
+                    lastAdTime = Math.floor(Date.now() / 1000);
+                    
+                    showNotify("You earned 1 Spin Chance!", "success");
+                    updateWheelUI();
+                    startAdCooldown();
+                    
+                    try {
+                        // Saving lastAdTime inside ad_views column as UNIX timestamp to avoid DB structure changes
+                        await _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: lastAdTime }).eq('user_id', userId);
+                    } catch(e) { console.error("DB Error", e); }
+                }
             }
         }
 
@@ -742,6 +772,8 @@
             
             const btn = document.getElementById('spin-btn'); btn.disabled = true;
             spinChances--; updateWheelUI();
+            
+            try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
             
             const rand = Math.random(); let prizeIdx = 5; 
             if (rand < 0.05) prizeIdx = 4; else if (rand < 0.15) prizeIdx = 2; else if (rand < 0.35) prizeIdx = 1; else if (rand < 0.60) prizeIdx = 3; else if (rand < 0.85) prizeIdx = 0; else prizeIdx = 5; 
@@ -752,16 +784,15 @@
 
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
-                try { await _supabase.from('profiles').update({ spin_chances: spinChances, last_active: currentIsoDate }).eq('user_id', userId); } catch(e) {}
-
                 const prize = prizes[prizeIdx];
+
                 if (prize.type === 'cash' || prize.type === 'coin') {
                     try {
                         const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
                         if(!error) {
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                        } else showNotify("Failed to save prize to account.", "warning");
+                        } else showNotify("Failed to save prize.", "warning");
                     } catch(e) { showNotify("Error updating balance.", "warning"); }
                 } else showNotify("Oops! Try again next time.", "warning");
 
