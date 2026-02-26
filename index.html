@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src='//libtl.com/sdk.js' data-zone='10365806' data-sdk='show_10365806'></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -95,7 +97,7 @@
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3 text-left">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0">
-                    <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
+                    <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">
                     <i id="default-pic" class="ph-fill ph-user text-xl"></i>
                 </div>
                 <div class="overflow-hidden">
@@ -161,7 +163,7 @@
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
-                <img id="menu-profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover">
+                <img id="menu-profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">
                 <i id="menu-default-pic" class="ph-fill ph-user text-2xl"></i>
                 <div id="menu-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]"></div>
             </div>
@@ -243,6 +245,7 @@
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Bank Transfer withdrawal method.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced security with unique Transaction IDs.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed balance saving and referral exploit bugs.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added SDK-based Ad network for Spin Chances.</span></li>
                 </ul>
             </div>
         </div>
@@ -258,8 +261,7 @@
             <button onclick="closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         
-        <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            </div>
+        <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
     <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
@@ -271,8 +273,7 @@
             <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         
-        <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            </div>
+        <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
     <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
@@ -284,8 +285,7 @@
             <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         
-        <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1">
-            </div>
+        <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
     <div id="withdraw-sheet" class="bottom-sheet">
@@ -364,7 +364,6 @@
         let currentBalance = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
-        // Lucky Wheel variables
         let spinChances = 0, adViewsForSpin = 0, currentWheelRotation = 0;
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
@@ -375,12 +374,10 @@
             { label: 'Try Again', val: 0, type: 'none' }
         ];
 
-        // Fetch Telegram user data
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
 
-        // Check if user is active (Did a task in last 3 days)
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
             if (!targetDateStr) return true; 
@@ -400,7 +397,6 @@
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
             document.getElementById('user-display-name').innerText = fullName || "Guest User";
             
-            // Menu User details update
             document.getElementById('menu-user-name').innerText = fullName || "Guest User";
             document.getElementById('menu-user-id').innerText = "ID: " + userId;
 
@@ -424,7 +420,6 @@
             await fetchUserData();
             await fetchHistory(true); 
 
-            // Stop Loading animation
             let prog = 0;
             const timer = setInterval(() => {
                 prog += 2;
@@ -441,9 +436,7 @@
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
@@ -461,25 +454,19 @@
                     
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
                     
-                    if (ins.error) {
-                        console.error("Failed to create new profile");
-                    } else {
+                    if (!ins.error) {
                         data = ins.data || newUser; 
-                        
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance').eq('user_id', startParam).maybeSingle();
-                            
                             if (referrerData) {
                                 let newBalance = parseFloat(referrerData.balance) + 5;
                                 await _supabase.from('profiles').update({ balance: newBalance }).eq('user_id', startParam);
-                                
                                 await _supabase.from('transactions').insert([{ 
                                     user_id: startParam, 
                                     type: 'REFERRAL_BONUS', 
                                     amount: 5,
                                     status: 'approved'
                                 }]);
-                                
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
                                 const refText = `🎉 *New Referral Joined!*\n\n${refName} has joined EarnX24 using your referral link.\n\n💰 You received a bonus of Rs 5.00!`;
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
@@ -488,7 +475,6 @@
                     }
                 }
 
-                // Check Active Status
                 const isActive = checkIsActive(data?.last_active, data?.created_at);
                 const statusBadge = document.getElementById('menu-status-badge');
                 const statusDot = document.getElementById('menu-status-dot');
@@ -506,9 +492,7 @@
                 if (data && data.created_at) {
                     const joinedDate = new Date(data.created_at);
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    const day = joinedDate.getDate();
-                    const year = joinedDate.getFullYear();
-                    document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${day}, ${year}`;
+                    document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
                 }
                 
                 spinChances = parseInt(data?.spin_chances || 0);
@@ -518,9 +502,8 @@
                 updateUI();
                 updateWheelUI();
             } catch(e) { 
-                console.error("Error setting user data:", e); 
-                updateUI(); 
-                updateWheelUI();
+                console.error(e); 
+                updateUI(); updateWheelUI();
             }
         }
         
@@ -528,26 +511,18 @@
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
                 if (error) throw error;
-                
                 if (data) {
                     const items = limit ? data.slice(0, 5) : data;
-                    
                     if (items.length === 0) {
                         document.getElementById('history-list').innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`;
                         return;
                     }
                     document.getElementById('history-list').innerHTML = items.map(item => {
-                        const isAdEarn = item.type === 'AD_REWARD';
-                        const isRefEarn = item.type === 'REFERRAL_BONUS';
-                        const isWheelEarn = item.type === 'WHEEL_REWARD';
-                        const isTaskEarn = item.type === 'TASK_REWARD';
-                        const isEarn = isAdEarn || isRefEarn || isWheelEarn || isTaskEarn;
-                        
-                        let label = isAdEarn ? 'AD REWARD' : (isRefEarn ? 'REF BONUS' : (isWheelEarn ? 'WHEEL REWARD' : (isTaskEarn ? 'TASK REWARD' : 'WITHDRAW REQUEST')));
+                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'TASK_REWARD'].includes(item.type);
+                        let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                        let iconClass = isEarn ? (isRefEarn ? 'ph-gift' : (isWheelEarn ? 'ph-aperture' : (isTaskEarn ? 'ph-list-checks' : 'ph-trend-up'))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : 'ph-play-circle')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
-                        
                         const dateObj = new Date(item.created_at);
                         return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5">
                             <div class="flex items-center gap-4">
@@ -562,9 +537,7 @@
                         </div>`;
                     }).join('');
                 }
-            } catch(e) {
-                console.error("History error:", e);
-            }
+            } catch(e) { console.error(e); }
         }
 
         function toggleHistory() {
@@ -574,389 +547,143 @@
         }
 
         async function openWithdrawHistory() {
-            closeSidePanel();
-            openSheet('withdraw-history-sheet');
+            closeSidePanel(); openSheet('withdraw-history-sheet');
             document.getElementById('w-history-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
-
             try {
-                const { data, error } = await _supabase.from('transactions')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .eq('type', 'WITHDRAWAL')
-                    .order('created_at', { ascending: false });
-                    
+                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
                 if (error) throw error;
-
                 document.getElementById('w-history-count').innerText = data.length;
-
                 if (data.length === 0) {
                     document.getElementById('w-history-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
                     return;
                 }
-
                 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
                 document.getElementById('w-history-list-container').innerHTML = data.map(item => {
                     const dateObj = new Date(item.created_at);
                     const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                    
-                    let statusColor, iconClass, statusText;
-                    if(item.status === 'approved') {
-                        statusColor = 'bg-green-500/20 text-green-400 border border-green-500/30';
-                        iconClass = 'ph-check-circle';
-                        statusText = 'Approved';
-                    } else if(item.status === 'rejected') {
-                        statusColor = 'bg-red-500/20 text-red-400 border border-red-500/30';
-                        iconClass = 'ph-x-circle';
-                        statusText = 'Rejected';
-                    } else {
-                        statusColor = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-                        iconClass = 'ph-clock-countdown';
-                        statusText = 'Pending';
-                    }
-
-                    let destAddress = item.address || "N/A";
-                    let wMethod = "Unknown";
-                    let txId = item.id ? item.id.substring(0, 8).toUpperCase() : "N/A"; 
-                    
-                    if (item.address && item.address.includes('::')) {
-                        const parts = item.address.split('::');
-                        destAddress = parts[0];
-                        if(parts.length > 1) wMethod = parts[1];
-                        if(parts.length > 2) txId = parts[2];
-                    }
-
-                    let methodIcon = 'ph-wallet';
-                    let methodNiceName = 'Withdrawal';
-                    let destLabel = 'Account Details';
-                    
-                    if (wMethod === 'BINANCE') { 
-                        methodIcon = 'ph-currency-btc'; methodNiceName = 'Binance'; destLabel = 'Binance ID'; 
-                    } else if (wMethod === 'RELOAD') { 
-                        methodIcon = 'ph-device-mobile-camera'; methodNiceName = 'Mobile Reload'; destLabel = 'Phone No'; 
-                    } else if (wMethod === 'BANK') { 
-                        methodIcon = 'ph-bank'; methodNiceName = 'Bank Transfer'; destLabel = 'Bank Acc'; 
-                    }
-
-                    return `
-                    <div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5">
-                                    <i class="ph-fill ${methodIcon} text-xl"></i>
-                                </div>
-                                <div>
-                                    <p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p>
-                                    <p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p>
-                                <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">
-                                    ${statusText}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5">
-                            <div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5">
-                                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span>
-                                <span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span>
-                                <div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-                                    <span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span>
-                                    <i class="ph-bold ph-copy text-sky-400 text-[10px]"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                    let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
+                    let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                    let parts = (item.address || "N/A").split('::');
+                    let destAddress = parts[0], wMethod = parts[1] || "Unknown", txId = parts[2] || (item.id ? item.id.substring(0, 8).toUpperCase() : "N/A");
+                    let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
+                    let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
+                    let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Bank Acc');
+                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1">
+                        <div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div>
+                        <div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
-
-            } catch(e) {
-                console.error(e);
-                document.getElementById('w-history-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading history</p>';
-            }
+            } catch(e) { console.error(e); }
         }
         
         function copyTxId(txId) {
-            const textArea = document.createElement("textarea");
-            textArea.value = txId;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showNotify("Transaction ID Copied!", "success");
-            } catch (err) {
-                showNotify("Failed to copy ID");
-            }
+            const textArea = document.createElement("textarea"); textArea.value = txId; document.body.appendChild(textArea); textArea.select();
+            try { document.execCommand('copy'); showNotify("Transaction ID Copied!", "success"); } catch (err) { showNotify("Failed to copy ID"); }
             document.body.removeChild(textArea);
         }
 
         function selectMethod(btn, name) {
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedMethodName = name;
-            
+            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedMethodName = name;
             document.getElementById('withdraw-inputs').classList.remove('hidden');
-            
             const addrInput = document.getElementById('w-address');
-            const amtInput = document.getElementById('w-amount');
-            
-            if (name === 'BINANCE') addrInput.placeholder = "Enter Binance ID";
-            else if (name === 'RELOAD') addrInput.placeholder = "Enter Phone Number";
-            else if (name === 'BANK') addrInput.placeholder = "Enter Bank Acc. Number";
-            
-            if (name === 'BANK') {
-                addrInput.setAttribute('inputmode', 'text');
-                addrInput.oninput = null; 
-            } else {
-                addrInput.setAttribute('inputmode', 'numeric');
-                addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
-            }
-            
-            addrInput.value = "";
-            setTimeout(() => { addrInput.focus(); }, 100);
+            addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : (name === 'RELOAD' ? "Enter Phone Number" : "Enter Bank Acc. Number");
+            if (name === 'BANK') { addrInput.setAttribute('inputmode', 'text'); addrInput.oninput = null; } 
+            else { addrInput.setAttribute('inputmode', 'numeric'); addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); }; }
+            addrInput.value = ""; setTimeout(() => { addrInput.focus(); }, 100);
         }
 
         async function processWithdraw() {
             const addr = document.getElementById('w-address').value.trim();
             const amt = parseFloat(document.getElementById('w-amount').value);
-
             if (!selectedMethodName) return showNotify("Select a method first!");
-            if (!addr) {
-                if (selectedMethodName === 'BINANCE') return showNotify("Enter Binance ID!");
-                if (selectedMethodName === 'RELOAD') return showNotify("Enter Phone Number!");
-                if (selectedMethodName === 'BANK') return showNotify("Enter Bank Account!");
-            }
+            if (!addr) return showNotify("Enter Details!");
             if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 10)) return showNotify("Invalid Binance ID!");
             if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
             if (selectedMethodName === 'BANK' && addr.length < 5) return showNotify("Invalid Bank Account!");
-            
             if (isNaN(amt) || amt <= 0) return showNotify("Enter a valid amount!");
             if (selectedMethodName === 'BINANCE' && amt < 5) return showNotify("Min Rs 5 for Binance");
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
             if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             if (amt > currentBalance) return showNotify("Insufficient Balance!");
 
-            const btn = document.getElementById('withdraw-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
-
+            const btn = document.getElementById('withdraw-btn'); btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`;
             setTimeout(async () => {
-                // Generate a highly unique 9-digit numerical Transaction ID
                 const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
                 const saveAddress = `${addr}::${selectedMethodName}::${txId}`;
-
                 try {
                     const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - amt }).eq('user_id', userId);
                     if (!balError) {
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
-                        
-                        const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
-                        let label = selectedMethodName === 'BINANCE' ? "Binance ID" : (selectedMethodName === 'RELOAD' ? "Mobile Number" : "Bank Account");
-                        
-                        const text = `✅ *Withdrawal Request Received*\n\nHello ${uName}, we have received your request.\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\nThank you for using EarnX24!`;
+                        const text = `✅ *Withdrawal Request*\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *Account:* ${addr}\n⏳ *Status:* Processing`;
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
-
-                        currentBalance -= amt; 
-                        updateUI(); 
-                        fetchHistory(true); 
-                        showNotify("Request Sent!", "success"); 
-                        closeAllSheets();
-                    } else {
-                        showNotify("Error processing request.");
-                    }
-                } catch(e) {
-                    showNotify("Error processing request.");
-                }
-                btn.disabled = false; 
-                btn.innerText = "Submit Request";
+                        currentBalance -= amt; updateUI(); fetchHistory(true); showNotify("Request Sent!", "success"); closeAllSheets();
+                    } else showNotify("Error processing request.");
+                } catch(e) { showNotify("Error processing request."); }
+                btn.disabled = false; btn.innerText = "Submit Request";
             }, 3000);
         }
 
         async function earnReward() {
-            const btn = document.getElementById('adBtn'); 
-            btn.disabled = true; 
-            btn.innerText = "WAITING...";
-            
-            if (tg.openLink) {
-                tg.openLink("https://otieu.com/4/10387375");
-            } else {
-                window.open("https://otieu.com/4/10387375", "_blank");
-            }
-            
+            const btn = document.getElementById('adBtn'); btn.disabled = true; btn.innerText = "WAITING...";
+            if (tg.openLink) tg.openLink("https://otieu.com/4/10387375"); else window.open("https://otieu.com/4/10387375", "_blank");
             setTimeout(async () => {
                 try {
                     const currentIsoDate = new Date().toISOString();
-                    
-                    const { error } = await _supabase.from('profiles').update({ 
-                        balance: currentBalance + 1.5,
-                        last_active: currentIsoDate 
-                    }).eq('user_id', userId);
-
+                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + 1.5, last_active: currentIsoDate }).eq('user_id', userId);
                     if (!error) {
-                        currentBalance += 1.5; 
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
-                        
-                        updateUI(); 
-                        fetchHistory(true);
-                        
-                        const statusBadge = document.getElementById('menu-status-badge');
-                        const statusDot = document.getElementById('menu-status-dot');
-                        statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                        statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
-                        statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
-
-                        showNotify("Reward Added!", "success"); 
-                    } else {
-                        showNotify("Failed to save balance.", "warning");
-                    }
-                } catch(e) {
-                    showNotify("Error adding reward.");
-                }
-                btn.disabled = false; 
-                btn.innerText = "START";
+                        currentBalance += 1.5; await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: 1.5 }]);
+                        updateUI(); fetchHistory(true); showNotify("Reward Added!", "success"); 
+                    } else showNotify("Failed to save balance.", "warning");
+                } catch(e) { showNotify("Error adding reward."); }
+                btn.disabled = false; btn.innerText = "START";
             }, 5000);
         }
 
         function copyRefLink() {
-            const botUsername = "Earnx24webbot"; 
-            const refLink = `https://t.me/${botUsername}/App?startapp=${userId}`;
-            
-            const textArea = document.createElement("textarea");
-            textArea.value = refLink;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showNotify("Referral Link Copied!", "success");
-            } catch (err) {
-                showNotify("Failed to copy link");
-            }
+            const refLink = `https://t.me/Earnx24webbot/App?startapp=${userId}`;
+            const textArea = document.createElement("textarea"); textArea.value = refLink; document.body.appendChild(textArea); textArea.select();
+            try { document.execCommand('copy'); showNotify("Referral Link Copied!", "success"); } catch (err) { showNotify("Failed to copy link"); }
             document.body.removeChild(textArea);
         }
 
         async function openReferralList() {
-            closeSidePanel();
-            openSheet('referral-sheet');
-            document.getElementById('referral-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
-
+            closeSidePanel(); openSheet('referral-sheet'); document.getElementById('referral-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
             try {
                 const { data, error } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
                 if (error) throw error;
-
                 document.getElementById('ref-count-display').innerText = data.length;
-
-                if (data.length === 0) {
-                    document.getElementById('referral-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>';
-                    return;
-                }
-
+                if (data.length === 0) { document.getElementById('referral-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; }
                 document.getElementById('referral-list-container').innerHTML = data.map(user => {
-                    const name = user.first_name || 'Unknown';
-                    const idDisplay = String(user.user_id).substring(0, 8) + '...';
-                    
-                    const isUserActive = checkIsActive(user.last_active, user.created_at);
-                    const statusClass = isUserActive ? "text-green-400" : "text-red-400";
-                    const statusBg = isUserActive ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
-                    const statusText = isUserActive ? "Active" : "Inactive";
-
-                    return `<div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-user text-xl"></i></div>
-                            <div>
-                                <p class="font-bold text-sm text-white">${name}</p>
-                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">ID: ${idDisplay}</p>
-                            </div>
-                        </div>
-                        <div class="${statusBg} border px-2.5 py-1 rounded-md">
-                            <p class="text-[9px] font-black ${statusClass} uppercase">${statusText}</p>
-                        </div>
-                    </div>`;
+                    const statusClass = checkIsActive(user.last_active, user.created_at) ? "text-green-400" : "text-red-400";
+                    const statusBg = checkIsActive(user.last_active, user.created_at) ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
+                    const statusText = checkIsActive(user.last_active, user.created_at) ? "Active" : "Inactive";
+                    return `<div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 hover:bg-white/5"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-user text-xl"></i></div><div><p class="font-bold text-sm text-white">${user.first_name || 'Unknown'}</p><p class="text-[10px] text-slate-400 font-mono mt-0.5">ID: ${String(user.user_id).substring(0, 8)}...</p></div></div><div class="${statusBg} border px-2.5 py-1 rounded-md"><p class="text-[9px] font-black ${statusClass} uppercase">${statusText}</p></div></div>`;
                 }).join('');
-
-            } catch(e) {
-                console.error(e);
-                document.getElementById('referral-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading list</p>';
-            }
+            } catch(e) { console.error(e); }
         }
 
         async function openRankList() {
-            closeSidePanel();
-            openSheet('rank-sheet');
-            document.getElementById('rank-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
-
+            closeSidePanel(); openSheet('rank-sheet'); document.getElementById('rank-list-container').innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
             try {
                 const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
                 if (error) throw error;
-                
                 if (data && data.length > 0) {
                     let counts = {};
-                    
-                    data.forEach(item => {
-                        if(item.referrer_id && item.referrer_id !== "99999") {
-                            counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1;
-                        }
-                    });
-
+                    data.forEach(item => { if(item.referrer_id && item.referrer_id !== "99999") counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1; });
                     let sortedRanks = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+                    if(sortedRanks.length === 0) { document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; }
                     
-                    if(sortedRanks.length === 0) {
-                        document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
-                        return;
-                    }
-
-                    // Fetch profile details for the top referrers
                     const topIds = sortedRanks.map(r => r[0]);
                     const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
-                    
-                    const profileMap = {};
-                    if (profilesData) {
-                        profilesData.forEach(p => profileMap[p.user_id] = p);
-                    }
+                    const profileMap = {}; if (profilesData) profilesData.forEach(p => profileMap[p.user_id] = p);
 
                     document.getElementById('rank-list-container').innerHTML = sortedRanks.map((rank, index) => {
-                        const refUserId = rank[0];
-                        const refCount = rank[1];
-                        const refProfile = profileMap[refUserId] || {};
-                        const refName = refProfile.first_name || 'Unknown User';
-                        const refPhoto = refProfile.photo_url || '';
-                        
-                        let badgeColor = "bg-slate-500/20 text-slate-400 border-slate-500/30";
-                        if (index === 0) badgeColor = "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
-                        else if (index === 1) badgeColor = "bg-slate-300/20 text-slate-300 border-slate-300/30";
-                        else if (index === 2) badgeColor = "bg-amber-700/20 text-amber-600 border-amber-700/30";
-
-                        let photoHtml = refPhoto 
-                            ? `<img src="${refPhoto}" class="w-full h-full object-cover">`
-                            : `<i class="ph-fill ph-user text-lg text-slate-400"></i>`;
-
-                        return `
-                        <div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 transition-all hover:bg-white/5 relative overflow-hidden mb-2">
-                            ${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}
-                            <div class="flex items-center gap-4 relative z-10 w-full">
-                                <div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">
-                                    #${index + 1}
-                                </div>
-                                <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
-                                    ${photoHtml}
-                                </div>
-                                <div class="flex-1 overflow-hidden">
-                                    <p class="font-bold text-sm text-white truncate">${refName}</p>
-                                    <p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${refCount}</span> Invites</p>
-                                </div>
-                            </div>
-                        </div>`;
+                        const refProfile = profileMap[rank[0]] || {};
+                        let badgeColor = index === 0 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : (index === 1 ? "bg-slate-300/20 text-slate-300 border-slate-300/30" : (index === 2 ? "bg-amber-700/20 text-amber-600 border-amber-700/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"));
+                        let photoHtml = refProfile.photo_url ? `<img src="${refProfile.photo_url}" class="w-full h-full object-cover">` : `<i class="ph-fill ph-user text-lg text-slate-400"></i>`;
+                        return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
                     }).join('');
-                } else {
-                    document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
-                }
-            } catch(e) {
-                console.error(e);
-                document.getElementById('rank-list-container').innerHTML = '<p class="text-center text-red-400 text-xs py-4 font-bold">Error loading leaderboard</p>';
-            }
+                } else document.getElementById('rank-list-container').innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
+            } catch(e) { console.error(e); }
         }
 
         function updateUI() {
@@ -966,55 +693,23 @@
         }
 
         function showNotify(msg, type) {
-            const box = document.getElementById('custom-notify');
-            document.getElementById('notify-msg').innerText = msg;
-            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24';
-            box.classList.add('active'); 
+            const box = document.getElementById('custom-notify'); document.getElementById('notify-msg').innerText = msg;
+            box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; box.classList.add('active'); 
             setTimeout(() => box.classList.remove('active'), 3000);
         }
         
-        function openSidePanel() {
-            document.getElementById('side-panel').classList.add('active');
-            document.getElementById('sheet-overlay').style.display = 'block';
-        }
-
-        function closeSidePanel() {
-            document.getElementById('side-panel').classList.remove('active');
-            document.getElementById('sheet-overlay').style.display = 'none';
-        }
-
+        function openSidePanel() { document.getElementById('side-panel').classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; }
+        function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
         function openSheet(id) { 
-            document.getElementById(id).classList.add('active'); 
-            document.getElementById('sheet-overlay').style.display = 'block'; 
-            
+            document.getElementById(id).classList.add('active'); document.getElementById('sheet-overlay').style.display = 'block'; 
             if (id === 'withdraw-sheet') {
-                selectedMethodName = null;
-                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-                
-                const inputsDiv = document.getElementById('withdraw-inputs');
-                if (inputsDiv) inputsDiv.classList.add('hidden');
-                
-                const addrInput = document.getElementById('w-address');
-                const amtInput = document.getElementById('w-amount');
-                if (addrInput) addrInput.value = '';
-                if (amtInput) amtInput.value = '';
+                selectedMethodName = null; document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+                document.getElementById('withdraw-inputs').classList.add('hidden');
+                document.getElementById('w-address').value = ''; document.getElementById('w-amount').value = '';
             }
         }
-        
-        function closeSheet(id) { 
-            document.getElementById(id).classList.remove('active'); 
-            document.getElementById('sheet-overlay').style.display = 'none'; 
-        }
-        
-        function closeAllSheets() { 
-            closeSheet('withdraw-sheet'); 
-            closeSidePanel(); 
-            closeSheet('wheel-sheet');
-            closeSheet('referral-sheet');
-            closeSheet('withdraw-history-sheet');
-            closeSheet('rank-sheet');
-            closeSheet('version-sheet');
-        }
+        function closeSheet(id) { document.getElementById(id).classList.remove('active'); document.getElementById('sheet-overlay').style.display = 'none'; }
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); }
 
         function updateWheelUI() {
             document.getElementById('spin-chances-display').innerText = spinChances;
@@ -1022,103 +717,82 @@
             document.getElementById('ad-progress-bar').style.width = `${(adViewsForSpin / 3) * 100}%`;
         }
 
+        // --- UPDATED: Promise-based Ad System ---
         function watchAdForSpin() {
             const btn = document.getElementById('spin-ad-btn');
             btn.disabled = true;
             btn.innerText = "WAITING...";
-            
-            if (tg.openLink) {
-                tg.openLink("https://otieu.com/4/10387375");
-            } else {
-                window.open("https://otieu.com/4/10387375", "_blank");
-            }
 
-            setTimeout(async () => {
-                adViewsForSpin++;
-                if (adViewsForSpin >= 3) {
-                    adViewsForSpin = 0;
-                    spinChances++;
-                    showNotify("You earned 1 Spin Chance!", "success");
-                } else {
-                    showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
-                }
-                updateWheelUI();
-                
-                try {
-                    await _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId);
-                } catch(e) { console.error("DB update error", e); }
-                
+            if (typeof show_10365806 === 'function') {
+                // The Promise will only resolve when the ad is completely finished/closed by the user
+                show_10365806({
+                    type: 'inApp',
+                    inAppSettings: {
+                        frequency: 2,
+                        capping: 0.1,
+                        interval: 30,
+                        timeout: 5,
+                        everyPage: false
+                    }
+                }).then(() => {
+                    // This block runs ONLY AFTER the ad is closed
+                    adViewsForSpin++;
+                    if (adViewsForSpin >= 3) {
+                        adViewsForSpin = 0;
+                        spinChances++;
+                        showNotify("You earned 1 Spin Chance!", "success");
+                    } else {
+                        showNotify(`Ad watched! ${3 - adViewsForSpin} more for a spin.`, "success");
+                    }
+                    updateWheelUI();
+                    
+                    try {
+                        _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: adViewsForSpin }).eq('user_id', userId).then();
+                    } catch(e) { console.error("DB update error", e); }
+                    
+                    btn.disabled = false;
+                    btn.innerText = "Watch Ad";
+                }).catch((error) => {
+                    // Runs if ad gets blocked, fails, or is skipped illegally
+                    console.error("Ad failed or blocked:", error);
+                    showNotify("Ad failed to load. Try again.", "warning");
+                    btn.disabled = false;
+                    btn.innerText = "Watch Ad";
+                });
+            } else {
+                showNotify("Ad script is still loading. Try again in a moment.", "warning");
                 btn.disabled = false;
                 btn.innerText = "Watch Ad";
-            }, 5000);
+            }
         }
 
         function spinWheel() {
             if (spinChances <= 0) return showNotify("No spin chances left! Watch ads to earn more.", "warning");
             
-            const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
-
-            spinChances--;
-            updateWheelUI();
+            const btn = document.getElementById('spin-btn'); btn.disabled = true;
+            spinChances--; updateWheelUI();
             
-            const rand = Math.random();
-            let prizeIdx = 5; 
-            if (rand < 0.05) prizeIdx = 4; 
-            else if (rand < 0.15) prizeIdx = 2; 
-            else if (rand < 0.35) prizeIdx = 1; 
-            else if (rand < 0.60) prizeIdx = 3; 
-            else if (rand < 0.85) prizeIdx = 0; 
-            else prizeIdx = 5; 
+            const rand = Math.random(); let prizeIdx = 5; 
+            if (rand < 0.05) prizeIdx = 4; else if (rand < 0.15) prizeIdx = 2; else if (rand < 0.35) prizeIdx = 1; else if (rand < 0.60) prizeIdx = 3; else if (rand < 0.85) prizeIdx = 0; else prizeIdx = 5; 
 
-            const segmentAngle = 60;
-            const targetRotation = 360 - (30 + prizeIdx * segmentAngle);
-            const extraSpins = 5 * 360;
-            const randomOffset = Math.floor(Math.random() * 40) - 20;
-
-            currentWheelRotation += extraSpins + targetRotation - (currentWheelRotation % 360) + randomOffset;
-
-            const wheel = document.getElementById('lucky-wheel');
-            wheel.style.transform = `rotate(${currentWheelRotation}deg)`;
+            const targetRotation = 360 - (30 + prizeIdx * 60);
+            currentWheelRotation += (5 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
+            document.getElementById('lucky-wheel').style.transform = `rotate(${currentWheelRotation}deg)`;
 
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
-                
-                try {
-                    await _supabase.from('profiles').update({ 
-                        spin_chances: spinChances,
-                        last_active: currentIsoDate
-                    }).eq('user_id', userId);
-                } catch(e) {}
+                try { await _supabase.from('profiles').update({ spin_chances: spinChances, last_active: currentIsoDate }).eq('user_id', userId); } catch(e) {}
 
                 const prize = prizes[prizeIdx];
                 if (prize.type === 'cash' || prize.type === 'coin') {
-                    
                     try {
                         const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
-                        
                         if(!error) {
-                            currentBalance += prize.val;
-                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
-                            showNotify(`Congratulations! You won ${prize.label}!`, "success");
-                            updateUI();
-                            fetchHistory(true);
-                        } else {
-                            showNotify("Failed to save prize to account.", "warning");
-                        }
-                    } catch(e) {
-                         showNotify("Error updating balance.", "warning");
-                    }
-                    
-                } else {
-                    showNotify("Oops! Try again next time.", "warning");
-                }
-                
-                const statusBadge = document.getElementById('menu-status-badge');
-                const statusDot = document.getElementById('menu-status-dot');
-                statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
-                statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+                            currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
+                            showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
+                        } else showNotify("Failed to save prize to account.", "warning");
+                    } catch(e) { showNotify("Error updating balance.", "warning"); }
+                } else showNotify("Oops! Try again next time.", "warning");
 
                 btn.disabled = false;
             }, 4000); 
