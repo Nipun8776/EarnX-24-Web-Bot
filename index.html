@@ -227,7 +227,7 @@
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad System Exploits. Strict verification added.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed Ad System Exploits. Claim Button system added.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added strict 3-hour wait times for Spins.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Enhanced UI security and touch events.</span></li>
                 </ul>
@@ -340,8 +340,8 @@
         let isAllHistoryVisible = false;
         
         let spinChances = 0, lastAdTime = 0, currentWheelRotation = 0;
-        let adCooldownInterval = null;
-        const COOLDOWN_SECONDS = 10800; // 3 Hours
+        let adCooldownInterval = null, claimTimer = null;
+        const COOLDOWN_SECONDS = 10800; 
 
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
@@ -690,26 +690,32 @@
                 const timePassed = nowSeconds - lastAdTime;
                 const timeLeft = COOLDOWN_SECONDS - timePassed;
 
+                btn.classList.remove(
+                    'bg-green-500/20', 'text-green-400', 'border-green-500/30', 'hover:bg-green-500/30', 'animate-pulse',
+                    'bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/30',
+                    'bg-slate-700', 'text-slate-400', 'border-slate-600',
+                    'bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30'
+                );
+
                 if (timeLeft <= 0) {
                     clearInterval(adCooldownInterval);
                     btn.disabled = false;
                     btn.innerText = "WATCH AD";
-                    btn.classList.remove('bg-slate-700', 'text-slate-400', 'border-slate-600');
                     btn.classList.add('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30');
+                    btn.onclick = watchAdForSpin; 
                 } else {
                     btn.disabled = true;
                     const h = Math.floor(timeLeft / 3600).toString().padStart(2, '0');
                     const m = Math.floor((timeLeft % 3600) / 60).toString().padStart(2, '0');
                     const s = (timeLeft % 60).toString().padStart(2, '0');
                     btn.innerText = `WAIT ${h}:${m}:${s}`;
-                    
                     btn.classList.add('bg-slate-700', 'text-slate-400', 'border-slate-600');
-                    btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30');
+                    btn.onclick = null; 
                 }
             }, 1000);
         }
 
-        // --- FIXED: STRICT AD VERIFICATION ---
+        // --- NEW CLAIM REWARD SYSTEM ---
         function watchAdForSpin() {
             const nowSeconds = Math.floor(Date.now() / 1000);
             if (nowSeconds - lastAdTime < COOLDOWN_SECONDS) {
@@ -718,49 +724,61 @@
 
             const btn = document.getElementById('spin-ad-btn');
             btn.disabled = true;
-            btn.innerText = "LOADING AD...";
 
-            let watchStartTime = Date.now();
-
+            // Trigger the ad to play
             if (typeof show_10365806 === 'function') {
-                show_10365806({
-                    type: 'inApp',
-                    inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                }).then(() => {
-                    
-                    let watchDuration = Date.now() - watchStartTime;
-
-                    // Strict check: If the ad took less than 5 seconds to load and close, it's fake/skipped!
-                    if (watchDuration < 5000) {
-                        showNotify("Ad was skipped or didn't load properly. No reward.", "warning");
-                        btn.disabled = false;
-                        btn.innerText = "WATCH AD";
-                        return;
-                    }
-
-                    // If they passed the time check, reward them
-                    spinChances++;
-                    lastAdTime = Math.floor(Date.now() / 1000);
-                    
-                    showNotify("You earned 1 Spin Chance!", "success");
-                    updateWheelUI();
-                    startAdCooldown();
-                    
-                    try {
-                        _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: lastAdTime }).eq('user_id', userId).then();
-                    } catch(e) { console.error("DB Error", e); }
-                    
-                }).catch((error) => {
-                    console.error("Ad failed:", error);
-                    showNotify("Ad blocked or failed to load. Disable Adblockers.", "warning");
-                    btn.disabled = false;
-                    btn.innerText = "WATCH AD";
-                });
+                try {
+                    show_10365806({
+                        type: 'inApp',
+                        inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                    }).catch(e => console.log(e));
+                } catch(e) { console.error(e); }
             } else {
-                showNotify("Ad Network is not ready. Try again.", "warning");
-                btn.disabled = false;
-                btn.innerText = "WATCH AD";
+                return showNotify("Ad Network is not ready. Try again.", "warning");
             }
+
+            // Start Mandatory 15 Seconds Timer on the button
+            let waitTime = 15; 
+            
+            btn.classList.remove('bg-blue-500/20', 'text-blue-300', 'border-blue-500/30', 'hover:bg-blue-500/30');
+            btn.classList.add('bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/30');
+
+            clearInterval(claimTimer);
+            claimTimer = setInterval(() => {
+                if (waitTime > 0) {
+                    btn.innerText = `WATCHING AD... (${waitTime}s)`;
+                    waitTime--;
+                } else {
+                    clearInterval(claimTimer);
+                    
+                    // Allow the user to manually click to claim the reward
+                    btn.innerText = "CLAIM 1 SPIN";
+                    btn.disabled = false;
+                    
+                    btn.classList.remove('bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/30');
+                    btn.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/30', 'hover:bg-green-500/30', 'animate-pulse');
+                    
+                    // Assign the claim function to the button
+                    btn.onclick = claimAdReward; 
+                }
+            }, 1000);
+        }
+
+        async function claimAdReward() {
+            const btn = document.getElementById('spin-ad-btn');
+            btn.onclick = watchAdForSpin; 
+            
+            spinChances++;
+            lastAdTime = Math.floor(Date.now() / 1000);
+            
+            showNotify("You earned 1 Spin Chance!", "success");
+            updateWheelUI();
+            
+            startAdCooldown(); 
+            
+            try {
+                await _supabase.from('profiles').update({ spin_chances: spinChances, ad_views: lastAdTime }).eq('user_id', userId);
+            } catch(e) { console.error("DB Error", e); }
         }
 
         function spinWheel() {
