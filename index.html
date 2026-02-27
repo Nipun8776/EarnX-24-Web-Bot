@@ -341,21 +341,6 @@
                 <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
-            <!-- Task Ad Trigger (Fixed blockId: 23852) -->
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-amber-900/40 to-yellow-900/40 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-yellow-500/20 rounded-full blur-xl"></div>
-                <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white shadow-lg shadow-yellow-500/30">
-                        <i class="ph-fill ph-check-circle text-2xl drop-shadow-md"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm">Complete Task</p>
-                        <p class="text-[9px] text-yellow-300 font-bold uppercase tracking-widest">Earn ⚡ 1 Energy</p>
-                    </div>
-                </div>
-                <button onclick="showTaskAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">START</button>
-            </div>
-
             <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
@@ -469,13 +454,13 @@
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
                 <h3 class="text-2xl font-black text-white tracking-wider">v1.4.1</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Ads & Tasks Update</p>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Ads & Performance Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Watch Video Ad Reward feature (Rs 0.50).</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Complete Task feature for ⚡ 1 Energy.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved Auto Ad interval handling so ads don't overlap.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Premium Lucky Wheel Icon & UI.</span></li>
                 </ul>
             </div>
@@ -627,7 +612,7 @@
         
         let adsgramController = null;
         let adsgramRewardController = null;
-        let adsgramTaskController = null;
+        let autoAdTimerId = null;
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
@@ -675,8 +660,6 @@
             if (window.Adsgram) {
                 adsgramController = window.Adsgram.init({ blockId: "int-23802" });
                 adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
-                // Fixed blockId: Adsgram SDK strictly requires numbers or 'int-' prefix
-                adsgramTaskController = window.Adsgram.init({ blockId: "23852" });
             }
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
@@ -750,19 +733,20 @@
         }
 
         function startAutoAdLoop() {
-            function scheduleNext() {
-                const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
-                setTimeout(triggerAd, nextDelay);
-            }
+            window.scheduleNextAutoAd = function(customDelay) {
+                if (autoAdTimerId) clearTimeout(autoAdTimerId);
+                const delay = customDelay || (Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000);
+                autoAdTimerId = setTimeout(window.triggerAutoAd, delay);
+            };
 
-            function triggerAd() {
+            window.triggerAutoAd = function() {
                 const useAdsgram = Math.random() > 0.5;
 
                 if (useAdsgram && adsgramController) {
                     adsgramController.show().then(() => {
-                        scheduleNext();
+                        window.scheduleNextAutoAd();
                     }).catch((e) => {
-                        scheduleNext();
+                        window.scheduleNextAutoAd();
                     });
                 } else {
                     if (typeof show_10365806 === 'function') {
@@ -773,15 +757,15 @@
                             });
                             
                             if (adPromise && typeof adPromise.finally === 'function') {
-                                adPromise.catch(e => { }).finally(() => { scheduleNext(); });
-                            } else { scheduleNext(); }
-                        } catch(e) { scheduleNext(); }
-                    } else { scheduleNext(); }
+                                adPromise.catch(e => { }).finally(() => { window.scheduleNextAutoAd(); });
+                            } else { window.scheduleNextAutoAd(); }
+                        } catch(e) { window.scheduleNextAutoAd(); }
+                    } else { window.scheduleNextAutoAd(); }
                 }
-            }
+            };
 
             const firstDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
-            setTimeout(triggerAd, firstDelay);
+            window.scheduleNextAutoAd(firstDelay);
         }
 
         async function fetchUserData() {
@@ -924,10 +908,13 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- NEW AD REWARD & TASK FUNCTIONS ---
+        // --- AD REWARD FUNCTIONS ---
         function showRewardAd() {
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
             
+            // Pause auto ads while the rewarded video is showing
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+
             adsgramRewardController.show().then(async (result) => {
                 const rewardAmount = 0.50;
                 try {
@@ -941,29 +928,14 @@
                         fetchHistory(true);
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
+
+                // Wait 60 seconds (60000ms) before re-triggering auto ads
+                if (window.scheduleNextAutoAd) window.scheduleNextAutoAd(60000);
+
             }).catch((e) => {
                 showNotify("Ad was not completed.", "warning");
-            });
-        }
-
-        function showTaskAd() {
-            if (!adsgramTaskController) return showNotify("Ads not ready yet!", "warning");
-            
-            adsgramTaskController.show().then(async (result) => {
-                const energyReward = 1;
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentEnergy += energyReward;
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'TASK_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned ⚡ ${energyReward} Energy!`, "success");
-                        updateUI();
-                        fetchHistory(true);
-                    }
-                } catch(e) { showNotify("Failed to credit energy", "warning"); }
-            }).catch((e) => {
-                showNotify("Task was not completed.", "warning");
+                // Resume normal schedule if ad was cancelled
+                if (window.scheduleNextAutoAd) window.scheduleNextAutoAd();
             });
         }
 
