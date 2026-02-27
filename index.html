@@ -657,8 +657,10 @@
         // Vibration kosam haptic feedback function
         function triggerHaptic(style) {
             if (tg && tg.HapticFeedback) {
-                if (style === 'bomb') {
-                    tg.HapticFeedback.notificationOccurred('error'); // Pedda vibration (bomb ki)
+                if (style === 'fatal_bomb') {
+                    tg.HapticFeedback.notificationOccurred('error'); // 3-aam bomb-inu valiya vibration
+                } else if (style === 'bomb') {
+                    tg.HapticFeedback.impactOccurred('heavy'); 
                 } else if (style === 'daily') {
                     tg.HapticFeedback.impactOccurred('light'); // Chinna vibration (daily claim ki)
                 } else if (style === 'success' || style === 'error' || style === 'warning') {
@@ -669,7 +671,8 @@
             } 
             // Browser vibration fallback
             if (navigator.vibrate) {
-                if (style === 'bomb') navigator.vibrate(600); // Long press laaga (mm gala)
+                if (style === 'fatal_bomb') navigator.vibrate(1000); // 1 second continuous long vibration
+                else if (style === 'bomb') navigator.vibrate(100); 
                 else if (style === 'daily') navigator.vibrate(40); // Chinna vibration
                 else if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
                 else if (style === 'success') navigator.vibrate([100, 50, 100]);
@@ -695,8 +698,17 @@
 
             // Initialize Adsgram
             if (window.Adsgram) {
-                adsgramController = window.Adsgram.init({ blockId: "int-23802" });
-                adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
+                // Check if we are running inside Telegram
+                if (tgUser) {
+                    try {
+                        adsgramController = window.Adsgram.init({ blockId: "int-23802" });
+                        adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
+                    } catch (e) {
+                        console.log("Adsgram initialization skipped (likely outside Telegram context).");
+                    }
+                } else {
+                     console.log("Not in Telegram environment, skipping Adsgram initialization.");
+                }
             }
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
@@ -1471,16 +1483,37 @@
             return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
-        function initBoard() {
-            const grid = document.getElementById('match3-board');
-            if(!grid) return;
-            Array.from(grid.children).forEach(child => {
-                if(child.id !== 'game-locked-overlay') child.remove();
-            });
-            
+        // --- PUDHIYA MATCH CHECKING LOGIC ---
+        function swapInArray(r1, c1, r2, c2) {
+            let temp = gameBoard[r1][c1];
+            gameBoard[r1][c1] = gameBoard[r2][c2];
+            gameBoard[r2][c2] = temp;
+        }
+
+        function countPossibleMatches() {
+            let count = 0;
+            // Horizontal swaps check cheyyuka
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    swapInArray(r, c, r, c + 1);
+                    if (findMatches().length > 0) count++;
+                    swapInArray(r, c, r, c + 1); // pazhaya pole aakkuka
+                }
+            }
+            // Vertical swaps check cheyyuka
+            for (let c = 0; c < 6; c++) {
+                for (let r = 0; r < 5; r++) {
+                    swapInArray(r, c, r + 1, c);
+                    if (findMatches().length > 0) count++;
+                    swapInArray(r, c, r + 1, c); // pazhaya pole aakkuka
+                }
+            }
+            return count;
+        }
+
+        function generateRandomBoard() {
             gameBoard = [];
             let chance = getDynamicBombChance();
-            
             for(let r=0; r<6; r++) {
                 let row = [];
                 for(let c=0; c<6; c++) {
@@ -1489,8 +1522,68 @@
                     while((c >= 2 && (row[c-1]%10) === vType && (row[c-2]%10) === vType) || (r >= 2 && (gameBoard[r-1][c]%10) === vType && (gameBoard[r-2][c]%10) === vType));
                     
                     let type = Math.random() < chance ? vType + 10 : vType;
-                    
                     row.push(type);
+                }
+                gameBoard.push(row);
+            }
+        }
+
+        function shuffleExistingTiles() {
+            let tiles = [];
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    tiles.push(gameBoard[r][c]);
+                }
+            }
+            // Shuffle
+            for (let i = tiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+            }
+            let idx = 0;
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    gameBoard[r][c] = tiles[idx++];
+                }
+            }
+        }
+
+        function forcePossibleMatches() {
+            let safe = 0;
+            let isGood = false;
+            while(safe < 50) {
+                shuffleExistingTiles();
+                // Oru immediate match polum illathathum, kuranjathu 2 possible match ullathum aaya sthithi
+                if (findMatches().length === 0 && countPossibleMatches() >= 2) {
+                    isGood = true;
+                    break;
+                }
+                safe++;
+            }
+            if (!isGood) {
+                do {
+                    generateRandomBoard();
+                } while (countPossibleMatches() < 2);
+            }
+        }
+        // ------------------------------------
+
+        function initBoard() {
+            const grid = document.getElementById('match3-board');
+            if(!grid) return;
+            Array.from(grid.children).forEach(child => {
+                if(child.id !== 'game-locked-overlay') child.remove();
+            });
+            
+            // Kuranjathu 2 match ulla oru board urappakkunnu
+            do {
+                generateRandomBoard();
+            } while (countPossibleMatches() < 2);
+            
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    let type = gameBoard[r][c];
+                    let vType = type % 10;
                     const tile = document.createElement('div');
                     tile.className = `tile`;
                     tile.id = `t-${r}-${c}`;
@@ -1498,7 +1591,6 @@
                     tile.onclick = (e) => onTileClick(r, c, e);
                     grid.appendChild(tile);
                 }
-                gameBoard.push(row);
             }
         }
 
@@ -1605,8 +1697,14 @@
             if (isBombTriggered) {
                 bombsHit++;
                 triggerScreenShake();
-                triggerHaptic('bomb'); // Long vibration (Bomb ki)
                 
+                // 3-aam bomb aayirunnal valiya vibration
+                if(bombsHit >= 3) {
+                    triggerHaptic('fatal_bomb');
+                } else {
+                    triggerHaptic('bomb'); 
+                }
+
                 let statusCircle = document.getElementById('bomb-status-circle');
                 let alertIcon = document.getElementById('bomb-alert-icon');
 
@@ -1743,6 +1841,13 @@
             if (nextMatches.length > 0 && !gameLocked) {
                 await processMatches(nextMatches);
             } else {
+                // Cascades ellam theernu kazhinjal match undo ennu parikshikkuka
+                if (!gameLocked && countPossibleMatches() < 2) {
+                    showNotify("Pudhiya vazhikal illathathinal board reshuffle cheyyunnu...", "warning");
+                    await new Promise(res => setTimeout(res, 800));
+                    forcePossibleMatches();
+                    renderBoard();
+                }
                 isAnimating = false;
             }
         }
