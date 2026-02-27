@@ -6,20 +6,19 @@
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Telegram CloudStorage polyfill (Hale versions gagi ad SDK errors thadeyalu) -->
+    <!-- Telegram CloudStorage polyfill -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
             if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
-                return; // Nirdishta error spam annu kadekanisi
+                return; 
             }
             originalConsoleError.apply(console, args);
         };
 
-        // Ad SDK ninda baruttiruva unhandled promise rejections (adex timeout) thadeyalu
         window.addEventListener('unhandledrejection', function(event) {
             if (event.reason && event.reason.toString().includes('adex timeout')) {
-                event.preventDefault(); // Error log aguvudannu thadeyiri
+                event.preventDefault(); 
             }
         });
 
@@ -238,12 +237,17 @@
                         <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</p>
                     </div>
                 </div>
-                <!-- Permanent Bomb Tracker -->
-                <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10 w-fit mt-1">
-                    <span class="text-[8px] font-bold uppercase text-slate-400 mr-1">Bombs:</span>
-                    <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                    <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                    <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                <!-- Permanent Bomb Tracker with Indicator -->
+                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit mt-1">
+                    <span class="text-[8px] font-bold uppercase text-slate-400 hidden sm:block">Bombs:</span>
+                    <!-- Bomb status indicator (Malayalam) -->
+                    <div id="bomb-status-circle" class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300"></div>
+                    <i id="bomb-alert-icon" class="ph-fill ph-warning text-red-500 hidden animate-pulse text-sm ml-0.5"></i>
+                    <div class="flex items-center gap-1 ml-1 border-l border-white/10 pl-2">
+                        <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                        <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                        <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                    </div>
                 </div>
             </div>
             
@@ -256,7 +260,7 @@
         <!-- Game Over Top Text -->
         <div id="game-over-top-text" class="hidden flex-col items-center justify-center mb-6 shrink-0 animation-slide-down">
             <h2 class="text-4xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">GAME OVER</h2>
-            <p class="text-red-400 text-[11px] font-bold uppercase tracking-widest mt-1">3 Bombs Hit!</p>
+            <p class="text-red-400 text-[11px] font-bold uppercase tracking-widest mt-1">3 Bombs Hit! All Lost.</p>
         </div>
 
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
@@ -311,6 +315,21 @@
                 </div>
             </div>
 
+            <!-- Daily Check-in Card (Malayalam) -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                        <i class="ph-fill ph-calendar-check text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Prathidina Sammanam</p>
+                        <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free ⚡ 5 Energy</p>
+                    </div>
+                </div>
+                <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">NEDUKA</button>
+            </div>
+
             <!-- Mini Game Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
@@ -326,7 +345,7 @@
                 <button onclick="startMatchGame()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
-            <!-- Watch Ad Reward Trigger (New Adsgram 23851) -->
+            <!-- Watch Ad Reward Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -453,15 +472,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.4.1</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Ads & Performance Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.5.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Ads, Daily Rewards & Gameplay Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Watch Video Ad Reward feature (Rs 0.50).</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Improved Auto Ad interval handling so ads don't overlap.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Premium Lucky Wheel Icon & UI.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Check-in for 5 Energy! (Prathidina Sammanam)</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Ad Scheduler (Adsgram & Monetag Looping).</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New Bomb UI indicator & 100% loss on 3rd Bomb.</span></li>
                 </ul>
             </div>
         </div>
@@ -613,6 +632,9 @@
         let adsgramController = null;
         let adsgramRewardController = null;
         let autoAdTimerId = null;
+        
+        // Ad kalikkunnu undo ennariyan (Malayalam)
+        let isAdPlaying = false; 
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
@@ -656,7 +678,7 @@
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
 
-            // Initialize Adsgram with new blocks
+            // Initialize Adsgram
             if (window.Adsgram) {
                 adsgramController = window.Adsgram.init({ blockId: "int-23802" });
                 adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
@@ -693,6 +715,9 @@
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
+            // Start Daily Check-in Timer Loop
+            setInterval(updateDailyTimer, 1000);
+
             let prog = 0;
             let isDataReady = false;
             
@@ -712,7 +737,7 @@
                         if(ls) ls.style.opacity = '0';
                         setTimeout(() => {
                             if(ls) ls.style.display = 'none';
-                            startAutoAdLoop(); 
+                            startAutoAdLoop(); // Pudhiya Ad loop (Malayalam)
                         }, 400);
                     }, 200); 
                 }
@@ -732,41 +757,134 @@
             }
         }
 
+        // --- PUDHIYA AD SCHEDULE LOGIC (MALAYALAM) ---
         function startAutoAdLoop() {
-            window.scheduleNextAutoAd = function(customDelay) {
-                if (autoAdTimerId) clearTimeout(autoAdTimerId);
-                const delay = customDelay || (Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000);
-                autoAdTimerId = setTimeout(window.triggerAutoAd, delay);
-            };
-
-            window.triggerAutoAd = function() {
-                const useAdsgram = Math.random() > 0.5;
-
-                if (useAdsgram && adsgramController) {
-                    adsgramController.show().then(() => {
-                        window.scheduleNextAutoAd();
-                    }).catch((e) => {
-                        window.scheduleNextAutoAd();
-                    });
-                } else {
-                    if (typeof show_10365806 === 'function') {
-                        try {
-                            let adPromise = show_10365806({
-                                type: 'inApp',
-                                inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                            });
-                            
-                            if (adPromise && typeof adPromise.finally === 'function') {
-                                adPromise.catch(e => { }).finally(() => { window.scheduleNextAutoAd(); });
-                            } else { window.scheduleNextAutoAd(); }
-                        } catch(e) { window.scheduleNextAutoAd(); }
-                    } else { window.scheduleNextAutoAd(); }
-                }
-            };
-
-            const firstDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
-            window.scheduleNextAutoAd(firstDelay);
+            // Aadyathe Adsgram ad (3-10 seconds ulil)
+            const firstDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
+            setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
         }
+
+        function triggerAutoAd(type) {
+            if (isAdPlaying) {
+                // Pinne onnude nokkuka (Retry in 10s)
+                setTimeout(() => triggerAutoAd(type), 10000);
+                return;
+            }
+            isAdPlaying = true;
+
+            if (type === 'ADSGRAM' && adsgramController) {
+                adsgramController.show().then(() => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG');
+                }).catch((e) => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG');
+                });
+            } else if (type === 'MONETAG' && typeof show_10365806 === 'function') {
+                try {
+                    let adPromise = show_10365806({
+                        type: 'inApp',
+                        inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                    });
+                    
+                    if (adPromise && typeof adPromise.finally === 'function') {
+                        adPromise.catch(e => { }).finally(() => { 
+                            isAdPlaying = false;
+                            scheduleNextAd('ADSGRAM'); 
+                        });
+                    } else { 
+                        isAdPlaying = false;
+                        scheduleNextAd('ADSGRAM'); 
+                    }
+                } catch(e) { 
+                    isAdPlaying = false;
+                    scheduleNextAd('ADSGRAM'); 
+                }
+            } else {
+                isAdPlaying = false;
+                scheduleNextAd(type === 'ADSGRAM' ? 'MONETAG' : 'ADSGRAM');
+            }
+        }
+
+        function scheduleNextAd(nextType) {
+            let delay = 0;
+            if (nextType === 'MONETAG') {
+                // 30 thottu 60 seconds (Malayalam)
+                delay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
+            } else {
+                // 90 seconds (1 minute 30s as requested) - loop infinitely (Malayalam)
+                delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
+            }
+            setTimeout(() => triggerAutoAd(nextType), delay);
+        }
+        // ------------------------------------------
+
+        // --- PRATHIDINA SAMMANAM LOGIC (MALAYALAM) ---
+        function updateDailyTimer() {
+            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+            const btn = document.getElementById('daily-claim-btn');
+            if (!btn) return;
+
+            if (lastClaim) {
+                const now = new Date().getTime();
+                const claimTime = parseInt(lastClaim, 10);
+                const diff = now - claimTime;
+                const hrs24 = 24 * 60 * 60 * 1000;
+
+                if (diff < hrs24) {
+                    const remaining = hrs24 - diff;
+                    const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((remaining % (1000 * 60)) / 1000);
+                    
+                    btn.disabled = true;
+                    btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = "NEDUKA"; // Claim
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                btn.disabled = false;
+                btn.innerText = "NEDUKA"; // Claim
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        async function claimDailyReward() {
+            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+            const now = new Date().getTime();
+
+            if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) {
+                showNotify("24 maniukkur kaathirikkuka (Please wait 24h)!", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('daily-claim-btn');
+            if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
+
+            try {
+                const energyReward = 5;
+                const currentIsoDate = new Date().toISOString();
+                const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
+                
+                if (!error) {
+                    currentEnergy += energyReward;
+                    localStorage.setItem(`daily_claim_${userId}`, now.toString());
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
+                    showNotify(`Prathidina Sammanam Nediyirikunnu (Claimed ⚡ 5 Energy)!`, "success");
+                    updateUI();
+                    fetchHistory(true);
+                } else {
+                    showNotify("Nedaan kazhinjilla (Failed to claim)", "warning");
+                }
+            } catch(e) {
+                showNotify("Nedaan kazhinjilla (Failed to claim)", "warning");
+            }
+            updateDailyTimer();
+        }
+        // ---------------------------------------------
 
         async function fetchUserData() {
             try {
@@ -867,6 +985,7 @@
                 
                 updateUI();
                 updateWheelUI();
+                updateDailyTimer();
             } catch(e) { 
                 console.error(e); 
                 updateUI(); updateWheelUI();
@@ -887,17 +1006,19 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD'].includes(item.type);
+                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : 'ph-play-circle')))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : 'ph-play-circle'))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
                         let amountHtml = '';
                         if ((item.type === 'REFERRAL_BONUS' || item.type === 'TASK_REWARD') && item.amount === 0) {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡1</p>`;
+                        } else if (item.type === 'DAILY_REWARD') {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡5</p>`;
                         } else {
                             amountHtml = `<p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p>`;
                         }
@@ -908,12 +1029,11 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- AD REWARD FUNCTIONS ---
         function showRewardAd() {
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
             
-            // Pause auto ads while the rewarded video is showing
-            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+            // Video kaanumbol auto ad nirthaan (Malayalam)
+            isAdPlaying = true;
 
             adsgramRewardController.show().then(async (result) => {
                 const rewardAmount = 0.50;
@@ -929,13 +1049,16 @@
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
 
-                // Wait 60 seconds (60000ms) before re-triggering auto ads
-                if (window.scheduleNextAutoAd) window.scheduleNextAutoAd(60000);
+                // Ad kazhinju 60 seconds samayam (Malayalam)
+                setTimeout(() => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG');
+                }, 60000);
 
             }).catch((e) => {
                 showNotify("Ad was not completed.", "warning");
-                // Resume normal schedule if ad was cancelled
-                if (window.scheduleNextAutoAd) window.scheduleNextAutoAd();
+                isAdPlaying = false;
+                scheduleNextAd('MONETAG');
             });
         }
 
@@ -1271,6 +1394,16 @@
                     bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
                 }
             }
+
+            // Bomb Indicator Reset (Malayalam)
+            let statusCircle = document.getElementById('bomb-status-circle');
+            if (statusCircle) {
+                statusCircle.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300";
+            }
+            let alertIcon = document.getElementById('bomb-alert-icon');
+            if (alertIcon) {
+                alertIcon.classList.add('hidden');
+            }
             
             const glo = document.getElementById('game-locked-overlay');
             if(glo) glo.classList.add('hidden');
@@ -1453,6 +1586,9 @@
                 triggerScreenShake();
                 triggerHaptic('heavy');
                 
+                let statusCircle = document.getElementById('bomb-status-circle');
+                let alertIcon = document.getElementById('bomb-alert-icon');
+
                 if(bombsHit <= 3) {
                     let trackerEl = document.getElementById(`b-tracker-${bombsHit}`);
                     if(trackerEl) {
@@ -1461,15 +1597,36 @@
                     }
                 }
 
-                sessionEarnings = sessionEarnings / 2;
-                
-                if (lastTileRect) {
-                    showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                // Bomb Indicator UI Updates (Malayalam)
+                if (bombsHit === 1) {
+                    // Pacha manja aakunnu
+                    if (statusCircle) {
+                        statusCircle.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
+                        statusCircle.classList.add('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
+                    }
+                    sessionEarnings = sessionEarnings / 2;
+                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                    showNotify("💥 BOOM! Pakuthi nashtappettu (Earnings Halved)!", "warning");
+                } 
+                else if (bombsHit === 2) {
+                    // Manja chuvappu aakunnu, alert varunnu
+                    if (statusCircle) {
+                        statusCircle.classList.remove('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
+                        statusCircle.classList.add('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]', 'animate-pulse');
+                    }
+                    if (alertIcon) alertIcon.classList.remove('hidden');
+                    
+                    sessionEarnings = sessionEarnings / 2;
+                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                    showNotify("💥 Munnariyippu! Oru bomb koodi vannal ellam pokum!", "warning");
                 }
-                
-                if (bombsHit >= 3) {
+                else if (bombsHit >= 3) {
+                    // 100% loss
+                    sessionEarnings = 0;
+                    if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
+
                     gameLocked = true;
-                    showNotify("💀 3 BOMBS HIT! Game Over.", "warning");
+                    showNotify("💀 3 BOMBS HIT! Kali avasanichu, ellam nashtappettu.", "warning");
                     
                     const gst = document.getElementById('game-status-text');
                     if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
@@ -1489,8 +1646,6 @@
                     const backBtn = document.getElementById("back-menu-btn");
                     if(backBtn) backBtn.style.display = 'none';
 
-                } else {
-                    showNotify("💥 BOOM! Earnings Halved!", "warning");
                 }
 
                 await new Promise(res => setTimeout(res, 700)); 
