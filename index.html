@@ -315,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- Daily Check-in Card (Malayalam) -->
+            <!-- Daily Check-in Card -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -323,11 +323,11 @@
                         <i class="ph-fill ph-calendar-check text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm">Prathidina Sammanam</p>
+                        <p class="font-bold text-sm">Daily Check-in</p>
                         <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free ⚡ 5 Energy</p>
                     </div>
                 </div>
-                <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">NEDUKA</button>
+                <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
             </div>
 
             <!-- Mini Game Trigger -->
@@ -478,7 +478,7 @@
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Check-in for 5 Energy! (Prathidina Sammanam)</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Check-in for 5 Energy!</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Ad Scheduler (Adsgram & Monetag Looping).</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New Bomb UI indicator & 100% loss on 3rd Bomb.</span></li>
                 </ul>
@@ -633,7 +633,7 @@
         let adsgramRewardController = null;
         let autoAdTimerId = null;
         
-        // Ad kalikkunnu undo ennariyan (Malayalam)
+        // Ad play avuthundha ani check cheyadaniki variable
         let isAdPlaying = false; 
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
@@ -654,11 +654,20 @@
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
 
+        // Vibration kosam haptic feedback function
         function triggerHaptic(style) {
             if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred(style);
-            } else if (navigator.vibrate) {
-                navigator.vibrate(style === 'heavy' ? [200, 100, 200] : 50);
+                if (style === 'success' || style === 'error' || style === 'warning') {
+                    tg.HapticFeedback.notificationOccurred(style);
+                } else {
+                    tg.HapticFeedback.impactOccurred(style || 'heavy');
+                }
+            } 
+            // Browser vibration fallback
+            if (navigator.vibrate) {
+                if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
+                else if (style === 'success') navigator.vibrate([100, 50, 100]);
+                else navigator.vibrate(50);
             }
         }
 
@@ -757,16 +766,17 @@
             }
         }
 
-        // --- PUDHIYA AD SCHEDULE LOGIC (MALAYALAM) ---
+        // --- AD SCHEDULE LOGIC ---
+        // Ad loop modalu pettadaniki
         function startAutoAdLoop() {
-            // Aadyathe Adsgram ad (3-10 seconds ulil)
+            // Modati Adsgram ad (3-10 seconds lopu)
             const firstDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
             setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
         }
 
         function triggerAutoAd(type) {
             if (isAdPlaying) {
-                // Pinne onnude nokkuka (Retry in 10s)
+                // Ad play avuthunte 10 seconds aagi retry chestundi
                 setTimeout(() => triggerAutoAd(type), 10000);
                 return;
             }
@@ -809,17 +819,18 @@
         function scheduleNextAd(nextType) {
             let delay = 0;
             if (nextType === 'MONETAG') {
-                // 30 thottu 60 seconds (Malayalam)
+                // 30 nunchi 60 seconds
                 delay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
             } else {
-                // 90 seconds (1 minute 30s as requested) - loop infinitely (Malayalam)
+                // 80 nunchi 100 seconds
                 delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
             }
             setTimeout(() => triggerAutoAd(nextType), delay);
         }
         // ------------------------------------------
 
-        // --- PRATHIDINA SAMMANAM LOGIC (MALAYALAM) ---
+        // --- DAILY CHECK-IN LOGIC ---
+        // Prathidina check-in timer update chestundi
         function updateDailyTimer() {
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const btn = document.getElementById('daily-claim-btn');
@@ -842,22 +853,23 @@
                     btn.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
                     btn.disabled = false;
-                    btn.innerText = "NEDUKA"; // Claim
+                    btn.innerText = "CLAIM"; 
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
             } else {
                 btn.disabled = false;
-                btn.innerText = "NEDUKA"; // Claim
+                btn.innerText = "CLAIM"; 
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
+        // Daily bonus claim cheyadaniki function
         async function claimDailyReward() {
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const now = new Date().getTime();
 
             if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) {
-                showNotify("24 maniukkur kaathirikkuka (Please wait 24h)!", "warning");
+                showNotify("Please wait 24 hours!", "warning");
                 return;
             }
 
@@ -873,14 +885,17 @@
                     currentEnergy += energyReward;
                     localStorage.setItem(`daily_claim_${userId}`, now.toString());
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
-                    showNotify(`Prathidina Sammanam Nediyirikunnu (Claimed ⚡ 5 Energy)!`, "success");
+                    showNotify(`Successfully claimed ⚡ 5 Energy!`, "success");
+                    triggerHaptic('success'); // Bonus vachinappudu vibration
                     updateUI();
                     fetchHistory(true);
                 } else {
-                    showNotify("Nedaan kazhinjilla (Failed to claim)", "warning");
+                    showNotify("Failed to claim reward", "warning");
+                    triggerHaptic('error');
                 }
             } catch(e) {
-                showNotify("Nedaan kazhinjilla (Failed to claim)", "warning");
+                showNotify("Failed to claim reward", "warning");
+                triggerHaptic('error');
             }
             updateDailyTimer();
         }
@@ -1032,7 +1047,7 @@
         function showRewardAd() {
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
             
-            // Video kaanumbol auto ad nirthaan (Malayalam)
+            // Video chusetappudu auto ad aagipothundi
             isAdPlaying = true;
 
             adsgramRewardController.show().then(async (result) => {
@@ -1049,7 +1064,7 @@
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
 
-                // Ad kazhinju 60 seconds samayam (Malayalam)
+                // Ad ayipoyina 60 seconds tharvatha malli start chesthundi
                 setTimeout(() => {
                     isAdPlaying = false;
                     scheduleNextAd('MONETAG');
@@ -1597,19 +1612,19 @@
                     }
                 }
 
-                // Bomb Indicator UI Updates (Malayalam)
+                // Bomb Indicator UI Updates
                 if (bombsHit === 1) {
-                    // Pacha manja aakunnu
+                    // Pacha nunchi manja rangu ki marutundi
                     if (statusCircle) {
                         statusCircle.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
                         statusCircle.classList.add('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
                     }
                     sessionEarnings = sessionEarnings / 2;
                     if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
-                    showNotify("💥 BOOM! Pakuthi nashtappettu (Earnings Halved)!", "warning");
+                    showNotify("💥 BOOM! Earnings Halved!", "warning");
                 } 
                 else if (bombsHit === 2) {
-                    // Manja chuvappu aakunnu, alert varunnu
+                    // Manja nunchi erupu rangu ki marutundi, alert vastundi
                     if (statusCircle) {
                         statusCircle.classList.remove('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
                         statusCircle.classList.add('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]', 'animate-pulse');
@@ -1618,15 +1633,15 @@
                     
                     sessionEarnings = sessionEarnings / 2;
                     if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
-                    showNotify("💥 Munnariyippu! Oru bomb koodi vannal ellam pokum!", "warning");
+                    showNotify("💥 Warning! One more bomb and you lose everything!", "warning");
                 }
                 else if (bombsHit >= 3) {
-                    // 100% loss
+                    // 100% loss (Motham balance poyindi)
                     sessionEarnings = 0;
                     if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
 
                     gameLocked = true;
-                    showNotify("💀 3 BOMBS HIT! Kali avasanichu, ellam nashtappettu.", "warning");
+                    showNotify("💀 3 BOMBS HIT! Game Over. All lost.", "warning");
                     
                     const gst = document.getElementById('game-status-text');
                     if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
@@ -1642,6 +1657,7 @@
                         bottomBtn.style.display = 'block'; 
                         bottomBtn.classList.remove('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
                         bottomBtn.classList.add('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
+                        bottomBtn.innerText = "Exit"; // Game over ayithe "Exit" ani chupisthundi
                     }
                     const backBtn = document.getElementById("back-menu-btn");
                     if(backBtn) backBtn.style.display = 'none';
@@ -1745,7 +1761,10 @@
             if (isAnimating && !gameLocked) return; 
 
             const btns = document.querySelectorAll("#claim-exit-btn, #back-menu-btn");
-            btns.forEach(b => { b.disabled = true; if(b.id === 'claim-exit-btn') b.innerText = "SAVING..."; });
+            btns.forEach(b => { 
+                b.disabled = true; 
+                if(b.id === 'claim-exit-btn') b.innerText = sessionEarnings > 0 ? "SAVING..." : "EXITING..."; 
+            });
 
             if (sessionEarnings > 0) {
                 try {
@@ -1764,7 +1783,10 @@
             updateUI();
             fetchHistory(true);
             
-            btns.forEach(b => { b.disabled = false; if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; });
+            btns.forEach(b => { 
+                b.disabled = false; 
+                if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; // Idhi reset kosam
+            });
             isAnimating = false;
             gameLocked = false;
         }
