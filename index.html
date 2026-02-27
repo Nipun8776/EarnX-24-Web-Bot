@@ -657,7 +657,11 @@
         // Vibration kosam haptic feedback function
         function triggerHaptic(style) {
             if (tg && tg.HapticFeedback) {
-                if (style === 'success' || style === 'error' || style === 'warning') {
+                if (style === 'bomb') {
+                    tg.HapticFeedback.notificationOccurred('error'); // Pedda vibration (bomb ki)
+                } else if (style === 'daily') {
+                    tg.HapticFeedback.impactOccurred('light'); // Chinna vibration (daily claim ki)
+                } else if (style === 'success' || style === 'error' || style === 'warning') {
                     tg.HapticFeedback.notificationOccurred(style);
                 } else {
                     tg.HapticFeedback.impactOccurred(style || 'heavy');
@@ -665,7 +669,9 @@
             } 
             // Browser vibration fallback
             if (navigator.vibrate) {
-                if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
+                if (style === 'bomb') navigator.vibrate(600); // Long press laaga (mm gala)
+                else if (style === 'daily') navigator.vibrate(40); // Chinna vibration
+                else if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
                 else if (style === 'success') navigator.vibrate([100, 50, 100]);
                 else navigator.vibrate(50);
             }
@@ -886,7 +892,7 @@
                     localStorage.setItem(`daily_claim_${userId}`, now.toString());
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
                     showNotify(`Successfully claimed ⚡ 5 Energy!`, "success");
-                    triggerHaptic('success'); // Bonus vachinappudu vibration
+                    triggerHaptic('daily'); // Chinna vibration (daily claim ki)
                     updateUI();
                     fetchHistory(true);
                 } else {
@@ -1599,7 +1605,7 @@
             if (isBombTriggered) {
                 bombsHit++;
                 triggerScreenShake();
-                triggerHaptic('heavy');
+                triggerHaptic('bomb'); // Long vibration (Bomb ki)
                 
                 let statusCircle = document.getElementById('bomb-status-circle');
                 let alertIcon = document.getElementById('bomb-alert-icon');
@@ -1684,7 +1690,7 @@
 
                 if (lastTileRect && earnedNow > 0) {
                     showFloatingText(`+Rs ${earnedNow.toFixed(2)}`, lastTileRect.left, lastTileRect.top);
-                    triggerHaptic('light'); 
+                    // Normal game play vibration theesesaamu
                 }
             }
             
