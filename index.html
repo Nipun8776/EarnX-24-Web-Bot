@@ -6,20 +6,20 @@
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Telegram CloudStorage polyfill (To prevent ad SDK errors on older versions) -->
+    <!-- Telegram CloudStorage polyfill (Hale versions gagi ad SDK errors thadeyalu) -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
             if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
-                return; // Ignore this specific error spam
+                return; // Nirdishta error spam annu kadekanisi
             }
             originalConsoleError.apply(console, args);
         };
 
-        // To prevent unhandled promise rejections (adex timeout) from Ad SDK
+        // Ad SDK ninda baruttiruva unhandled promise rejections (adex timeout) thadeyalu
         window.addEventListener('unhandledrejection', function(event) {
             if (event.reason && event.reason.toString().includes('adex timeout')) {
-                event.preventDefault(); // Prevent the error from logging
+                event.preventDefault(); // Error log aguvudannu thadeyiri
             }
         });
 
@@ -139,7 +139,7 @@
 
         select option { background-color: #0f172a; color: white; }
 
-        /* Super Animations - Smooth bottom-to-top floating */
+        /* Super Animations - Kelagininda mele baralu smooth animation */
         @keyframes floatUpSmooth {
             0% { transform: translateY(15px) scale(0.6); opacity: 0; }
             20% { transform: translateY(-5px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 12px rgba(74,222,128,0.9)); }
@@ -165,7 +165,7 @@
         }
         .shake-screen { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* New Tile Match Blast Animation */
+        /* Hosa Tile Match Blast Animation */
         @keyframes tile-match-blast {
             0% { transform: scale(1); filter: brightness(1); }
             40% { transform: scale(1.4); filter: brightness(2) drop-shadow(0 0 15px rgba(255,255,255,0.8)); opacity: 0.9; }
@@ -202,7 +202,7 @@
         .tile:active { transform: scale(0.85); }
         .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
         
-        /* Lucky Wheel Super Smooth Animation - Slight bounce at the end */
+        /* Lucky Wheel Supiri Smooth Animation - Chivarlo chinna bounce */
         #lucky-wheel {
             transition: transform 7s cubic-bezier(0.1, 0.85, 0.1, 1.05); 
         }
@@ -355,7 +355,7 @@
                             <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn Rs 5.00 + ⚡1</p></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn ⚡ 1 Energy</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
@@ -754,7 +754,7 @@
                     const newUser = { 
                         user_id: userId, 
                         balance: 0,
-                        energy: 10,
+                        energy: 5, /* Bonus naatgol 5 energy */
                         username: tgUser?.username || '',
                         first_name: fullName || 'Guest User',
                         photo_url: tgUser?.photo_url || ''
@@ -773,8 +773,7 @@
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             
                             if (referrerData) {
-                                let newBalance = parseFloat(referrerData.balance || 0) + 5;
-                                let newEnergy = parseInt(referrerData.energy || 0) + 1; 
+                                let newEnergy = parseInt(referrerData.energy || 0) + 1; /* Energy tan rokkata */
                                 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
@@ -787,17 +786,17 @@
                                     gotSpin = true;
                                 }
 
-                                await _supabase.from('profiles').update({ balance: newBalance, spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
+                                await _supabase.from('profiles').update({ spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
                                 
                                 await _supabase.from('transactions').insert([{ 
                                     user_id: startParam, 
                                     type: 'REFERRAL_BONUS', 
-                                    amount: 5,
+                                    amount: 0, /* Walaa kaalis, energy tan */
                                     status: 'approved'
                                 }]);
                                 
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "New User";
-                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n💰 You received Rs 5.00 & ⚡ 1 Energy!`;
+                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n⚡ You received 1 Energy!`;
                                 
                                 if (gotSpin) {
                                     refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
@@ -836,7 +835,7 @@
                 
                 spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 10);
+                currentEnergy = parseInt(data?.energy || 5); /* Wayli energy default feewndo */
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
@@ -866,10 +865,21 @@
                         const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : 'ph-play-circle')) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        
+                        /* Wayla icon ngam GAME_REWARD */
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : 'ph-play-circle'))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
-                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div><p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p></div>`;
+                        
+                        /* Holla energy ngam referral keso */
+                        let amountHtml = '';
+                        if (item.type === 'REFERRAL_BONUS' && item.amount === 0) {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡1</p>`;
+                        } else {
+                            amountHtml = `<p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p>`;
+                        }
+                        
+                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
                     }).join('');
                 }
             } catch(e) { console.error(e); }
