@@ -72,8 +72,9 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Ad Network SDK -->
+    <!-- Ad Network SDKs -->
     <script async src="https://libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -603,6 +604,7 @@
         const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
         let _supabase;
+        let adsgramController = null;
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
@@ -647,6 +649,11 @@
             }
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
+
+            // Initialize Adsgram
+            if (window.Adsgram) {
+                adsgramController = window.Adsgram.init({ blockId: "18273229" });
+            }
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
             
@@ -725,18 +732,30 @@
             }
 
             function triggerAd() {
-                if (typeof show_10365806 === 'function') {
-                    try {
-                        let adPromise = show_10365806({
-                            type: 'inApp',
-                            inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                        });
-                        
-                        if (adPromise && typeof adPromise.finally === 'function') {
-                            adPromise.catch(e => { /* Ignore adex timeout */ }).finally(() => { scheduleNext(); });
-                        } else { scheduleNext(); }
-                    } catch(e) { console.error("Auto Ad Error", e); scheduleNext(); }
-                } else { scheduleNext(); }
+                // Randomly alternate between Adsgram and the existing Libtl network
+                const useAdsgram = Math.random() > 0.5;
+
+                if (useAdsgram && adsgramController) {
+                    adsgramController.show().then(() => {
+                        scheduleNext();
+                    }).catch((e) => {
+                        // In case user skipped or no ad was filled, resume loop
+                        scheduleNext();
+                    });
+                } else {
+                    if (typeof show_10365806 === 'function') {
+                        try {
+                            let adPromise = show_10365806({
+                                type: 'inApp',
+                                inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                            });
+                            
+                            if (adPromise && typeof adPromise.finally === 'function') {
+                                adPromise.catch(e => { /* Ignore adex timeout */ }).finally(() => { scheduleNext(); });
+                            } else { scheduleNext(); }
+                        } catch(e) { console.error("Auto Ad Error", e); scheduleNext(); }
+                    } else { scheduleNext(); }
+                }
             }
 
             const firstDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
