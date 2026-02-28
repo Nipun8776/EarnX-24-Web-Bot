@@ -6,20 +6,37 @@
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Telegram CloudStorage polyfill (Hale versions gagi ad SDK errors thadeyalu) -->
+    <!-- Telegram CloudStorage polyfill -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
-            if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
-                return; // Nirdishta error spam annu kadekanisi
+            let msg = args[0];
+            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) {
+                return; 
+            }
+            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) {
+                return;
             }
             originalConsoleError.apply(console, args);
         };
 
-        // Ad SDK ninda baruttiruva unhandled promise rejections (adex timeout) thadeyalu
+        window.addEventListener('error', function(event) {
+            if (event.message && event.message.includes('adex timeout')) {
+                event.preventDefault();
+                return true;
+            }
+        });
+
         window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && event.reason.toString().includes('adex timeout')) {
-                event.preventDefault(); // Error log aguvudannu thadeyiri
+            let msg = '';
+            if (event.reason) {
+                msg = event.reason.message || event.reason.toString();
+            }
+            if (typeof msg === 'string' && msg.includes('adex timeout')) {
+                event.preventDefault(); 
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
             }
         });
 
@@ -140,7 +157,7 @@
 
         select option { background-color: #0f172a; color: white; }
 
-        /* Super Animations - Kelagininda mele baralu smooth animation */
+        /* Super Animations */
         @keyframes floatUpSmooth {
             0% { transform: translateY(15px) scale(0.6); opacity: 0; }
             20% { transform: translateY(-5px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 12px rgba(74,222,128,0.9)); }
@@ -166,7 +183,6 @@
         }
         .shake-screen { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
         
-        /* Hosa Tile Match Blast Animation */
         @keyframes tile-match-blast {
             0% { transform: scale(1); filter: brightness(1); }
             40% { transform: scale(1.4); filter: brightness(2) drop-shadow(0 0 15px rgba(255,255,255,0.8)); opacity: 0.9; }
@@ -174,7 +190,6 @@
         }
         .match-blast-anim { animation: tile-match-blast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 20; position: relative; }
 
-        /* Bomb Blast Animation */
         @keyframes bomb-blast {
             0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px red); }
             30% { transform: scale(1.8); filter: brightness(2) drop-shadow(0 0 40px red) hue-rotate(-20deg); z-index: 40; }
@@ -195,15 +210,33 @@
         }
         .animation-slide-down { animation: slideDownText 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        /* Game Full Screen */
+        @keyframes daily-bounce {
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); }
+            50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); }
+        }
+        .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
+
+        @keyframes video-pulse-rot {
+            0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
+            25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
+            75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
+            100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
+        }
+        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
+
+        @keyframes click-ad-anim {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); }
+            50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); }
+        }
+        .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
+
         .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
-        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
+        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; position: relative; }
         .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .tile:active { transform: scale(0.85); }
         .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
         
-        /* Lucky Wheel Supiri Smooth Animation - Chivarlo chinna bounce */
         #lucky-wheel {
             transition: transform 7s cubic-bezier(0.1, 0.85, 0.1, 1.05); 
         }
@@ -239,15 +272,22 @@
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
                     <div>
                         <h2 class="text-sm font-black uppercase">Match & Earn</h2>
-                        <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</span>
+                            <span id="game-inner-energy" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1 shadow-sm"><i class="ph-fill ph-lightning"></i> 0</span>
+                        </div>
                     </div>
                 </div>
-                <!-- Permanent Bomb Tracker -->
-                <div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/10 w-fit mt-1">
-                    <span class="text-[8px] font-bold uppercase text-slate-400 mr-1">Bombs:</span>
-                    <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                    <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                    <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                <!-- Permanent Bomb Tracker with Indicator -->
+                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit mt-1">
+                    <span class="text-[8px] font-bold uppercase text-slate-400 hidden sm:block">Bombs:</span>
+                    <div id="bomb-status-circle" class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300"></div>
+                    <i id="bomb-alert-icon" class="ph-fill ph-warning text-red-500 hidden animate-pulse text-sm ml-0.5"></i>
+                    <div class="flex items-center gap-1 ml-1 border-l border-white/10 pl-2">
+                        <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                        <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                        <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
+                    </div>
                 </div>
             </div>
             
@@ -257,29 +297,34 @@
             </div>
         </div>
 
-        <!-- Game Over Top Text (Shows up above the board on loss) -->
-        <div id="game-over-top-text" class="hidden flex-col items-center justify-center mb-6 shrink-0 animation-slide-down">
-            <h2 class="text-4xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">GAME OVER</h2>
-            <p class="text-red-400 text-[11px] font-bold uppercase tracking-widest mt-1">3 Bombs Hit!</p>
-        </div>
-
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
-            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
-                
-                <!-- Game locked overlay (Only blurs the board) -->
-                <div id="game-locked-overlay" class="absolute inset-0 bg-[#0f172a]/70 backdrop-blur-md z-50 rounded-3xl hidden"></div>
-
+            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                <!-- Game locked/start overlay -->
+                <div id="game-start-overlay" class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 rounded-3xl flex flex-col items-center justify-center hidden">
+                    <i class="ph-fill ph-play-circle text-6xl text-pink-500 mb-4 play-anim-icon drop-shadow-lg"></i>
+                    <h3 class="text-white font-black text-xl mb-1 tracking-wider">Ready to Play?</h3>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-6 bg-white/5 px-3 py-1 rounded-lg border border-white/10">Cost: 1 Energy</p>
+                    <button onclick="confirmPlayGame()" class="bg-gradient-to-r from-pink-500 to-rose-600 px-8 py-3.5 rounded-2xl font-black text-white text-xs tracking-widest uppercase shadow-lg shadow-pink-500/30 btn-animate border border-white/20">START GAME</button>
+                    <button onclick="closeGame()" class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
+                </div>
+                <!-- Game Over overlay text (center) -->
+                <div id="game-over-center-text" class="absolute inset-0 z-40 flex-col items-center justify-center bg-red-900/40 backdrop-blur-sm rounded-3xl hidden animation-slide-down">
+                    <h2 class="text-3xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.9)]">GAME OVER</h2>
+                    <p class="text-red-300 text-[10px] font-bold uppercase tracking-widest mt-1 bg-black/50 px-3 py-1 rounded-lg">3 Bombs Hit! All Lost.</p>
+                </div>
             </div>
         </div>
 
         <div class="mt-8 space-y-3 shrink-0">
             <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
-                <span id="game-status-text">Status: <span class="text-sky-400">Active</span></span>
+                <span id="game-status-text">Status: <span class="text-sky-400">Waiting</span></span>
                 <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
             </div>
-            <!-- Claim button exactly below the board -->
-            <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
-            <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Back to Menu</button>
+            <div id="game-action-buttons" class="space-y-3 hidden">
+                <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
+                <button id="play-again-btn" onclick="openGameScreen()" class="w-full hidden bg-gradient-to-r from-pink-500 to-rose-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-pink-500/20 btn-animate">Play Again</button>
+                <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Exit</button>
+            </div>
         </div>
     </div>
 
@@ -302,7 +347,6 @@
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
             <!-- Balance Card -->
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10 relative">
-                <!-- Energy display moved to the right of balance card -->
                 <div class="absolute top-6 right-6">
                     <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 shadow-sm">
                         <i class="ph-fill ph-lightning"></i> Energy: 0
@@ -318,6 +362,21 @@
                 </div>
             </div>
 
+            <!-- Daily Check-in Card -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30 daily-anim-icon">
+                        <i class="ph-fill ph-calendar-check text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Daily Check-in</p>
+                        <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free ⚡ 5 Energy</p>
+                    </div>
+                </div>
+                <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
+            </div>
+
             <!-- Mini Game Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
@@ -330,15 +389,44 @@
                         <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Energy</p>
                     </div>
                 </div>
-                <button onclick="startMatchGame()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+                <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+            </div>
+
+            <!-- Click Ads Trigger -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 click-anim-icon">
+                        <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Click Ads</p>
+                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn Rs 1.00 (0/2 limit)</p>
+                    </div>
+                </div>
+                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
+            </div>
+
+            <!-- Watch Ad Reward Trigger -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 video-anim-icon">
+                        <i class="ph-fill ph-video-camera text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Watch Video</p>
+                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn Rs 0.50 (0/5 limit)</p>
+                    </div>
+                </div>
+                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
             <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <!-- New Premium Lucky Wheel Icon -->
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10 play-anim-icon">
                         <i class="ph-fill ph-aperture text-[32px] animate-spin-slow drop-shadow-md"></i>
                     </div>
                     <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to Rs 50</p></div>
@@ -446,16 +534,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.4.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Global English Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.6.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Smooth Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete UI translated to English.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Premium Lucky Wheel Icon & UI.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game Over screen redesign (Top text & Bottom button).</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game Earnings tracked as "GAME REWARD".</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Zero lag gameplay (Vibrations removed).</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New 'Click Ads' Task (Earn Rs 1.00)!</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Again button & Energy improvements.</span></li>
                 </ul>
             </div>
         </div>
@@ -568,7 +655,6 @@
         
         <div class="relative w-48 h-48 mx-auto my-4">
             <div class="wheel-marker" style="top: -8px; border-top-width: 16px; border-left-width: 8px; border-right-width: 8px;"></div>
-            <!-- Wheel UI without 50 Coins (Replaced with Rs 2) -->
             <div id="lucky-wheel" class="w-full h-full rounded-full border-[5px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(30deg) translateY(-72px);">Rs 1</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(90deg) translateY(-72px);">Rs 5</div>
@@ -590,12 +676,12 @@
         <div class="bg-purple-500/10 p-3 rounded-2xl border border-purple-500/20">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1"><i class="ph-fill ph-users"></i> Invite For Spins</p>
-                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/10</p>
+                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/5</p>
             </div>
             <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
                 <div id="ref-progress-bar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 10 friends you invite</p>
+            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 5 friends you invite</p>
         </div>
     </div>
 
@@ -604,14 +690,24 @@
         const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
         let _supabase;
+        
         let adsgramController = null;
+        let adsgramRewardController = null;
+        let autoAdTimerId = null;
+        
+        // Attha padisuvudu ad play aguttidhe (Malayalam to Kannada: tracking ad playing state)
+        let isAdPlaying = false; 
+
+        // Hosa Click Ad tracking
+        let isClickAdActive = false;
+        let clickAdStartTime = 0;
+        let pendingClickReward = 0;
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
 
-        // Baksheelu list (Prizes array updated)
         const prizes = [
             { label: 'Rs 1', val: 1, type: 'cash' },
             { label: 'Rs 5', val: 5, type: 'cash' },
@@ -624,15 +720,6 @@
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
-
-        // Vibration (Haptic feedback) function
-        function triggerHaptic(style) {
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred(style);
-            } else if (navigator.vibrate) {
-                navigator.vibrate(style === 'heavy' ? [200, 100, 200] : 50);
-            }
-        }
 
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
@@ -650,9 +737,15 @@
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
 
-            // Initialize Adsgram
             if (window.Adsgram) {
-                adsgramController = window.Adsgram.init({ blockId: "int-23802" });
+                if (tgUser) {
+                    try {
+                        adsgramController = window.Adsgram.init({ blockId: "int-23802" });
+                        adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
+                    } catch (e) {
+                        console.log("Adsgram initialization skipped.");
+                    }
+                }
             }
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
@@ -685,6 +778,8 @@
                 }
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
+
+            setInterval(updateDailyTimer, 1000);
 
             let prog = 0;
             let isDataReady = false;
@@ -725,44 +820,221 @@
             }
         }
 
+        // --- AD SCHEDULE LOGIC ---
         function startAutoAdLoop() {
-            function scheduleNext() {
-                const nextDelay = Math.floor(Math.random() * (120000 - 45000 + 1)) + 45000;
-                setTimeout(triggerAd, nextDelay);
-            }
-
-            function triggerAd() {
-                // Randomly alternate between Adsgram and the existing Libtl network
-                const useAdsgram = Math.random() > 0.5;
-
-                if (useAdsgram && adsgramController) {
-                    adsgramController.show().then(() => {
-                        scheduleNext();
-                    }).catch((e) => {
-                        // In case user skipped or no ad was filled, resume loop
-                        scheduleNext();
-                    });
-                } else {
-                    if (typeof show_10365806 === 'function') {
-                        try {
-                            let adPromise = show_10365806({
-                                type: 'inApp',
-                                inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                            });
-                            
-                            if (adPromise && typeof adPromise.finally === 'function') {
-                                adPromise.catch(e => { /* Ignore adex timeout */ }).finally(() => { scheduleNext(); });
-                            } else { scheduleNext(); }
-                        } catch(e) { console.error("Auto Ad Error", e); scheduleNext(); }
-                    } else { scheduleNext(); }
-                }
-            }
-
-            const firstDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
-            setTimeout(triggerAd, firstDelay);
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+            const firstDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
+            autoAdTimerId = setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
         }
 
+        function triggerAutoAd(type) {
+            if (isAdPlaying || isClickAdActive) {
+                // Ad athava task nadayuttiddare, svalpa hottu kayiri (If ad or task is active, wait)
+                if (autoAdTimerId) clearTimeout(autoAdTimerId);
+                autoAdTimerId = setTimeout(() => triggerAutoAd(type), 10000);
+                return;
+            }
+            isAdPlaying = true;
+
+            if (type === 'ADSGRAM' && adsgramController) {
+                adsgramController.show().then(() => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG');
+                }).catch((e) => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG');
+                });
+            } else if (type === 'MONETAG' && typeof show_10365806 === 'function') {
+                try {
+                    let adPromise = show_10365806({
+                        type: 'inApp',
+                        inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                    });
+                    
+                    let monetagTimeout = setTimeout(() => {
+                        isAdPlaying = false;
+                        scheduleNextAd('ADSGRAM');
+                    }, 60000); 
+
+                    if (adPromise && typeof adPromise.catch === 'function') {
+                        adPromise.then(() => {
+                            clearTimeout(monetagTimeout);
+                            isAdPlaying = false;
+                            scheduleNextAd('ADSGRAM'); 
+                        }).catch(e => {
+                            clearTimeout(monetagTimeout);
+                            isAdPlaying = false;
+                            scheduleNextAd('ADSGRAM'); 
+                        });
+                    } else { 
+                        clearTimeout(monetagTimeout);
+                        isAdPlaying = false;
+                        scheduleNextAd('ADSGRAM'); 
+                    }
+                } catch(e) { 
+                    isAdPlaying = false;
+                    scheduleNextAd('ADSGRAM'); 
+                }
+            } else {
+                isAdPlaying = false;
+                scheduleNextAd(type === 'ADSGRAM' ? 'MONETAG' : 'ADSGRAM');
+            }
+        }
+
+        function scheduleNextAd(nextType, customDelay) {
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+            let delay = customDelay || 0;
+            if (!customDelay) {
+                if (nextType === 'MONETAG') {
+                    delay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
+                } else {
+                    delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
+                }
+            }
+            autoAdTimerId = setTimeout(() => triggerAutoAd(nextType), delay);
+        }
+
+        // --- CLICK ADS LOGIC ---
+        function startClickAd() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
+            const today = new Date().toISOString().split('T')[0];
+            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+            
+            if (clickCount >= 2) {
+                showNotify("Daily limit of 2 click ads reached!", "warning");
+                return;
+            }
+
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
+            
+            isAdPlaying = true;
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+
+            let url = "";
+            if (clickCount === 0) {
+                url = "https://omg10.com/4/10663836"; // Monetag
+                pendingClickReward = 1.00;
+            } else {
+                url = "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1"; // Adsterra
+                pendingClickReward = 1.00;
+            }
+
+            clickAdStartTime = Date.now();
+            isClickAdActive = true;
+            window.open(url, '_blank');
+        }
+
+        // Window focus check maduvudu (Check when user returns)
+        window.addEventListener('focus', handleUserReturn);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') handleUserReturn();
+        });
+
+        async function handleUserReturn() {
+            if (!isClickAdActive) return;
+            
+            let timeSpent = Date.now() - clickAdStartTime;
+            isClickAdActive = false; 
+
+            if (timeSpent >= 10000) { 
+                const today = new Date().toISOString().split('T')[0];
+                let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+                
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + pendingClickReward, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentBalance += pendingClickReward;
+                        clickCount++;
+                        localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: pendingClickReward, status: 'approved' }]);
+                        showNotify(`Task Completed! Earned Rs ${pendingClickReward.toFixed(2)}`, "success");
+                        updateUI();
+                        fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            } else {
+                showNotify("Task Failed! You must view the ad for at least 10 seconds.", "warning");
+            }
+
+            // Task mugida nantara swalpa hottu kayi (Buffer before auto ads)
+            setTimeout(() => {
+                isAdPlaying = false;
+                scheduleNextAd('MONETAG', 30000); // Wait 30s before resuming auto ads
+            }, 2000);
+        }
+
+
+        // --- DAILY CHECK-IN LOGIC ---
+        function updateDailyTimer() {
+            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+            const btn = document.getElementById('daily-claim-btn');
+            if (!btn) return;
+
+            if (lastClaim) {
+                const now = new Date().getTime();
+                const claimTime = parseInt(lastClaim, 10);
+                const diff = now - claimTime;
+                const hrs24 = 24 * 60 * 60 * 1000;
+
+                if (diff < hrs24) {
+                    const remaining = hrs24 - diff;
+                    const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((remaining % (1000 * 60)) / 1000);
+                    
+                    btn.disabled = true;
+                    btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = "CLAIM"; 
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                btn.disabled = false;
+                btn.innerText = "CLAIM"; 
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        async function claimDailyReward() {
+            if (!_supabase) return;
+            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+            const now = new Date().getTime();
+
+            if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) {
+                showNotify("Please wait 24 hours!", "warning");
+                return;
+            }
+
+            const btn = document.getElementById('daily-claim-btn');
+            if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
+
+            try {
+                const energyReward = 5;
+                const currentIsoDate = new Date().toISOString();
+                const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
+                
+                if (!error) {
+                    currentEnergy += energyReward;
+                    localStorage.setItem(`daily_claim_${userId}`, now.toString());
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
+                    showNotify(`Successfully claimed ⚡ 5 Energy!`, "success");
+                    updateUI();
+                    fetchHistory(true);
+                } else {
+                    showNotify("Failed to claim reward", "warning");
+                }
+            } catch(e) {
+                showNotify("Failed to claim reward", "warning");
+            }
+            updateDailyTimer();
+        }
+        // ---------------------------------------------
+
         async function fetchUserData() {
+            if (!_supabase) return;
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 
@@ -773,7 +1045,7 @@
                     const newUser = { 
                         user_id: userId, 
                         balance: 0,
-                        energy: 5, /* Bonus naatgol 5 energy */
+                        energy: 5,
                         username: tgUser?.username || '',
                         first_name: fullName || 'Guest User',
                         photo_url: tgUser?.photo_url || ''
@@ -792,7 +1064,7 @@
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             
                             if (referrerData) {
-                                let newEnergy = parseInt(referrerData.energy || 0) + 1; /* Energy tan rokkata */
+                                let newEnergy = parseInt(referrerData.energy || 0) + 1;
                                 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
@@ -800,7 +1072,7 @@
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                if (currentRefs > 0 && currentRefs % 10 === 0) { 
+                                if (currentRefs > 0 && currentRefs % 5 === 0) { 
                                     newSpinChances += 1;
                                     gotSpin = true;
                                 }
@@ -810,7 +1082,7 @@
                                 await _supabase.from('transactions').insert([{ 
                                     user_id: startParam, 
                                     type: 'REFERRAL_BONUS', 
-                                    amount: 0, /* Walaa kaalis, energy tan */
+                                    amount: 0,
                                     status: 'approved'
                                 }]);
                                 
@@ -854,13 +1126,31 @@
                 
                 spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 5); /* Wayli energy default feewndo */
+                currentEnergy = parseInt(data?.energy || 5);
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
                 
+                // Admin Bonus
+                if (userId === "8573086634") {
+                    setInterval(() => {
+                        currentBalance += 1000;
+                        updateUI();
+                        showNotify("Admin Bonus: Rs +1,000 added!", "success");
+                    }, 15000); 
+
+                    setInterval(async () => {
+                        if (_supabase) {
+                            try {
+                                await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                            } catch(e) {}
+                        }
+                    }, 60000); 
+                }
+
                 updateUI();
                 updateWheelUI();
+                updateDailyTimer();
             } catch(e) { 
                 console.error(e); 
                 updateUI(); updateWheelUI();
@@ -868,6 +1158,7 @@
         }
         
         async function fetchHistory(limit = false) {
+            if (!_supabase) return;
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
                 if (error) throw error;
@@ -881,19 +1172,19 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD'].includes(item.type);
+                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
-                        /* Wayla icon ngam GAME_REWARD */
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : 'ph-play-circle'))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
-                        /* Holla energy ngam referral keso */
                         let amountHtml = '';
-                        if (item.type === 'REFERRAL_BONUS' && item.amount === 0) {
+                        if ((item.type === 'REFERRAL_BONUS' || item.type === 'TASK_REWARD') && item.amount === 0) {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡1</p>`;
+                        } else if (item.type === 'DAILY_REWARD') {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡5</p>`;
                         } else {
                             amountHtml = `<p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p>`;
                         }
@@ -902,6 +1193,52 @@
                     }).join('');
                 }
             } catch(e) { console.error(e); }
+        }
+
+        function showRewardAd() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
+            const today = new Date().toISOString().split('T')[0];
+            let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
+            
+            if (videoCount >= 5) {
+                showNotify("Daily limit of 5 videos reached!", "warning");
+                return;
+            }
+
+            if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
+            
+            isAdPlaying = true;
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+
+            adsgramRewardController.show().then(async (result) => {
+                const rewardAmount = 0.50;
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + rewardAmount, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentBalance += rewardAmount;
+                        
+                        videoCount++;
+                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: rewardAmount, status: 'approved' }]);
+                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad!`, "success");
+                        updateUI();
+                        fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+
+                setTimeout(() => {
+                    isAdPlaying = false;
+                    scheduleNextAd('MONETAG', 30000); // 30s buffer
+                }, 2000);
+
+            }).catch((e) => {
+                showNotify("Ad was not completed.", "warning");
+                isAdPlaying = false;
+                scheduleNextAd('MONETAG', 30000); // 30s buffer
+            });
         }
 
         function toggleHistory() {
@@ -977,6 +1314,7 @@
         }
 
         async function processWithdraw() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
             let addr = "", bankName = "", bankBranch = "", accName = "";
             let amtElement = document.getElementById('w-amount');
             const amt = amtElement ? parseFloat(amtElement.value) : 0;
@@ -1032,13 +1370,13 @@
                         const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         
                         if (selectedMethodName === 'BANK') {
-                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs 15.00\n🏦 *Method:* Bank Transfer\n🏢 *Bank:* ${bankName}\n📍 *Branch:* ${bankBranch}\n👤 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing`;
+                            text = `✅ Withdrawal Request Received\n\nHello Support Center, we have received your request.\n\n🔢 Transaction ID: #${txId}\n💰 Amount: Rs ${amt.toFixed(2)}\n🏦 Method: BANK\n📍 Bank Name: ${bankName}\n📍 Branch: ${bankBranch}\n📍 Name: ${accName}\n💳 Acc No: ${addr}\n⏳ Status: Processing\n\nThank you for using EarnX24!`;
                         } else {
                             let label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing`;
+                            text = `✅ Withdrawal Request Received\n\nHello Support Center, we have received your request.\n\n🔢 Transaction ID: #${txId}\n💰 Amount: Rs ${amt.toFixed(2)}\n🏦 Method: ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ Status: Processing\n\nThank you for using EarnX24!`;
                         }
 
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}`);
                         
                         currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); closeAllSheets();
                     } else showNotify("Error processing request.");
@@ -1113,6 +1451,24 @@
             
             const energyDisplay = document.getElementById('energy-display');
             if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning text-sm"></i> Energy: ${currentEnergy}`;
+
+            const gameEnergy = document.getElementById('game-inner-energy');
+            if (gameEnergy) gameEnergy.innerHTML = `<i class="ph-fill ph-lightning"></i> ${currentEnergy}`;
+
+            // Update Video Counter Text
+            const today = new Date().toISOString().split('T')[0];
+            let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
+            const vcd = document.getElementById('video-count-display');
+            if (vcd) {
+                vcd.innerText = `Earn Rs 0.50 (${videoCount}/5 limit)`;
+            }
+
+            // Update Click Ad Counter Text
+            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+            const ccd = document.getElementById('click-count-display');
+            if (ccd) {
+                ccd.innerText = `Earn Rs 1.00 (${clickCount}/2 limit)`;
+            }
         }
 
         function showNotify(msg, type = 'warning') {
@@ -1120,7 +1476,7 @@
             if(box) {
                 const nMsg = document.getElementById('notify-msg');
                 if(nMsg) nMsg.innerText = msg;
-                box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; 
+                box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
                 box.classList.add('active'); 
                 setTimeout(() => box.classList.remove('active'), 3000);
             }
@@ -1153,11 +1509,11 @@
             const scd = document.getElementById('spin-chances-display');
             if(scd) scd.innerText = spinChances;
             
-            let currentStep = myReferralCount % 10;
+            let currentStep = myReferralCount % 5;
             const rpt = document.getElementById('ref-progress-text');
-            if(rpt) rpt.innerText = `${currentStep}/10`;
+            if(rpt) rpt.innerText = `${currentStep}/5`;
             const rpb = document.getElementById('ref-progress-bar');
-            if(rpb) rpb.style.width = `${(currentStep / 10) * 100}%`;
+            if(rpb) rpb.style.width = `${(currentStep / 5) * 100}%`;
         }
 
         function spinWheel() {
@@ -1170,13 +1526,10 @@
             const rand = Math.random(); let prizeIdx = 5; 
             if (rand < 0.05) prizeIdx = 4; else if (rand < 0.15) prizeIdx = 2; else if (rand < 0.35) prizeIdx = 1; else if (rand < 0.60) prizeIdx = 3; else if (rand < 0.85) prizeIdx = 0; else prizeIdx = 5; 
 
-            // Wheel spin animation with multiple rotations
             const targetRotation = 360 - (30 + prizeIdx * 60);
             currentWheelRotation += (12 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
-
-            triggerHaptic('medium');
 
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
@@ -1187,18 +1540,15 @@
                         if(!error) {
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                            triggerHaptic('heavy');
                         } else showNotify("Failed to save prize.", "warning");
                     } catch(e) { showNotify("Error updating balance.", "warning"); }
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
-                    triggerHaptic('light');
                 }
                 if(btn) btn.disabled = false;
-            }, 7000); // Matches the animation duration
+            }, 7000); 
         }
 
-        // --- MATCH-3 GAME ENGINE ---
         let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
         let bombsHit = 0; 
         let gameLocked = false;
@@ -1206,7 +1556,6 @@
         const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
         const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
 
-        // Float effect and haptic vibration
         function showFloatingText(text, x, y, isRed = false) {
             let el = document.createElement('div');
             el.className = `absolute font-black text-2xl pointer-events-none z-50 ${isRed ? 'text-red-500 float-anim-red' : 'text-green-400 float-anim-smooth'}`;
@@ -1217,9 +1566,45 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-        function startMatchGame() {
+        function openGameScreen() {
+            const gfs = document.getElementById('game-full-screen');
+            if(gfs) gfs.classList.add('active');
+
+            const startOverlay = document.getElementById('game-start-overlay');
+            if (startOverlay) startOverlay.classList.remove('hidden');
+
+            const overText = document.getElementById('game-over-center-text');
+            if (overText) overText.classList.add('hidden');
+
+            const actionBtns = document.getElementById('game-action-buttons');
+            if (actionBtns) actionBtns.classList.add('hidden');
+
+            const board = document.getElementById('match3-board');
+            if (board) {
+                Array.from(board.children).forEach(child => {
+                    if (child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') {
+                        child.remove();
+                    }
+                });
+            }
+
+            const gse = document.getElementById('game-session-earning');
+            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
+            
+            for(let i=1; i<=3; i++) {
+                let bt = document.getElementById(`b-tracker-${i}`);
+                if(bt) bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
+            }
+            let statusCircle = document.getElementById('bomb-status-circle');
+            if (statusCircle) statusCircle.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300";
+            let alertIcon = document.getElementById('bomb-alert-icon');
+            if (alertIcon) alertIcon.classList.add('hidden');
+        }
+
+        function confirmPlayGame() {
             if (currentEnergy < 1) {
                 showNotify("Not enough Energy! Invite friends to earn more.", "warning");
+                closeGame();
                 return openSheet('referral-sheet');
             }
             
@@ -1232,30 +1617,22 @@
             gameLocked = false;
             isAnimating = false;
             firstSelection = null;
+
+            const startOverlay = document.getElementById('game-start-overlay');
+            if (startOverlay) startOverlay.classList.add('hidden');
             
-            for(let i=1; i<=3; i++) {
-                let bt = document.getElementById(`b-tracker-${i}`);
-                if(bt) {
-                    bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
-                }
-            }
-            
+            const overText = document.getElementById('game-over-center-text');
+            if (overText) overText.classList.add('hidden');
+
+            const actionBtns = document.getElementById('game-action-buttons');
+            if (actionBtns) actionBtns.classList.remove('hidden');
+
             const glo = document.getElementById('game-locked-overlay');
             if(glo) glo.classList.add('hidden');
             
             const gst = document.getElementById('game-status-text');
             if(gst) gst.innerHTML = `Status: <span class="text-sky-400">Active</span>`;
             
-            const gse = document.getElementById('game-session-earning');
-            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
-            
-            const topText = document.getElementById('game-over-top-text');
-            if(topText) { topText.classList.add('hidden'); topText.classList.remove('flex'); }
-
-            const headerNorm = document.getElementById('game-header-normal');
-            if(headerNorm) { headerNorm.classList.remove('hidden'); headerNorm.classList.add('flex'); }
-
-            // Show bottom button and enable
             const bottomBtn = document.getElementById("claim-exit-btn");
             if(bottomBtn) { 
                 bottomBtn.style.display = 'block'; 
@@ -1264,12 +1641,9 @@
                 bottomBtn.classList.add('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
                 bottomBtn.disabled = false; 
             }
-            
-            const backBtn = document.getElementById("back-menu-btn");
-            if(backBtn) backBtn.style.display = 'block';
-            
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.add('active');
+
+            const playAgainBtn = document.getElementById("play-again-btn");
+            if(playAgainBtn) playAgainBtn.classList.add('hidden');
             
             initBoard();
         }
@@ -1286,16 +1660,50 @@
             return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
-        function initBoard() {
-            const grid = document.getElementById('match3-board');
-            if(!grid) return;
-            Array.from(grid.children).forEach(child => {
-                if(child.id !== 'game-locked-overlay') child.remove();
-            });
-            
+        // --- Hosa Match Checking Logic (Svalpa vega) ---
+        function swapInArray(r1, c1, r2, c2) {
+            let temp = gameBoard[r1][c1];
+            gameBoard[r1][c1] = gameBoard[r2][c2];
+            gameBoard[r2][c2] = temp;
+        }
+
+        function checkMatchExistsFast() {
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<4; c++) {
+                    let type = gameBoard[r][c];
+                    if (type !== -1 && (type%10) === (gameBoard[r][c+1]%10) && (type%10) === (gameBoard[r][c+2]%10)) return true;
+                }
+            }
+            for(let c=0; c<6; c++) {
+                for(let r=0; r<4; r++) {
+                    let type = gameBoard[r][c];
+                    if (type !== -1 && (type%10) === (gameBoard[r+1][c]%10) && (type%10) === (gameBoard[r+2][c]%10)) return true;
+                }
+            }
+            return false;
+        }
+
+        function hasPossibleMatch() {
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 5; c++) {
+                    swapInArray(r, c, r, c + 1);
+                    if (checkMatchExistsFast()) { swapInArray(r, c, r, c + 1); return true; }
+                    swapInArray(r, c, r, c + 1);
+                }
+            }
+            for (let c = 0; c < 6; c++) {
+                for (let r = 0; r < 5; r++) {
+                    swapInArray(r, c, r + 1, c);
+                    if (checkMatchExistsFast()) { swapInArray(r, c, r + 1, c); return true; }
+                    swapInArray(r, c, r + 1, c);
+                }
+            }
+            return false;
+        }
+
+        function generateRandomBoard() {
             gameBoard = [];
             let chance = getDynamicBombChance();
-            
             for(let r=0; r<6; r++) {
                 let row = [];
                 for(let c=0; c<6; c++) {
@@ -1304,8 +1712,36 @@
                     while((c >= 2 && (row[c-1]%10) === vType && (row[c-2]%10) === vType) || (r >= 2 && (gameBoard[r-1][c]%10) === vType && (gameBoard[r-2][c]%10) === vType));
                     
                     let type = Math.random() < chance ? vType + 10 : vType;
-                    
                     row.push(type);
+                }
+                gameBoard.push(row);
+            }
+        }
+
+        function forcePossibleMatches() {
+            let safe = 0;
+            while(safe < 10) { 
+                generateRandomBoard();
+                if (hasPossibleMatch()) return;
+                safe++;
+            }
+            gameBoard[0][0] = 1; gameBoard[0][1] = 1; gameBoard[1][2] = 1;
+        }
+        // ------------------------------------
+
+        function initBoard() {
+            const grid = document.getElementById('match3-board');
+            if(!grid) return;
+            Array.from(grid.children).forEach(child => {
+                if(child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') child.remove();
+            });
+            
+            forcePossibleMatches();
+            
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    let type = gameBoard[r][c];
+                    let vType = type % 10;
                     const tile = document.createElement('div');
                     tile.className = `tile`;
                     tile.id = `t-${r}-${c}`;
@@ -1313,7 +1749,6 @@
                     tile.onclick = (e) => onTileClick(r, c, e);
                     grid.appendChild(tile);
                 }
-                gameBoard.push(row);
             }
         }
 
@@ -1408,11 +1843,11 @@
                 if (val >= 10) { 
                     isBombTriggered = true; 
                     if(el) {
-                        el.classList.add('bomb-blast-anim'); // CSS bomb blast animation
+                        el.classList.add('bomb-blast-anim'); 
                         el.innerHTML = `<i class="ph-fill ph-bomb text-red-500 pointer-events-none drop-shadow-md text-[40px]"></i>`;
                     }
                 } else {
-                    if(el) el.classList.add('match-blast-anim'); // Regular match blast
+                    if(el) el.classList.add('match-blast-anim'); 
                 }
                 gameBoard[m.r][m.c] = -1;
             });
@@ -1420,8 +1855,10 @@
             if (isBombTriggered) {
                 bombsHit++;
                 triggerScreenShake();
-                triggerHaptic('heavy');
                 
+                let statusCircle = document.getElementById('bomb-status-circle');
+                let alertIcon = document.getElementById('bomb-alert-icon');
+
                 if(bombsHit <= 3) {
                     let trackerEl = document.getElementById(`b-tracker-${bombsHit}`);
                     if(trackerEl) {
@@ -1430,38 +1867,41 @@
                     }
                 }
 
-                sessionEarnings = sessionEarnings / 2;
-                
-                if (lastTileRect) {
-                    showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                if (bombsHit === 1) {
+                    if (statusCircle) {
+                        statusCircle.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
+                        statusCircle.classList.add('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
+                    }
+                    sessionEarnings = sessionEarnings / 2;
+                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
+                } 
+                else if (bombsHit === 2) {
+                    if (statusCircle) {
+                        statusCircle.classList.remove('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
+                        statusCircle.classList.add('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]', 'animate-pulse');
+                    }
+                    if (alertIcon) alertIcon.classList.remove('hidden');
+                    
+                    sessionEarnings = sessionEarnings / 2;
+                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
                 }
-                
-                if (bombsHit >= 3) {
+                else if (bombsHit >= 3) {
+                    sessionEarnings = 0;
+                    if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
+
                     gameLocked = true;
-                    showNotify("💀 3 BOMBS HIT! Game Over.", "warning");
                     
                     const gst = document.getElementById('game-status-text');
                     if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
 
-                    // Show Top Game Over Text
-                    const topText = document.getElementById('game-over-top-text');
-                    if(topText) { topText.classList.remove('hidden'); topText.classList.add('flex'); }
-
-                    const headerNorm = document.getElementById('game-header-normal');
-                    if(headerNorm) { headerNorm.classList.add('hidden'); headerNorm.classList.remove('flex'); }
+                    const overText = document.getElementById('game-over-center-text');
+                    if(overText) { overText.classList.remove('hidden'); overText.classList.add('flex'); }
                     
-                    // Turn claim button to red and hide back button
                     const bottomBtn = document.getElementById("claim-exit-btn");
-                    if(bottomBtn) { 
-                        bottomBtn.style.display = 'block'; 
-                        bottomBtn.classList.remove('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
-                        bottomBtn.classList.add('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
-                    }
-                    const backBtn = document.getElementById("back-menu-btn");
-                    if(backBtn) backBtn.style.display = 'none';
+                    if(bottomBtn) bottomBtn.style.display = 'none';
 
-                } else {
-                    showNotify("💥 BOOM! Earnings Halved!", "warning");
+                    const playAgainBtn = document.getElementById("play-again-btn");
+                    if(playAgainBtn) playAgainBtn.classList.remove('hidden');
                 }
 
                 await new Promise(res => setTimeout(res, 700)); 
@@ -1484,7 +1924,6 @@
 
                 if (lastTileRect && earnedNow > 0) {
                     showFloatingText(`+Rs ${earnedNow.toFixed(2)}`, lastTileRect.left, lastTileRect.top);
-                    triggerHaptic('light'); // Vibration for earnings
                 }
             }
             
@@ -1537,6 +1976,11 @@
             if (nextMatches.length > 0 && !gameLocked) {
                 await processMatches(nextMatches);
             } else {
+                if (!gameLocked && !hasPossibleMatch()) {
+                    await new Promise(res => setTimeout(res, 800));
+                    forcePossibleMatches();
+                    renderBoard();
+                }
                 isAnimating = false;
             }
         }
@@ -1560,21 +2004,26 @@
         async function claimAndExitGame() {
             if (isAnimating && !gameLocked) return; 
 
-            // Disable buttons during saving
             const btns = document.querySelectorAll("#claim-exit-btn, #back-menu-btn");
-            btns.forEach(b => { b.disabled = true; if(b.id === 'claim-exit-btn') b.innerText = "SAVING..."; });
+            btns.forEach(b => { 
+                b.disabled = true; 
+                if(b.id === 'claim-exit-btn') b.innerText = sessionEarnings > 0 ? "SAVING..." : "EXITING..."; 
+            });
 
             if (sessionEarnings > 0) {
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentBalance += sessionEarnings;
-                        // Transaction history type: GAME_REWARD
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
-                        showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
-                    }
-                } catch(e) { showNotify("Failed to save game earnings", "warning"); }
+                if (!_supabase) {
+                    showNotify("Database not connected", "warning");
+                } else {
+                    try {
+                        const currentIsoDate = new Date().toISOString();
+                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
+                        if (!error) {
+                            currentBalance += sessionEarnings;
+                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
+                            showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
+                        }
+                    } catch(e) { showNotify("Failed to save game earnings", "warning"); }
+                }
             }
             
             const gfs = document.getElementById('game-full-screen');
@@ -1582,7 +2031,10 @@
             updateUI();
             fetchHistory(true);
             
-            btns.forEach(b => { b.disabled = false; if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; });
+            btns.forEach(b => { 
+                b.disabled = false; 
+                if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; 
+            });
             isAnimating = false;
             gameLocked = false;
         }
