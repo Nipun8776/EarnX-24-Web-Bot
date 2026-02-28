@@ -5,82 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <!-- Telegram CloudStorage polyfill -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
             let msg = args[0];
-            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) {
-                return; 
-            }
-            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) {
-                return;
-            }
+            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) return; 
+            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) return;
             originalConsoleError.apply(console, args);
         };
-
-        window.addEventListener('error', function(event) {
-            if (event.message && event.message.includes('adex timeout')) {
-                event.preventDefault();
-                return true;
-            }
-        });
-
+        window.addEventListener('error', function(event) { if (event.message && event.message.includes('adex timeout')) event.preventDefault(); });
         window.addEventListener('unhandledrejection', function(event) {
-            let msg = '';
-            if (event.reason) {
-                msg = event.reason.message || event.reason.toString();
-            }
-            if (typeof msg === 'string' && msg.includes('adex timeout')) {
-                event.preventDefault(); 
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                return false;
-            }
+            let msg = event.reason ? (event.reason.message || event.reason.toString()) : '';
+            if (typeof msg === 'string' && msg.includes('adex timeout')) { event.preventDefault(); return false; }
         });
 
-        if (window.Telegram && window.Telegram.WebApp) {
-            if (!window.Telegram.WebApp.isVersionAtLeast('6.9')) {
-                const cloudPolyfill = {
-                    setItem: function(key, value, callback) {
-                        try { localStorage.setItem('tg_cloud_' + key, value); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
-                        return this;
-                    },
-                    getItem: function(key, callback) {
-                        try { let val = localStorage.getItem('tg_cloud_' + key); if(callback) callback(null, val); } catch(e) { if(callback) callback(e); }
-                        return this;
-                    },
-                    getItems: function(keys, callback) {
-                        try { let res = {}; keys.forEach(function(k) { res[k] = localStorage.getItem('tg_cloud_' + k); }); if(callback) callback(null, res); } catch(e) { if(callback) callback(e); }
-                        return this;
-                    },
-                    removeItem: function(key, callback) {
-                        try { localStorage.removeItem('tg_cloud_' + key); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
-                        return this;
-                    },
-                    removeItems: function(keys, callback) {
-                        try { keys.forEach(function(k) { localStorage.removeItem('tg_cloud_' + k); }); if(callback) callback(null, true); } catch(e) { if(callback) callback(e); }
-                        return this;
-                    },
-                    getKeys: function(callback) {
-                        try {
-                            let keys = [];
-                            for(let i=0; i<localStorage.length; i++) {
-                                let k = localStorage.key(i);
-                                if(k.startsWith('tg_cloud_')) keys.push(k.replace('tg_cloud_', ''));
-                            }
-                            if(callback) callback(null, keys);
-                        } catch(e) { if(callback) callback(e); }
-                        return this;
-                    }
-                };
-
-                if (window.Telegram.WebApp.CloudStorage) {
-                    Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
-                } else {
-                    window.Telegram.WebApp.CloudStorage = cloudPolyfill;
-                }
-            }
+        if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.isVersionAtLeast('6.9')) {
+            const cloudPolyfill = {
+                setItem: function(k, v, cb) { try { localStorage.setItem('tg_cloud_' + k, v); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
+                getItem: function(k, cb) { try { let val = localStorage.getItem('tg_cloud_' + k); if(cb) cb(null, val); } catch(e) { if(cb) cb(e); } return this; },
+                getItems: function(ks, cb) { try { let res = {}; ks.forEach(k => { res[k] = localStorage.getItem('tg_cloud_' + k); }); if(cb) cb(null, res); } catch(e) { if(cb) cb(e); } return this; },
+                removeItem: function(k, cb) { try { localStorage.removeItem('tg_cloud_' + k); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
+                removeItems: function(ks, cb) { try { ks.forEach(k => { localStorage.removeItem('tg_cloud_' + k); }); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
+                getKeys: function(cb) { try { let keys = []; for(let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); if(k.startsWith('tg_cloud_')) keys.push(k.replace('tg_cloud_', '')); } if(cb) cb(null, keys); } catch(e) { if(cb) cb(e); } return this; }
+            };
+            if (window.Telegram.WebApp.CloudStorage) Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
+            else window.Telegram.WebApp.CloudStorage = cloudPolyfill;
         }
     </script>
 
@@ -89,7 +41,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@400;600;700;900&display=swap');
         
         body { 
             background-color: #020617; 
@@ -110,12 +62,7 @@
             -webkit-touch-callout: none;
         }
 
-        input, textarea, select {
-            -webkit-user-select: auto;
-            -moz-user-select: auto;
-            -ms-user-select: auto;
-            user-select: auto;
-        }
+        input, textarea, select { user-select: auto; }
         
         #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
         .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.1); border-top: 3px solid #38bdf8; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px; }
@@ -129,10 +76,8 @@
         
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
-        
         .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
         .side-panel.active { right: 0; }
-
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
         
         .method-btn.selected { border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -141,113 +86,50 @@
         
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         @keyframes spin-slow { to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-        
         @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
 
         .wheel-marker { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
 
-        select option { background-color: #0f172a; color: white; }
-
-        /* Super Animations */
-        @keyframes floatUpSmooth {
-            0% { transform: translateY(15px) scale(0.6); opacity: 0; }
-            20% { transform: translateY(-5px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 12px rgba(74,222,128,0.9)); }
-            80% { transform: translateY(-50px) scale(1); opacity: 1; filter: brightness(1) drop-shadow(0 0 5px rgba(74,222,128,0.4)); }
-            100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
-        }
-        .float-anim-smooth { animation: floatUpSmooth 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-
-        @keyframes floatDownRed {
-            0% { transform: translateY(0px) scale(0.8); opacity: 0; }
-            20% { transform: translateY(20px) scale(1.3); opacity: 1; filter: brightness(1.5) drop-shadow(0 0 10px rgba(239,68,68,0.8)); }
-            80% { transform: translateY(60px) scale(1.1); opacity: 1; filter: brightness(1); }
-            100% { transform: translateY(80px) scale(0.8); opacity: 0; }
-        }
-        .float-anim-red { animation: floatDownRed 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0) translateY(0); }
-            20% { transform: translateX(-15px) translateY(-8px) rotate(-4deg); }
-            40% { transform: translateX(15px) translateY(8px) rotate(4deg); }
-            60% { transform: translateX(-15px) translateY(8px) rotate(-4deg); }
-            80% { transform: translateX(15px) translateY(-8px) rotate(4deg); }
-        }
-        .shake-screen { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
-        
-        @keyframes tile-match-blast {
-            0% { transform: scale(1); filter: brightness(1); }
-            40% { transform: scale(1.4); filter: brightness(2) drop-shadow(0 0 15px rgba(255,255,255,0.8)); opacity: 0.9; }
-            100% { transform: scale(0); filter: brightness(3); opacity: 0; }
-        }
-        .match-blast-anim { animation: tile-match-blast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 20; position: relative; }
-
-        @keyframes bomb-blast {
-            0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px red); }
-            30% { transform: scale(1.8); filter: brightness(2) drop-shadow(0 0 40px red) hue-rotate(-20deg); z-index: 40; }
-            100% { transform: scale(3); opacity: 0; filter: brightness(3) drop-shadow(0 0 60px yellow); }
-        }
-        .bomb-blast-anim { animation: bomb-blast 0.7s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; z-index: 40; position: relative; }
-
-        @keyframes play-pulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); }
-            50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); }
-            100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); }
-        }
+        @keyframes play-pulse { 0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } 50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } }
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
-
-        @keyframes slideDownText {
-            0% { transform: translateY(-20px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
-        }
-        .animation-slide-down { animation: slideDownText 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-
-        @keyframes daily-bounce {
-            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); }
-            50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); }
-        }
+        @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
         .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
-
-        @keyframes video-pulse-rot {
-            0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
-            25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
-            75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
-            100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
-        }
+        @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
         .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
-
-        @keyframes click-ad-anim {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); }
-            50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); }
-        }
+        @keyframes click-ad-anim { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); } 50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); } }
         .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
 
-        .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
+        /* Game Specific Styles */
+        .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #1e1b4b, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
-        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; position: relative; }
-        .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        .tile:active { transform: scale(0.85); }
-        .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        #lucky-wheel {
-            transition: transform 7s cubic-bezier(0.1, 0.85, 0.1, 1.05); 
+        .slot-col { transition: filter 0.1s ease; }
+        .spinning-blur { filter: blur(3px) contrast(1.2); transform: scaleY(1.1); }
+        .glow-text { text-shadow: 0 0 20px rgba(251, 191, 36, 0.6); }
+
+        @keyframes floatPoints {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+            80% { transform: translateY(-50px) scale(1); opacity: 1; }
+            100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
         }
-        
-        .bomb-icon { transition: all 0.3s ease; }
-        .bomb-hit { color: #ef4444; transform: scale(1.2); filter: drop-shadow(0 0 8px #ef4444); }
+        .float-points-anim { animation: floatPoints 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; position: absolute; z-index: 50; font-weight: 900; color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.8); font-size: 2rem; pointer-events: none; }
     </style>
 </head>
 
 <body onload="initApp()">
 
+    <!-- Notification Toast -->
     <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
         <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
         <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
     </div>
 
+    <!-- Loading Screen -->
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
@@ -256,71 +138,67 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
+    <!-- Crypto Slot Game Full Screen -->
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
-        <div id="game-header-normal" class="flex justify-between items-center mb-6 shrink-0">
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
-                    <div>
-                        <h2 class="text-sm font-black uppercase">Match & Earn</h2>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</span>
-                            <span id="game-inner-energy" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1 shadow-sm"><i class="ph-fill ph-lightning"></i> 0</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit mt-1">
-                    <span class="text-[8px] font-bold uppercase text-slate-400 hidden sm:block">Bombs:</span>
-                    <div id="bomb-status-circle" class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300"></div>
-                    <i id="bomb-alert-icon" class="ph-fill ph-warning text-red-500 hidden animate-pulse text-sm ml-0.5"></i>
-                    <div class="flex items-center gap-1 ml-1 border-l border-white/10 pl-2">
-                        <i id="b-tracker-1" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                        <i id="b-tracker-2" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                        <i id="b-tracker-3" class="ph-fill ph-bomb bomb-icon text-slate-600 text-base"></i>
-                    </div>
-                </div>
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 shrink-0">
+            <button onclick="closeGame()" class="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white active:scale-95 transition-transform"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+            <div class="text-center">
+                <h2 class="text-lg font-black uppercase tracking-widest text-white glow-text">Crypto Spin</h2>
+                <p class="text-[10px] text-amber-400 uppercase font-bold tracking-widest">Match & Win</p>
             </div>
+            <div class="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5 shadow-inner">
+                <i class="ph-fill ph-ticket text-amber-400"></i>
+                <span id="game-inner-tickets" class="text-xs font-black text-white">0</span>
+            </div>
+        </div>
+
+        <!-- Slot Machine Area -->
+        <div class="flex-1 flex flex-col items-center justify-center w-full relative">
             
-            <div class="bg-white/5 px-4 py-2 rounded-2xl border border-white/10 text-right shadow-inner">
-                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Earnings</p>
-                <p id="game-session-earning" class="text-lg font-black text-green-400 leading-tight">Rs 0.00</p>
+            <p class="text-xs text-slate-300 font-bold uppercase tracking-widest mb-2">Session Points</p>
+            <div id="slot-points-display" class="text-5xl font-black text-amber-400 mb-10 glow-text transition-all duration-300">0</div>
+
+            <!-- The Slots -->
+            <div class="bg-white/10 backdrop-blur-xl p-6 rounded-[2.5rem] border border-amber-400/30 flex gap-4 shadow-[0_0_50px_rgba(251,191,36,0.15)] relative mb-12">
+                <!-- Highlight bar -->
+                <div class="absolute top-1/2 left-0 w-full h-1 bg-amber-400/20 -translate-y-1/2 z-0 shadow-[0_0_10px_rgba(251,191,36,0.5)]"></div>
+                
+                <!-- Col 1 -->
+                <div class="slot-col w-20 h-24 bg-black/60 rounded-2xl border-t-2 border-b-2 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
+                    <img id="slot-img-1" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" class="w-14 h-14 object-contain drop-shadow-lg" />
+                </div>
+                <!-- Col 2 -->
+                <div class="slot-col w-20 h-24 bg-black/60 rounded-2xl border-t-2 border-b-2 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
+                    <img id="slot-img-2" src="https://assets.coingecko.com/coins/images/279/large/ethereum.png" class="w-14 h-14 object-contain drop-shadow-lg" />
+                </div>
+                <!-- Col 3 -->
+                <div class="slot-col w-20 h-24 bg-black/60 rounded-2xl border-t-2 border-b-2 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
+                    <img id="slot-img-3" src="https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png" class="w-14 h-14 object-contain drop-shadow-lg" />
+                </div>
             </div>
+
+            <!-- Action Buttons -->
+            <button id="spin-btn" onclick="spinSlot()" class="bg-gradient-to-b from-amber-300 to-amber-600 px-12 py-4 rounded-full text-black font-black text-xl uppercase tracking-widest shadow-[0_0_30px_rgba(251,191,36,0.4)] active:scale-95 transition-all border border-amber-200 w-[80%] max-w-[300px] flex justify-center items-center gap-2">
+                SPIN <span class="text-sm bg-black/20 px-2 py-0.5 rounded-md flex items-center gap-1">1 <i class="ph-fill ph-ticket"></i></span>
+            </button>
+
+            <button onclick="watchAdForTickets()" class="mt-5 text-amber-200 text-[10px] font-bold uppercase tracking-widest border border-amber-400/30 bg-amber-400/10 px-6 py-2.5 rounded-full active:scale-95 transition-transform flex items-center gap-2">
+                <i class="ph-fill ph-video-camera text-base"></i> Watch Ad for Tickets
+            </button>
         </div>
 
-        <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
-            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                <div id="game-start-overlay" class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 rounded-3xl flex flex-col items-center justify-center hidden">
-                    <i class="ph-fill ph-play-circle text-6xl text-pink-500 mb-4 play-anim-icon drop-shadow-lg"></i>
-                    <h3 class="text-white font-black text-xl mb-1 tracking-wider">Ready to Play?</h3>
-                    <p class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-6 bg-white/5 px-3 py-1 rounded-lg border border-white/10">Cost: 1 Energy</p>
-                    <button onclick="confirmPlayGame()" class="bg-gradient-to-r from-pink-500 to-rose-600 px-8 py-3.5 rounded-2xl font-black text-white text-xs tracking-widest uppercase shadow-lg shadow-pink-500/30 btn-animate border border-white/20">START GAME</button>
-                    <button onclick="closeGame()" class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
-                </div>
-                <div id="game-over-center-text" class="absolute inset-0 z-40 flex-col items-center justify-center bg-red-900/40 backdrop-blur-sm rounded-3xl hidden animation-slide-down">
-                    <h2 class="text-3xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.9)]">GAME OVER</h2>
-                    <p class="text-red-300 text-[10px] font-bold uppercase tracking-widest mt-1 bg-black/50 px-3 py-1 rounded-lg">3 Bombs Hit! All Lost.</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8 space-y-3 shrink-0">
-            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
-                <span id="game-status-text">Status: <span class="text-sky-400">Waiting</span></span>
-                <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
-            </div>
-            <div id="game-action-buttons" class="space-y-3 hidden">
-                <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
-                <button id="play-again-btn" onclick="openGameScreen()" class="w-full hidden bg-gradient-to-r from-pink-500 to-rose-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-pink-500/20 btn-animate">Play Again</button>
-                <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Exit</button>
-            </div>
+        <div class="mt-8 shrink-0">
+            <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-white/10 border border-white/20 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-transform">Claim & Exit</button>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
     <div id="dashboard-screen" class="h-full w-full flex flex-col relative overflow-hidden z-20">
         <div class="p-6 flex justify-between items-center">
             <div class="flex items-center gap-3 text-left">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0">
-                    <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">
+                    <img id="profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false">
                     <i id="default-pic" class="ph-fill ph-user text-xl"></i>
                 </div>
                 <div class="overflow-hidden">
@@ -332,14 +210,15 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
+            <!-- Balance Card (Keep in LKR as requested) -->
             <div class="glass p-6 rounded-[2.5rem] border-t border-white/10 relative">
                 <div class="absolute top-6 right-6">
                     <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 shadow-sm">
-                        <i class="ph-fill ph-lightning"></i> Energy: 0
+                        <i class="ph-fill ph-ticket"></i> Tickets: 0
                     </span>
                 </div>
                 
-                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left mt-2">Available Balance</p>
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left mt-2">Main Balance</p>
                 <div class="flex items-center gap-2 mb-4">
                     <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs 0.00</h1>
                 </div>
@@ -348,6 +227,7 @@
                 </div>
             </div>
 
+            <!-- Daily Check-in Card -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -356,26 +236,28 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Daily Check-in</p>
-                        <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free ⚡ 5 Energy</p>
+                        <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free 🎟️ 5 Tickets</p>
                     </div>
                 </div>
                 <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
             </div>
 
+            <!-- Crypto Slot Game Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon shadow-lg shadow-pink-500/30">
-                        <i class="ph-fill ph-game-controller text-2xl drop-shadow-md"></i>
+                        <i class="ph-fill ph-slot-machine text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm">Match & Earn</p>
-                        <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Energy</p>
+                        <p class="font-bold text-sm">Crypto Spin</p>
+                        <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Ticket</p>
                     </div>
                 </div>
                 <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
+            <!-- Click Ads Trigger (Points instead of Rs) -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -384,12 +266,13 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Click Ads</p>
-                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn Rs 1.00 (0/2 limit)</p>
+                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 100 Pts (0/2 limit)</p>
                     </div>
                 </div>
                 <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
             </div>
 
+            <!-- Watch Ad Reward Trigger (Points instead of Rs) -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -398,12 +281,13 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Watch Video</p>
-                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn Rs 0.50 (0/5 limit)</p>
+                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 50 Pts (0/5 limit)</p>
                     </div>
                 </div>
                 <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
+            <!-- Lucky Wheel Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -415,6 +299,7 @@
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
+            <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
@@ -424,11 +309,12 @@
                             <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn ⚡ 1 Energy</p></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 1 Ticket</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
+            <!-- Recent Activity -->
             <div class="space-y-3 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
@@ -439,12 +325,14 @@
         </div>
     </div>
 
+    <!-- Modals Overlay -->
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
+    <!-- Side Panel -->
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
-                <img id="menu-profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false" oncontextmenu="return false;">
+                <img id="menu-profile-pic" src="" alt="User" style="display:none;" class="w-full h-full object-cover pointer-events-none" draggable="false">
                 <i id="menu-default-pic" class="ph-fill ph-user text-2xl"></i>
                 <div id="menu-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]"></div>
             </div>
@@ -497,6 +385,7 @@
         </div>
     </div>
 
+    <!-- App Version Modal -->
     <div id="version-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-info text-2xl"></i></div>
@@ -510,20 +399,21 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.6.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Smooth Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v2.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Casino Edition Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Zero lag gameplay (Vibrations removed).</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New 'Click Ads' Task (Earn Rs 1.00)!</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Again button & Energy improvements.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>NEW Crypto Spin Game (Slots) added!</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Energy System updated to Tickets 🎟️.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Points system introduced for smaller tasks.</span></li>
                 </ul>
             </div>
         </div>
     </div>
 
+    <!-- Withdrawal History Modal -->
     <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-cube text-2xl"></i></div>
@@ -536,6 +426,7 @@
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Referral List Modal -->
     <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -547,6 +438,7 @@
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Rank List Modal -->
     <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
@@ -558,6 +450,7 @@
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
+    <!-- Withdraw Sheet -->
     <div id="withdraw-sheet" class="bottom-sheet">
         <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
@@ -618,6 +511,7 @@
         </div>
     </div>
 
+    <!-- Lucky Wheel Sheet -->
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
@@ -627,11 +521,11 @@
         <div class="relative w-48 h-48 mx-auto my-4">
             <div class="wheel-marker" style="top: -8px; border-top-width: 16px; border-left-width: 8px; border-right-width: 8px;"></div>
             <div id="lucky-wheel" class="w-full h-full rounded-full border-[5px] border-[#0f172a] shadow-[0_0_20px_rgba(168,85,247,0.5)] overflow-hidden relative" style="background: conic-gradient(#8b5cf6 0 60deg, #ec4899 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #10b981 240deg 300deg, #ef4444 300deg 360deg);">
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(30deg) translateY(-72px);">Rs 1</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(90deg) translateY(-72px);">Rs 5</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(150deg) translateY(-72px);">Rs 10</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(210deg) translateY(-72px);">Rs 2</div>
-                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(270deg) translateY(-72px);">Rs 50</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(30deg) translateY(-72px);">500 Pts</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(90deg) translateY(-72px);">100 Pts</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(150deg) translateY(-72px);">200 Pts</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(210deg) translateY(-72px);">50 Pts</div>
+                <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[11px] drop-shadow-md" style="transform: rotate(270deg) translateY(-72px);">1000 Pts</div>
                 <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[9px] leading-tight drop-shadow-md" style="transform: rotate(330deg) translateY(-72px);">Try<br>Again</div>
             </div>
         </div>
@@ -667,12 +561,13 @@
         
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
 
+        // Points structure instead of LKR values for the wheel
         const prizes = [
-            { label: 'Rs 1', val: 1, type: 'cash' },
-            { label: 'Rs 5', val: 5, type: 'cash' },
-            { label: 'Rs 10', val: 10, type: 'cash' },
-            { label: 'Rs 2', val: 2, type: 'cash' }, 
-            { label: 'Rs 50', val: 50, type: 'cash' },
+            { label: '500 Pts', val: 5.00, type: 'cash' }, // Rs 5.00
+            { label: '100 Pts', val: 1.00, type: 'cash' }, // Rs 1.00
+            { label: '200 Pts', val: 2.00, type: 'cash' }, // Rs 2.00
+            { label: '50 Pts', val: 0.50, type: 'cash' },  // Rs 0.50
+            { label: '1000 Pts', val: 10.00, type: 'cash' }, // Rs 10.00
             { label: 'Try Again', val: 0, type: 'none' }
         ];
 
@@ -697,7 +592,6 @@
             if (tg.expand) tg.expand();
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
-            
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
             
             if(document.getElementById('user-display-name')) document.getElementById('user-display-name').innerText = fullName || "Guest User";
@@ -706,65 +600,40 @@
 
             const usernameDisplay = document.getElementById('user-username-display');
             if (usernameDisplay) {
-                if (tgUser?.username) {
-                    usernameDisplay.innerText = "@" + tgUser.username;
-                } else {
-                    usernameDisplay.innerText = "ID: " + userId;
-                }
+                if (tgUser?.username) usernameDisplay.innerText = "@" + tgUser.username;
+                else usernameDisplay.innerText = "ID: " + userId;
             }
 
             if (tgUser?.photo_url) {
-                if(document.getElementById('profile-pic')) {
-                    document.getElementById('profile-pic').src = tgUser.photo_url;
-                    document.getElementById('profile-pic').style.display = 'block';
-                }
+                if(document.getElementById('profile-pic')) { document.getElementById('profile-pic').src = tgUser.photo_url; document.getElementById('profile-pic').style.display = 'block'; }
                 if(document.getElementById('default-pic')) document.getElementById('default-pic').style.display = 'none';
-
-                if(document.getElementById('menu-profile-pic')) {
-                    document.getElementById('menu-profile-pic').src = tgUser.photo_url;
-                    document.getElementById('menu-profile-pic').style.display = 'block';
-                }
+                if(document.getElementById('menu-profile-pic')) { document.getElementById('menu-profile-pic').src = tgUser.photo_url; document.getElementById('menu-profile-pic').style.display = 'block'; }
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
             setInterval(updateDailyTimer, 1000);
 
-            let prog = 0;
-            let isDataReady = false;
-            
+            let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
                 prog += 3;
                 if(prog >= 85 && !isDataReady) prog = 85; 
-                
-                const pb = document.getElementById('progress-bar');
-                const pc = document.getElementById('percentage');
-                if(pb) pb.style.width = prog + '%';
-                if(pc) pc.innerText = prog + '%';
+                if(document.getElementById('progress-bar')) document.getElementById('progress-bar').style.width = prog + '%';
+                if(document.getElementById('percentage')) document.getElementById('percentage').innerText = prog + '%';
                 
                 if(prog >= 100) { 
                     clearInterval(timer); 
                     setTimeout(() => { 
                         const ls = document.getElementById('loading-screen');
-                        if(ls) ls.style.opacity = '0';
-                        setTimeout(() => {
-                            if(ls) ls.style.display = 'none';
-                        }, 400);
+                        if(ls) { ls.style.opacity = '0'; setTimeout(() => { ls.style.display = 'none'; }, 400); }
                     }, 200); 
                 }
             }, 30);
 
             try {
-                if(_supabase) {
-                    await fetchUserData();
-                    await fetchHistory(true); 
-                } else {
-                    showNotify("Database connection failed.", "warning");
-                }
-            } catch(e) { 
-                console.error(e); 
-            } finally {
-                isDataReady = true; 
-            }
+                if(_supabase) { await fetchUserData(); await fetchHistory(true); } 
+                else { showNotify("Database connection failed.", "warning"); }
+            } catch(e) { console.error(e); } 
+            finally { isDataReady = true; }
         }
 
         // --- CLICK ADS LOGIC ---
@@ -773,12 +642,9 @@
             const today = new Date().toISOString().split('T')[0];
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             
-            if (clickCount >= 2) {
-                showNotify("Daily limit of 2 click ads reached!", "warning");
-                return;
-            }
+            if (clickCount >= 2) return showNotify("Daily limit of 2 click ads reached!", "warning");
             
-            let pendingClickReward = 1.00;
+            let pendingClickReward = 1.00; // Adds 1 LKR to main balance
             showNotify("Processing task...", "success");
             
             setTimeout(async () => {
@@ -790,7 +656,7 @@
                         clickCount++;
                         localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: pendingClickReward, status: 'approved' }]);
-                        showNotify(`Task Completed! Earned Rs ${pendingClickReward.toFixed(2)}`, "success");
+                        showNotify(`Task Completed! Earned 100 Pts`, "success"); // Changed to Points UI
                         updateUI();
                         fetchHistory(true);
                     }
@@ -804,15 +670,12 @@
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             
-            if (videoCount >= 5) {
-                showNotify("Daily limit of 5 videos reached!", "warning");
-                return;
-            }
+            if (videoCount >= 5) return showNotify("Daily limit of 5 videos reached!", "warning");
 
             showNotify("Processing video reward...", "success");
 
             setTimeout(async () => {
-                const rewardAmount = 0.50;
+                const rewardAmount = 0.50; // Adds 0.50 LKR to main balance
                 try {
                     const currentIsoDate = new Date().toISOString();
                     const { error } = await _supabase.from('profiles').update({ balance: currentBalance + rewardAmount, last_active: currentIsoDate }).eq('user_id', userId);
@@ -821,12 +684,39 @@
                         videoCount++;
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: rewardAmount, status: 'approved' }]);
-                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Video Task!`, "success");
+                        showNotify(`Earned 50 Pts from Video Task!`, "success"); // Changed to Points UI
                         updateUI();
                         fetchHistory(true);
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
             }, 1500);
+        }
+
+        // --- WATCH VIDEO FOR TICKETS LOGIC ---
+        function watchAdForTickets() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
+            const today = new Date().toISOString().split('T')[0];
+            let adTicketCount = parseInt(localStorage.getItem(`ad_ticket_count_${userId}_${today}`) || "0");
+            
+            if (adTicketCount >= 10) return showNotify("Daily limit of 10 ad tickets reached!", "warning");
+
+            showNotify("Watching Ad...", "success");
+
+            setTimeout(async () => {
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentEnergy += 1;
+                        adTicketCount++;
+                        localStorage.setItem(`ad_ticket_count_${userId}_${today}`, adTicketCount.toString());
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'TASK_REWARD', amount: 0, status: 'approved' }]); // using 0 amount to represent 1 Ticket
+                        showNotify(`Received 1 Ticket 🎟️`, "success");
+                        updateUI();
+                        fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to claim ticket", "warning"); }
+            }, 2000); // Simulated delay for watching an ad
         }
 
         // --- DAILY CHECK-IN LOGIC ---
@@ -867,16 +757,13 @@
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const now = new Date().getTime();
 
-            if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) {
-                showNotify("Please wait 24 hours!", "warning");
-                return;
-            }
+            if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) return showNotify("Please wait 24 hours!", "warning");
 
             const btn = document.getElementById('daily-claim-btn');
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
             try {
-                const energyReward = 5;
+                const energyReward = 5; // Adds 5 Tickets
                 const currentIsoDate = new Date().toISOString();
                 const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                 
@@ -884,79 +771,48 @@
                     currentEnergy += energyReward;
                     localStorage.setItem(`daily_claim_${userId}`, now.toString());
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
-                    showNotify(`Successfully claimed ⚡ 5 Energy!`, "success");
+                    showNotify(`Successfully claimed 🎟️ 5 Tickets!`, "success");
                     updateUI();
                     fetchHistory(true);
-                } else {
-                    showNotify("Failed to claim reward", "warning");
-                }
-            } catch(e) {
-                showNotify("Failed to claim reward", "warning");
-            }
+                } else showNotify("Failed to claim reward", "warning");
+            } catch(e) { showNotify("Failed to claim reward", "warning"); }
             updateDailyTimer();
         }
-        // ---------------------------------------------
 
         async function fetchUserData() {
             if (!_supabase) return;
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
-                
                 if (error) throw error;
 
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
-                        user_id: userId, 
-                        balance: 0,
-                        energy: 5,
-                        username: tgUser?.username || '',
-                        first_name: fullName || 'Guest User',
-                        photo_url: tgUser?.photo_url || ''
+                        user_id: userId, balance: 0, energy: 5, username: tgUser?.username || '',
+                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || ''
                     };
                     
-                    if (startParam && startParam !== userId && startParam !== "99999") {
-                         newUser.referrer_id = startParam;
-                    }
-                    
+                    if (startParam && startParam !== userId && startParam !== "99999") newUser.referrer_id = startParam;
                     let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
                     
                     if (!ins.error) {
                         data = ins.data || newUser; 
-                        
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
-                            
                             if (referrerData) {
                                 let newEnergy = parseInt(referrerData.energy || 0) + 1;
-                                
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
-                                
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                if (currentRefs > 0 && currentRefs % 5 === 0) { 
-                                    newSpinChances += 1;
-                                    gotSpin = true;
-                                }
-
+                                if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; gotSpin = true; }
                                 await _supabase.from('profiles').update({ spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
-                                
-                                await _supabase.from('transactions').insert([{ 
-                                    user_id: startParam, 
-                                    type: 'REFERRAL_BONUS', 
-                                    amount: 0,
-                                    status: 'approved'
-                                }]);
+                                await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
                                 
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "New User";
-                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n⚡ You received 1 Energy!`;
-                                
-                                if (gotSpin) {
-                                    refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
-                                }
-                                
+                                let refText = `🎉 *New Referral Joined!*\n\n${refName} has joined using your link.\n\n🎟️ You received 1 Ticket!`;
+                                if (gotSpin) refText += `\n\n🎁 You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!`;
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                             }
                         }
@@ -968,24 +824,17 @@
                 const statusDot = document.getElementById('menu-status-dot');
                 
                 if (isActive) {
-                    if(statusBadge) {
-                        statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                        statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active';
-                    }
+                    if(statusBadge) { statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active'; }
                     if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
                 } else {
-                    if(statusBadge) {
-                        statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1";
-                        statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive';
-                    }
+                    if(statusBadge) { statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive'; }
                     if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
                 }
 
                 if (data && data.created_at) {
                     const joinedDate = new Date(data.created_at);
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    const ms = document.getElementById('menu-member-since');
-                    if(ms) ms.innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
+                    if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
                 }
                 
                 spinChances = parseInt(data?.spin_chances || 0);
@@ -997,28 +846,12 @@
                 
                 // Admin Bonus
                 if (userId === "8573086634") {
-                    setInterval(() => {
-                        currentBalance += 1000;
-                        updateUI();
-                        showNotify("Admin Bonus: Rs +1,000 added!", "success");
-                    }, 15000); 
-
-                    setInterval(async () => {
-                        if (_supabase) {
-                            try {
-                                await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
-                            } catch(e) {}
-                        }
-                    }, 60000); 
+                    setInterval(() => { currentBalance += 1000; updateUI(); showNotify("Admin Bonus: Rs +1,000 added!", "success"); }, 15000); 
+                    setInterval(async () => { if (_supabase) { try { await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId); } catch(e) {} } }, 60000); 
                 }
 
-                updateUI();
-                updateWheelUI();
-                updateDailyTimer();
-            } catch(e) { 
-                console.error(e); 
-                updateUI(); updateWheelUI();
-            }
+                updateUI(); updateWheelUI(); updateDailyTimer();
+            } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
         }
         
         async function fetchHistory(limit = false) {
@@ -1040,17 +873,22 @@
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-slot-machine' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
                         let amountHtml = '';
+                        // Display points for earnings
                         if ((item.type === 'REFERRAL_BONUS' || item.type === 'TASK_REWARD') && item.amount === 0) {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡1</p>`;
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
                         } else if (item.type === 'DAILY_REWARD') {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ ⚡5</p>`;
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 5 🎟️</p>`;
+                        } else if (item.type === 'WITHDRAWAL') {
+                            amountHtml = `<p class="text-red-400 font-black text-xs uppercase">-Rs ${item.amount.toFixed(2)}</p>`;
                         } else {
-                            amountHtml = `<p class="${isEarn ? 'text-green-400' : 'text-red-400'} font-black text-xs uppercase">${isEarn ? `+Rs ${item.amount.toFixed(2)}` : `-Rs ${item.amount.toFixed(2)}`}</p>`;
+                            // Convert float LKR amounts to Points (1.00 LKR = 100 Pts)
+                            let pts = Math.round(item.amount * 100);
+                            amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
                         }
                         
                         return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
@@ -1268,24 +1106,24 @@
             if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
             
             const energyDisplay = document.getElementById('energy-display');
-            if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning text-sm"></i> Energy: ${currentEnergy}`;
+            if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-ticket text-sm"></i> Tickets: ${currentEnergy}`;
 
-            const gameEnergy = document.getElementById('game-inner-energy');
-            if (gameEnergy) gameEnergy.innerHTML = `<i class="ph-fill ph-lightning"></i> ${currentEnergy}`;
+            const gameEnergy = document.getElementById('game-inner-tickets');
+            if (gameEnergy) gameEnergy.innerText = currentEnergy;
 
             // Update Video Counter Text
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
             if (vcd) {
-                vcd.innerText = `Earn Rs 0.50 (${videoCount}/5 limit)`;
+                vcd.innerText = `Earn 50 Pts (${videoCount}/5 limit)`;
             }
 
             // Update Click Ad Counter Text
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             const ccd = document.getElementById('click-count-display');
             if (ccd) {
-                ccd.innerText = `Earn Rs 1.00 (${clickCount}/2 limit)`;
+                ccd.innerText = `Earn 100 Pts (${clickCount}/2 limit)`;
             }
         }
 
@@ -1367,493 +1205,167 @@
             }, 7000); 
         }
 
-        let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
-        let bombsHit = 0; 
-        let gameLocked = false;
-        
-        const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
-        const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
+        // ==========================================
+        // CRYPTO SLOT MACHINE GAME LOGIC
+        // ==========================================
 
-        function showFloatingText(text, x, y, isRed = false) {
+        const cryptoLogos = [
+            'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+            'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+            'https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png',
+            'https://assets.coingecko.com/coins/images/5/large/dogecoin.png'
+        ];
+
+        let slotPoints = 0; // Tracks game points inside session
+        let isSpinning = false;
+
+        function showFloatingText(text, x, y) {
             let el = document.createElement('div');
-            el.className = `absolute font-black text-2xl pointer-events-none z-50 ${isRed ? 'text-red-500 float-anim-red' : 'text-green-400 float-anim-smooth'}`;
+            el.className = 'float-points-anim';
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
             el.innerText = text;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1500);
+            setTimeout(() => el.remove(), 1200);
         }
 
         function openGameScreen() {
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.add('active');
-
-            const startOverlay = document.getElementById('game-start-overlay');
-            if (startOverlay) startOverlay.classList.remove('hidden');
-
-            const overText = document.getElementById('game-over-center-text');
-            if (overText) overText.classList.add('hidden');
-
-            const actionBtns = document.getElementById('game-action-buttons');
-            if (actionBtns) actionBtns.classList.add('hidden');
-
-            const board = document.getElementById('match3-board');
-            if (board) {
-                Array.from(board.children).forEach(child => {
-                    if (child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') {
-                        child.remove();
-                    }
-                });
-            }
-
-            const gse = document.getElementById('game-session-earning');
-            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
             
-            for(let i=1; i<=3; i++) {
-                let bt = document.getElementById(`b-tracker-${i}`);
-                if(bt) bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
-            }
-            let statusCircle = document.getElementById('bomb-status-circle');
-            if (statusCircle) statusCircle.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300";
-            let alertIcon = document.getElementById('bomb-alert-icon');
-            if (alertIcon) alertIcon.classList.add('hidden');
-        }
-
-        function confirmPlayGame() {
-            if (currentEnergy < 1) {
-                showNotify("Not enough Energy! Invite friends to earn more.", "warning");
-                closeGame();
-                return openSheet('referral-sheet');
-            }
-            
-            currentEnergy -= 1;
-            try { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); } catch(e) {}
-            updateUI();
-            
-            sessionEarnings = 0;
-            bombsHit = 0;
-            gameLocked = false;
-            isAnimating = false;
-            firstSelection = null;
-
-            const startOverlay = document.getElementById('game-start-overlay');
-            if (startOverlay) startOverlay.classList.add('hidden');
-            
-            const overText = document.getElementById('game-over-center-text');
-            if (overText) overText.classList.add('hidden');
-
-            const actionBtns = document.getElementById('game-action-buttons');
-            if (actionBtns) actionBtns.classList.remove('hidden');
-
-            const glo = document.getElementById('game-locked-overlay');
-            if(glo) glo.classList.add('hidden');
-            
-            const gst = document.getElementById('game-status-text');
-            if(gst) gst.innerHTML = `Status: <span class="text-sky-400">Active</span>`;
-            
-            const bottomBtn = document.getElementById("claim-exit-btn");
-            if(bottomBtn) { 
-                bottomBtn.style.display = 'block'; 
-                bottomBtn.innerText = "Claim & Exit"; 
-                bottomBtn.classList.remove('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
-                bottomBtn.classList.add('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
-                bottomBtn.disabled = false; 
-            }
-
-            const playAgainBtn = document.getElementById("play-again-btn");
-            if(playAgainBtn) playAgainBtn.classList.add('hidden');
-            
-            initBoard();
+            // Reset for a new session
+            slotPoints = 0;
+            updateSlotScoreUI(slotPoints);
         }
 
         function closeGame() {
-            if (isAnimating && !gameLocked) return; 
+            if(isSpinning) return;
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.remove('active');
-            isAnimating = false;
-            gameLocked = false;
         }
 
-        function getDynamicBombChance() {
-            return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
-        }
-
-        function swapInArray(r1, c1, r2, c2) {
-            let temp = gameBoard[r1][c1];
-            gameBoard[r1][c1] = gameBoard[r2][c2];
-            gameBoard[r2][c2] = temp;
-        }
-
-        function checkMatchExistsFast() {
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<4; c++) {
-                    let type = gameBoard[r][c];
-                    if (type !== -1 && (type%10) === (gameBoard[r][c+1]%10) && (type%10) === (gameBoard[r][c+2]%10)) return true;
-                }
-            }
-            for(let c=0; c<6; c++) {
-                for(let r=0; r<4; r++) {
-                    let type = gameBoard[r][c];
-                    if (type !== -1 && (type%10) === (gameBoard[r+1][c]%10) && (type%10) === (gameBoard[r+2][c]%10)) return true;
-                }
-            }
-            return false;
-        }
-
-        function hasPossibleMatch() {
-            for (let r = 0; r < 6; r++) {
-                for (let c = 0; c < 5; c++) {
-                    swapInArray(r, c, r, c + 1);
-                    if (checkMatchExistsFast()) { swapInArray(r, c, r, c + 1); return true; }
-                    swapInArray(r, c, r, c + 1);
-                }
-            }
-            for (let c = 0; c < 6; c++) {
-                for (let r = 0; r < 5; r++) {
-                    swapInArray(r, c, r + 1, c);
-                    if (checkMatchExistsFast()) { swapInArray(r, c, r + 1, c); return true; }
-                    swapInArray(r, c, r + 1, c);
-                }
-            }
-            return false;
-        }
-
-        function generateRandomBoard() {
-            gameBoard = [];
-            let chance = getDynamicBombChance();
-            for(let r=0; r<6; r++) {
-                let row = [];
-                for(let c=0; c<6; c++) {
-                    let vType;
-                    do { vType = Math.floor(Math.random() * 5); } 
-                    while((c >= 2 && (row[c-1]%10) === vType && (row[c-2]%10) === vType) || (r >= 2 && (gameBoard[r-1][c]%10) === vType && (gameBoard[r-2][c]%10) === vType));
-                    
-                    let type = Math.random() < chance ? vType + 10 : vType;
-                    row.push(type);
-                }
-                gameBoard.push(row);
+        function updateSlotScoreUI(score) {
+            const display = document.getElementById('slot-points-display');
+            if(display) {
+                display.innerText = `${score} PTS`;
+                // Pulse effect
+                display.classList.remove('scale-110');
+                void display.offsetWidth; // trigger reflow
+                display.classList.add('scale-110');
+                setTimeout(() => display.classList.remove('scale-110'), 200);
             }
         }
 
-        function forcePossibleMatches() {
-            let safe = 0;
-            while(safe < 10) { 
-                generateRandomBoard();
-                if (hasPossibleMatch()) return;
-                safe++;
+        function spinSlot() {
+            if(isSpinning) return;
+            if(currentEnergy < 1) {
+                showNotify("Not enough Tickets! Invite friends or watch an ad.", "warning");
+                return;
             }
-            gameBoard[0][0] = 1; gameBoard[0][1] = 1; gameBoard[1][2] = 1;
-        }
 
-        function initBoard() {
-            const grid = document.getElementById('match3-board');
-            if(!grid) return;
-            Array.from(grid.children).forEach(child => {
-                if(child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') child.remove();
-            });
-            
-            forcePossibleMatches();
-            
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<6; c++) {
-                    let type = gameBoard[r][c];
-                    let vType = type % 10;
-                    const tile = document.createElement('div');
-                    tile.className = `tile`;
-                    tile.id = `t-${r}-${c}`;
-                    tile.innerHTML = `<i class="ph-fill ${ICONS[vType]} ${COLORS[vType]} pointer-events-none drop-shadow-md"></i>`;
-                    tile.onclick = (e) => onTileClick(r, c, e);
-                    grid.appendChild(tile);
-                }
-            }
-        }
+            // Deduct ticket
+            currentEnergy--;
+            updateUI();
+            try { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); } catch(e) {}
 
-        async function onTileClick(r, c, e) {
-            if(isAnimating || gameLocked) return;
-            const clicked = document.getElementById(`t-${r}-${c}`);
-            if(!clicked) return;
-            
-            if (!firstSelection) {
-                firstSelection = { r, c };
-                clicked.classList.add('selected');
-            } else {
-                const prev = document.getElementById(`t-${firstSelection.r}-${firstSelection.c}`);
-                if(prev) prev.classList.remove('selected');
-                
-                const isAdjacent = (Math.abs(r - firstSelection.r) === 1 && c === firstSelection.c) || (Math.abs(c - firstSelection.c) === 1 && r === firstSelection.r);
-                
-                if (isAdjacent) {
-                    isAnimating = true;
-                    await swapTiles(firstSelection.r, firstSelection.c, r, c);
-                }
-                firstSelection = null;
-            }
-        }
+            isSpinning = true;
+            const btn = document.getElementById('spin-btn');
+            if(btn) { btn.disabled = true; btn.classList.add('opacity-50'); }
 
-        async function swapTiles(r1, c1, r2, c2) {
-            let temp = gameBoard[r1][c1];
-            gameBoard[r1][c1] = gameBoard[r2][c2];
-            gameBoard[r2][c2] = temp;
-            renderBoard();
-            
-            let matches = findMatches();
-            if (matches.length > 0) {
-                await processMatches(matches);
-            } else {
-                setTimeout(() => {
-                    temp = gameBoard[r1][c1];
-                    gameBoard[r1][c1] = gameBoard[r2][c2];
-                    gameBoard[r2][c2] = temp;
-                    renderBoard();
-                    isAnimating = false;
-                }, 300);
-            }
-        }
+            if(navigator.vibrate) navigator.vibrate(50);
 
-        function findMatches() {
-            let matched = [];
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<4; c++) {
-                    let type = gameBoard[r][c];
-                    if (type !== -1 && (type%10) === (gameBoard[r][c+1]%10) && (type%10) === (gameBoard[r][c+2]%10)) {
-                        matched.push({r, c}, {r, c:c+1}, {r, c:c+2});
-                        if (c<3 && (type%10) === (gameBoard[r][c+3]%10)) matched.push({r, c:c+3});
-                        if (c<2 && (type%10) === (gameBoard[r][c+4]%10)) matched.push({r, c:c+4});
-                    }
-                }
-            }
-            for(let c=0; c<6; c++) {
-                for(let r=0; r<4; r++) {
-                    let type = gameBoard[r][c];
-                    if (type !== -1 && (type%10) === (gameBoard[r+1][c]%10) && (type%10) === (gameBoard[r+2][c]%10)) {
-                        matched.push({r, c}, {r:r+1, c}, {r:r+2, c});
-                        if (r<3 && (type%10) === (gameBoard[r+3][c]%10)) matched.push({r:r+3, c});
-                        if (r<2 && (type%10) === (gameBoard[r+4][c]%10)) matched.push({r:r+4, c});
-                    }
-                }
-            }
-            return matched.filter((v, i, a) => a.findIndex(t => (t.r === v.r && t.c === v.c)) === i);
-        }
+            const slots = [
+                document.getElementById('slot-img-1'),
+                document.getElementById('slot-img-2'),
+                document.getElementById('slot-img-3')
+            ];
 
-        function triggerScreenShake() {
-            const fs = document.getElementById('game-full-screen');
-            if(fs) {
-                fs.classList.add('shake-screen');
-                setTimeout(() => fs.classList.remove('shake-screen'), 600);
-            }
-        }
+            // Add spinning effects
+            slots.forEach(s => s.classList.add('spinning-blur'));
 
-        async function processMatches(matches) {
-            let isBombTriggered = false;
-            let matchCount = matches.length;
-            let lastTileRect = null;
-            
-            matches.forEach(m => {
-                let val = gameBoard[m.r][m.c];
-                let el = document.getElementById(`t-${m.r}-${m.c}`);
-                
-                if (el) {
-                    lastTileRect = el.getBoundingClientRect();
-                }
+            // Cycle images rapidly
+            let spinInterval = setInterval(() => {
+                slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
+            }, 80);
 
-                if (val >= 10) { 
-                    isBombTriggered = true; 
-                    if(el) {
-                        el.classList.add('bomb-blast-anim'); 
-                        el.innerHTML = `<i class="ph-fill ph-bomb text-red-500 pointer-events-none drop-shadow-md text-[40px]"></i>`;
-                    }
+            // Stop after 2 seconds
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                slots.forEach(s => s.classList.remove('spinning-blur'));
+
+                // Calculate result
+                let r1 = Math.floor(Math.random() * cryptoLogos.length);
+                let r2 = Math.floor(Math.random() * cryptoLogos.length);
+                let r3 = Math.floor(Math.random() * cryptoLogos.length);
+
+                // Small manipulation for slightly better win rate (entertainment purposes)
+                const luck = Math.random();
+                if(luck < 0.1) { r1 = r2 = r3; } // 10% chance jackpot
+                else if(luck < 0.4) { r1 = r2; } // 30% chance 2 matches
+
+                slots[0].src = cryptoLogos[r1];
+                slots[1].src = cryptoLogos[r2];
+                slots[2].src = cryptoLogos[r3];
+
+                let pointsWon = 0;
+
+                if (r1 === r2 && r2 === r3) {
+                    pointsWon = 50; // Jackpot
+                    if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 1000, colors: ['#fbbf24', '#f59e0b', '#fff'] });
+                    showFloatingText("+50 Pts", window.innerWidth / 2 - 40, window.innerHeight / 2 - 50);
+                } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+                    pointsWon = 10; // Small win
+                    if(navigator.vibrate) navigator.vibrate(200);
+                    showFloatingText("+10 Pts", window.innerWidth / 2 - 40, window.innerHeight / 2 - 50);
                 } else {
-                    if(el) el.classList.add('match-blast-anim'); 
-                }
-                gameBoard[m.r][m.c] = -1;
-            });
-
-            if (isBombTriggered) {
-                bombsHit++;
-                triggerScreenShake();
-                
-                let statusCircle = document.getElementById('bomb-status-circle');
-                let alertIcon = document.getElementById('bomb-alert-icon');
-
-                if(bombsHit <= 3) {
-                    let trackerEl = document.getElementById(`b-tracker-${bombsHit}`);
-                    if(trackerEl) {
-                        trackerEl.classList.add('bomb-hit');
-                        trackerEl.classList.remove('text-slate-600');
-                    }
+                    if(navigator.vibrate) navigator.vibrate(50); // Loss
                 }
 
-                if (bombsHit === 1) {
-                    if (statusCircle) {
-                        statusCircle.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
-                        statusCircle.classList.add('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
-                    }
-                    sessionEarnings = sessionEarnings / 2;
-                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
-                } 
-                else if (bombsHit === 2) {
-                    if (statusCircle) {
-                        statusCircle.classList.remove('bg-yellow-400', 'shadow-[0_0_8px_rgba(250,204,21,0.8)]');
-                        statusCircle.classList.add('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]', 'animate-pulse');
-                    }
-                    if (alertIcon) alertIcon.classList.remove('hidden');
-                    
-                    sessionEarnings = sessionEarnings / 2;
-                    if (lastTileRect) showFloatingText("-50%", lastTileRect.left + 10, lastTileRect.top, true);
-                }
-                else if (bombsHit >= 3) {
-                    sessionEarnings = 0;
-                    if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
-
-                    gameLocked = true;
-                    
-                    const gst = document.getElementById('game-status-text');
-                    if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
-
-                    const overText = document.getElementById('game-over-center-text');
-                    if(overText) { overText.classList.remove('hidden'); overText.classList.add('flex'); }
-                    
-                    const bottomBtn = document.getElementById("claim-exit-btn");
-                    if(bottomBtn) bottomBtn.style.display = 'none';
-
-                    const playAgainBtn = document.getElementById("play-again-btn");
-                    if(playAgainBtn) playAgainBtn.classList.remove('hidden');
+                if(pointsWon > 0) {
+                    slotPoints += pointsWon;
+                    updateSlotScoreUI(slotPoints);
                 }
 
-                await new Promise(res => setTimeout(res, 700)); 
-                
-                matches.forEach(m => {
-                    let el = document.getElementById(`t-${m.r}-${m.c}`);
-                    if(el && el.classList.contains('bomb')) el.classList.add('match-anim');
-                });
-            } else {
-                let bonus = matchCount > 3 ? (matchCount - 3) * 0.05 : 0;
-                let earnedNow = 0.05 + bonus;
-                
-                if (sessionEarnings + earnedNow >= 10) {
-                    earnedNow = 10 - sessionEarnings;
-                    sessionEarnings = 10;
-                    showNotify("🎉 Maximum Limit Rs 10 Reached!", "success");
-                } else {
-                    sessionEarnings += earnedNow;
-                }
+                isSpinning = false;
+                if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
 
-                if (lastTileRect && earnedNow > 0) {
-                    showFloatingText(`+Rs ${earnedNow.toFixed(2)}`, lastTileRect.left, lastTileRect.top);
-                }
-            }
-            
-            const gse = document.getElementById('game-session-earning');
-            if(gse) {
-                gse.innerText = `Rs ${sessionEarnings.toFixed(2)}`;
-                if(gameLocked) {
-                    gse.classList.remove('text-green-400');
-                    gse.classList.add('text-red-400');
-                }
-            }
-
-            await new Promise(res => setTimeout(res, 300));
-            
-            if (gameLocked) {
-                const glo = document.getElementById('game-locked-overlay');
-                if(glo) glo.classList.remove('hidden');
-                isAnimating = true; 
-                return; 
-            }
-
-            for(let c=0; c<6; c++) {
-                for(let r=5; r>=0; r--) {
-                    if (gameBoard[r][c] === -1) {
-                        for(let k=r-1; k>=0; k--) {
-                            if (gameBoard[k][c] !== -1) {
-                                gameBoard[r][c] = gameBoard[k][c];
-                                gameBoard[k][c] = -1;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            let newChance = getDynamicBombChance();
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<6; c++) {
-                    if (gameBoard[r][c] === -1) {
-                        let vType = Math.floor(Math.random() * 5);
-                        gameBoard[r][c] = Math.random() < newChance ? vType + 10 : vType; 
-                    }
-                }
-            }
-            
-            renderBoard();
-            await new Promise(res => setTimeout(res, 300));
-
-            let nextMatches = findMatches();
-            if (nextMatches.length > 0 && !gameLocked) {
-                await processMatches(nextMatches);
-            } else {
-                if (!gameLocked && !hasPossibleMatch()) {
-                    await new Promise(res => setTimeout(res, 800));
-                    forcePossibleMatches();
-                    renderBoard();
-                }
-                isAnimating = false;
-            }
-        }
-
-        function renderBoard() {
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<6; c++) {
-                    const tile = document.getElementById(`t-${r}-${c}`);
-                    if(tile) {
-                        tile.classList.remove('match-anim', 'bomb', 'bomb-blast-anim', 'match-blast-anim');
-                        let type = gameBoard[r][c];
-                        if (type !== -1) {
-                            let vType = type % 10; 
-                            tile.innerHTML = `<i class="ph-fill ${ICONS[vType]} ${COLORS[vType]} pointer-events-none drop-shadow-md"></i>`;
-                        }
-                    }
-                }
-            }
+            }, 2000);
         }
 
         async function claimAndExitGame() {
-            if (isAnimating && !gameLocked) return; 
+            if(isSpinning) return;
+            
+            const btn = document.getElementById("claim-exit-btn");
+            if(btn) { btn.disabled = true; btn.innerText = "SAVING..."; }
 
-            const btns = document.querySelectorAll("#claim-exit-btn, #back-menu-btn");
-            btns.forEach(b => { 
-                b.disabled = true; 
-                if(b.id === 'claim-exit-btn') b.innerText = sessionEarnings > 0 ? "SAVING..." : "EXITING..."; 
-            });
+            if (slotPoints > 0) {
+                // Convert Points to LKR equivalent (100 Pts = Rs 1.00)
+                let earnedLkr = slotPoints / 100;
 
-            if (sessionEarnings > 0) {
                 if (!_supabase) {
                     showNotify("Database not connected", "warning");
                 } else {
                     try {
                         const currentIsoDate = new Date().toISOString();
-                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
+                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + earnedLkr, last_active: currentIsoDate }).eq('user_id', userId);
                         if (!error) {
-                            currentBalance += sessionEarnings;
-                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
-                            showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
+                            currentBalance += earnedLkr;
+                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: earnedLkr, status: 'approved' }]);
+                            showNotify(`Successfully claimed ${slotPoints} Pts!`, "success");
                         }
                     } catch(e) { showNotify("Failed to save game earnings", "warning"); }
                 }
             }
             
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.remove('active');
+            closeGame();
             updateUI();
             fetchHistory(true);
             
-            btns.forEach(b => { 
-                b.disabled = false; 
-                if(b.id === 'claim-exit-btn') b.innerText = "Claim & Exit"; 
-            });
-            isAnimating = false;
-            gameLocked = false;
+            if(btn) { btn.disabled = false; btn.innerText = "Claim & Exit"; }
+            slotPoints = 0; // Reset
         }
+
     </script>
 </body>
 </html>
