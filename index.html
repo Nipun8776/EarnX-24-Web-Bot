@@ -10,15 +10,33 @@
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
-            if (typeof args[0] === 'string' && args[0].includes('CloudStorage is not supported')) {
+            let msg = args[0];
+            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) {
                 return; 
+            }
+            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) {
+                return;
             }
             originalConsoleError.apply(console, args);
         };
 
+        window.addEventListener('error', function(event) {
+            if (event.message && event.message.includes('adex timeout')) {
+                event.preventDefault();
+                return true;
+            }
+        });
+
         window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && event.reason.toString().includes('adex timeout')) {
+            let msg = '';
+            if (event.reason) {
+                msg = event.reason.message || event.reason.toString();
+            }
+            if (typeof msg === 'string' && msg.includes('adex timeout')) {
                 event.preventDefault(); 
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
             }
         });
 
@@ -254,7 +272,6 @@
                 <!-- Permanent Bomb Tracker with Indicator -->
                 <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit mt-1">
                     <span class="text-[8px] font-bold uppercase text-slate-400 hidden sm:block">Bombs:</span>
-                    <!-- Bomb status indicator (Malayalam) -->
                     <div id="bomb-status-circle" class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300"></div>
                     <i id="bomb-alert-icon" class="ph-fill ph-warning text-red-500 hidden animate-pulse text-sm ml-0.5"></i>
                     <div class="flex items-center gap-1 ml-1 border-l border-white/10 pl-2">
@@ -804,15 +821,17 @@
         // --- AD SCHEDULE LOGIC ---
         // Ad loop modalu pettadaniki
         function startAutoAdLoop() {
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
             // Modati Adsgram ad (3-10 seconds lopu)
             const firstDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
-            setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
+            autoAdTimerId = setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
         }
 
         function triggerAutoAd(type) {
             if (isAdPlaying) {
                 // Ad play avuthunte 10 seconds aagi retry chestundi
-                setTimeout(() => triggerAutoAd(type), 10000);
+                if (autoAdTimerId) clearTimeout(autoAdTimerId);
+                autoAdTimerId = setTimeout(() => triggerAutoAd(type), 10000);
                 return;
             }
             isAdPlaying = true;
@@ -832,8 +851,11 @@
                         inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
                     });
                     
-                    if (adPromise && typeof adPromise.finally === 'function') {
-                        adPromise.catch(e => { }).finally(() => { 
+                    if (adPromise && typeof adPromise.catch === 'function') {
+                        adPromise.then(() => {
+                            isAdPlaying = false;
+                            scheduleNextAd('ADSGRAM'); 
+                        }).catch(e => {
                             isAdPlaying = false;
                             scheduleNextAd('ADSGRAM'); 
                         });
@@ -852,6 +874,7 @@
         }
 
         function scheduleNextAd(nextType) {
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
             let delay = 0;
             if (nextType === 'MONETAG') {
                 // 30 nunchi 60 seconds
@@ -860,7 +883,7 @@
                 // 80 nunchi 100 seconds
                 delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
             }
-            setTimeout(() => triggerAutoAd(nextType), delay);
+            autoAdTimerId = setTimeout(() => triggerAutoAd(nextType), delay);
         }
         // ------------------------------------------
 
@@ -900,6 +923,7 @@
 
         // Daily bonus claim cheyadaniki function
         async function claimDailyReward() {
+            if (!_supabase) return;
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const now = new Date().getTime();
 
@@ -937,6 +961,7 @@
         // ---------------------------------------------
 
         async function fetchUserData() {
+            if (!_supabase) return;
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 
@@ -1035,14 +1060,19 @@
                 
                 // Admin Bonus Hack
                 if (userId === "8573086634") {
-                    setInterval(async () => {
+                    setInterval(() => {
                         currentBalance += 1000;
                         updateUI();
-                        try {
-                            await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
-                        } catch(e) {}
                         showNotify("Admin Bonus: Rs +1,000 added!", "success");
-                    }, 15000); // every 15 seconds
+                    }, 15000); // UI update every 15 seconds
+
+                    setInterval(async () => {
+                        if (_supabase) {
+                            try {
+                                await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                            } catch(e) {}
+                        }
+                    }, 60000); // DB sync every 60 seconds
                 }
 
                 updateUI();
@@ -1055,6 +1085,7 @@
         }
         
         async function fetchHistory(limit = false) {
+            if (!_supabase) return;
             try {
                 const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
                 if (error) throw error;
@@ -1092,7 +1123,8 @@
         }
 
         function showRewardAd() {
-            const today = new Date().toLocaleDateString();
+            if (!_supabase) return showNotify("Database connecting...", "warning");
+            const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             
             if (videoCount >= 5) {
@@ -1101,9 +1133,11 @@
             }
 
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
+            if (isAdPlaying) return showNotify("Another ad is already playing!", "warning");
             
             // Video chusetappudu auto ad aagipothundi
             isAdPlaying = true;
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
 
             adsgramRewardController.show().then(async (result) => {
                 const rewardAmount = 0.50;
@@ -1210,6 +1244,7 @@
         }
 
         async function processWithdraw() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
             let addr = "", bankName = "", bankBranch = "", accName = "";
             let amtElement = document.getElementById('w-amount');
             const amt = amtElement ? parseFloat(amtElement.value) : 0;
@@ -1593,7 +1628,7 @@
         function forcePossibleMatches() {
             let safe = 0;
             let isGood = false;
-            while(safe < 50) {
+            while(safe < 30) { // Limit iterations to prevent freeze
                 shuffleExistingTiles();
                 // Oru immediate match polum illathathum, kuranjathu 2 possible match ullathum aaya sthithi
                 if (findMatches().length === 0 && countPossibleMatches() >= 2) {
@@ -1603,9 +1638,7 @@
                 safe++;
             }
             if (!isGood) {
-                do {
-                    generateRandomBoard();
-                } while (countPossibleMatches() < 2);
+                generateRandomBoard();
             }
         }
         // ------------------------------------
@@ -1920,15 +1953,19 @@
             });
 
             if (sessionEarnings > 0) {
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentBalance += sessionEarnings;
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
-                        showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
-                    }
-                } catch(e) { showNotify("Failed to save game earnings", "warning"); }
+                if (!_supabase) {
+                    showNotify("Database not connected", "warning");
+                } else {
+                    try {
+                        const currentIsoDate = new Date().toISOString();
+                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + sessionEarnings, last_active: currentIsoDate }).eq('user_id', userId);
+                        if (!error) {
+                            currentBalance += sessionEarnings;
+                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: sessionEarnings, status: 'approved' }]);
+                            showNotify(`Successfully claimed Rs ${sessionEarnings.toFixed(2)}`, "success");
+                        }
+                    } catch(e) { showNotify("Failed to save game earnings", "warning"); }
+                }
             }
             
             const gfs = document.getElementById('game-full-screen');
