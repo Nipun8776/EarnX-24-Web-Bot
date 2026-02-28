@@ -7,6 +7,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <!-- Monetag SDK -->
+    <script src="//libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
+    
     <!-- Telegram CloudStorage polyfill -->
     <script>
         const originalConsoleError = console.error;
@@ -135,6 +140,7 @@
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
+        <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
@@ -458,14 +464,14 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v4.0.0</h3>
+                <h3 class="text-2xl font-black text-white tracking-wider">v5.0.0</h3>
                 <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Optimize Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Points conversion UI optimized beautifully.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>TON coin 3x Match Special Jackpot added!</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Adsgram Auto-launch & Interstitial integration.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Monetag In-App interstitial triggered every 10th spin.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Clean UI with updated SPIN buttons.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Click Ads correctly log as AD REWARD in history.</span></li>
                 </ul>
@@ -571,7 +577,7 @@
         </div>
     </div>
 
-    <!-- Game Rules Modal (Slot Machine Niyamalu) -->
+    <!-- Game Rules Modal (Slot Machine) -->
     <div id="game-rules-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-book-open text-2xl"></i></div>
@@ -643,7 +649,7 @@
         </div>
     </div>
 
-    <!-- Wheel Rules Modal (Wheel Niyamalu) -->
+    <!-- Wheel Rules Modal -->
     <div id="wheel-rules-sheet" class="bottom-sheet flex flex-col">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-aperture text-2xl"></i></div>
@@ -690,6 +696,7 @@
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
+        let sessionSpinCount = 0; // Helps track spins for Ad Logic
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -711,6 +718,27 @@
             const now = new Date();
             const diffDays = (now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24);
             return diffDays <= 3;
+        }
+
+        // Adsgram Integration Wrapper
+        function playAdsgramAd(blockId) {
+            return new Promise((resolve, reject) => {
+                if (window.Adsgram) {
+                    const AdController = window.Adsgram.init({ blockId: blockId });
+                    AdController.show()
+                        .then((result) => { resolve(true); })
+                        .catch((result) => { resolve(false); }); 
+                } else {
+                    resolve(false);
+                }
+            });
+        }
+
+        // Play auto launch ad
+        function playAppLaunchAd() {
+            playAdsgramAd('int-23802').then(() => {
+                console.log("App launch ad completed/skipped");
+            });
         }
 
         async function initApp() {
@@ -742,18 +770,31 @@
 
             setInterval(updateDailyTimer, 1000);
 
+            // Exactly stops at 100%
             let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
-                prog += 3;
-                if(prog >= 85 && !isDataReady) prog = 85; 
+                if (!isDataReady) {
+                    prog += 3;
+                    if(prog >= 85) prog = 85; 
+                } else {
+                    prog += 5;
+                    if (prog >= 100) prog = 100;
+                }
+
                 if(document.getElementById('progress-bar')) document.getElementById('progress-bar').style.width = prog + '%';
                 if(document.getElementById('percentage')) document.getElementById('percentage').innerText = prog + '%';
                 
-                if(prog >= 100) { 
+                if(prog === 100) { 
                     clearInterval(timer); 
                     setTimeout(() => { 
                         const ls = document.getElementById('loading-screen');
-                        if(ls) { ls.style.opacity = '0'; setTimeout(() => { ls.style.display = 'none'; }, 400); }
+                        if(ls) { 
+                            ls.style.opacity = '0'; 
+                            setTimeout(() => { 
+                                ls.style.display = 'none'; 
+                                playAppLaunchAd(); // Fire ad on enter
+                            }, 400); 
+                        }
                     }, 200); 
                 }
             }, 30);
@@ -801,24 +842,27 @@
             
             if (videoCount >= 5) return showNotify("Daily limit of 5 videos reached!", "warning");
 
-            showNotify("Processing video reward...", "success");
+            showNotify("Loading Video Ad...", "success");
 
-            setTimeout(async () => {
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentEnergy += 1;
-                        videoCount++;
-                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
-                        // Record as VIDEO_AD_REWARD
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned 1 🎟️ from Video Task!`, "success");
-                        updateUI();
-                        fetchHistory(true);
-                    }
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
-            }, 1500);
+            playAdsgramAd('23851').then(async (completed) => {
+                if (completed) {
+                    try {
+                        const currentIsoDate = new Date().toISOString();
+                        const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
+                        if (!error) {
+                            currentEnergy += 1;
+                            videoCount++;
+                            localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
+                            showNotify(`Earned 1 🎟️ from Video Task!`, "success");
+                            updateUI();
+                            fetchHistory(true);
+                        }
+                    } catch(e) { showNotify("Failed to credit reward", "warning"); }
+                } else {
+                    showNotify("Ad not completed or failed to load.", "error");
+                }
+            });
         }
 
         // --- DAILY CHECK-IN LOGIC ---
@@ -994,8 +1038,9 @@
                             if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
                             else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
                             else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
-                            else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
-                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
+                            else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera'; // Video Ad Icon
+                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; // Click Ad Icon
+                            else if (item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
                             else if (item.type === 'DAILY_REWARD') iconClass = 'ph-calendar-check';
                         } else {
                             iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
@@ -1448,12 +1493,36 @@
             }
         }
 
-        function spinSlot() {
+        async function spinSlot() {
             if(isSpinning) return;
 
             if(currentEnergy < 1) {
                 showNotify("Not enough Tickets! Watch an ad or invite friends.", "warning");
                 return;
+            }
+
+            sessionSpinCount++; // Track spins for Ad Logic
+
+            // Crypto Spin Ad Logic
+            if (sessionSpinCount === 3 || sessionSpinCount === 6 || sessionSpinCount === 9 || sessionSpinCount === 15 || sessionSpinCount === 18 || sessionSpinCount === 21) {
+                showNotify("Loading Sponsored Ad...", "success");
+                await playAdsgramAd('int-23802');
+            } else if (sessionSpinCount === 10) {
+                showNotify("Loading Special Offer...", "success");
+                if (typeof show_10365806 === 'function') {
+                    show_10365806({
+                      type: 'inApp',
+                      inAppSettings: {
+                        frequency: 2,
+                        capping: 0.1,
+                        interval: 30,
+                        timeout: 5,
+                        everyPage: false
+                      }
+                    });
+                }
+                // Delay to allow Monetag overlay to show without confusing the spin
+                await new Promise(r => setTimeout(r, 1000));
             }
 
             // Ticket deduct
