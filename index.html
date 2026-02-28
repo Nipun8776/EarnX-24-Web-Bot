@@ -278,7 +278,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Permanent Bomb Tracker with Indicator -->
+                <!-- Permanent Bomb Tracker -->
                 <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 w-fit mt-1">
                     <span class="text-[8px] font-bold uppercase text-slate-400 hidden sm:block">Bombs:</span>
                     <div id="bomb-status-circle" class="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300"></div>
@@ -298,8 +298,8 @@
         </div>
 
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
-            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                <!-- Game locked/start overlay -->
+            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
+                <!-- Game start overlay -->
                 <div id="game-start-overlay" class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 rounded-3xl flex flex-col items-center justify-center hidden">
                     <i class="ph-fill ph-play-circle text-6xl text-pink-500 mb-4 play-anim-icon drop-shadow-lg"></i>
                     <h3 class="text-white font-black text-xl mb-1 tracking-wider">Ready to Play?</h3>
@@ -307,7 +307,7 @@
                     <button onclick="confirmPlayGame()" class="bg-gradient-to-r from-pink-500 to-rose-600 px-8 py-3.5 rounded-2xl font-black text-white text-xs tracking-widest uppercase shadow-lg shadow-pink-500/30 btn-animate border border-white/20">START GAME</button>
                     <button onclick="closeGame()" class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
                 </div>
-                <!-- Game Over overlay text (center) -->
+                <!-- Game Over overlay text -->
                 <div id="game-over-center-text" class="absolute inset-0 z-40 flex-col items-center justify-center bg-red-900/40 backdrop-blur-sm rounded-3xl hidden animation-slide-down">
                     <h2 class="text-3xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.9)]">GAME OVER</h2>
                     <p class="text-red-300 text-[10px] font-bold uppercase tracking-widest mt-1 bg-black/50 px-3 py-1 rounded-lg">3 Bombs Hit! All Lost.</p>
@@ -404,7 +404,7 @@
                         <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn Rs 1.00 (0/2 limit)</p>
                     </div>
                 </div>
-                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
+                <button id="click-ad-btn" onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">OPEN</button>
             </div>
 
             <!-- Watch Ad Reward Trigger -->
@@ -419,7 +419,7 @@
                         <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn Rs 0.50 (0/5 limit)</p>
                     </div>
                 </div>
-                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
+                <button id="watch-video-btn" onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">WATCH</button>
             </div>
 
             <!-- Lucky Wheel Trigger -->
@@ -534,7 +534,7 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.6.0</h3>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.8.0</h3>
                 <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Smooth Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
@@ -693,15 +693,17 @@
         
         let adsgramController = null;
         let adsgramRewardController = null;
-        let autoAdTimerId = null;
         
-        // Attha padisuvudu ad play aguttidhe (Malayalam to Kannada: tracking ad playing state)
+        let globalAdTimer = null;
+        let gameAdTimer = null;
         let isAdPlaying = false; 
+        let isGameActive = false;
 
-        // Hosa Click Ad tracking
         let isClickAdActive = false;
         let clickAdStartTime = 0;
         let pendingClickReward = 0;
+        
+        let requireSpinAd = true;
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
@@ -743,7 +745,7 @@
                         adsgramController = window.Adsgram.init({ blockId: "int-23802" });
                         adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
                     } catch (e) {
-                        console.log("Adsgram initialization skipped.");
+                        console.log("Adsgram init skipped.");
                     }
                 }
             }
@@ -800,7 +802,9 @@
                         if(ls) ls.style.opacity = '0';
                         setTimeout(() => {
                             if(ls) ls.style.display = 'none';
-                            startAutoAdLoop(); 
+                            // Loading mugida koodale ad play maduvudu (Play ad right after loading)
+                            setTimeout(() => triggerAutoAd('ADSGRAM'), 500); 
+                            startGlobalAutoAds(); 
                         }, 400);
                     }, 200); 
                 }
@@ -820,16 +824,59 @@
             }
         }
 
-        // --- AD SCHEDULE LOGIC ---
-        function startAutoAdLoop() {
-            if (autoAdTimerId) clearTimeout(autoAdTimerId);
-            const firstDelay = Math.floor(Math.random() * (10000 - 3000 + 1)) + 3000;
-            autoAdTimerId = setTimeout(() => triggerAutoAd('ADSGRAM'), firstDelay);
+        // --- HOSA AUTO ADS LOGIC ---
+        function startGlobalAutoAds() {
+            if(globalAdTimer) clearInterval(globalAdTimer);
+            globalAdTimer = setInterval(() => {
+                if(!isAdPlaying && !isClickAdActive && !isGameActive) {
+                    playAdsgramAutoAd();
+                }
+            }, 60000); // 1 minute
+        }
+
+        function startGameAutoAds() {
+            if(gameAdTimer) clearInterval(gameAdTimer);
+            gameAdTimer = setInterval(() => {
+                if(!isAdPlaying && isGameActive) {
+                    playAdsgramAutoAd();
+                }
+            }, 30000); // 30 seconds
+        }
+
+        function stopGlobalAutoAds() {
+            if(globalAdTimer) clearInterval(globalAdTimer);
+        }
+        function stopGameAutoAds() {
+            if(gameAdTimer) clearInterval(gameAdTimer);
+        }
+
+        function playAdsgramAutoAd() {
+            if(adsgramController && !isAdPlaying) {
+                isAdPlaying = true;
+                adsgramController.show().finally(() => {
+                    isAdPlaying = false;
+                });
+            }
+        }
+
+        function playMonetagAutoAd() {
+            if (typeof show_10365806 === 'function' && !isAdPlaying) {
+                isAdPlaying = true;
+                let adPromise = show_10365806({
+                    type: 'inApp',
+                    inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                });
+                if(adPromise && typeof adPromise.finally === 'function') {
+                    adPromise.finally(() => { isAdPlaying = false; });
+                } else {
+                    isAdPlaying = false;
+                }
+            }
         }
 
         function triggerAutoAd(type) {
             if (isAdPlaying || isClickAdActive) {
-                // Ad athava task nadayuttiddare, svalpa hottu kayiri (If ad or task is active, wait)
+                // Ad athava task nadayuttiddare, svalpa hottu kayiri (Wait if ad/task is active)
                 if (autoAdTimerId) clearTimeout(autoAdTimerId);
                 autoAdTimerId = setTimeout(() => triggerAutoAd(type), 10000);
                 return;
@@ -905,26 +952,22 @@
                 return;
             }
 
-            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again", "warning");
             
-            isAdPlaying = true;
-            if (autoAdTimerId) clearTimeout(autoAdTimerId);
-
-            let url = "";
-            if (clickCount === 0) {
-                url = "https://omg10.com/4/10663836"; // Monetag
-                pendingClickReward = 1.00;
-            } else {
-                url = "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1"; // Adsterra
-                pendingClickReward = 1.00;
-            }
-
-            clickAdStartTime = Date.now();
             isClickAdActive = true;
-            window.open(url, '_blank');
+            stopGlobalAutoAds();
+
+            let url = clickCount === 0 ? "https://omg10.com/4/10663836" : "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1";
+            pendingClickReward = 1.00;
+            clickAdStartTime = Date.now();
+
+            if (tg && tg.openLink) {
+                tg.openLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
         }
 
-        // Window focus check maduvudu (Check when user returns)
         window.addEventListener('focus', handleUserReturn);
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') handleUserReturn();
@@ -951,17 +994,33 @@
                         showNotify(`Task Completed! Earned Rs ${pendingClickReward.toFixed(2)}`, "success");
                         updateUI();
                         fetchHistory(true);
+                        startClickAdCooldown();
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
             } else {
                 showNotify("Task Failed! You must view the ad for at least 10 seconds.", "warning");
             }
 
-            // Task mugida nantara swalpa hottu kayi (Buffer before auto ads)
             setTimeout(() => {
-                isAdPlaying = false;
-                scheduleNextAd('MONETAG', 30000); // Wait 30s before resuming auto ads
-            }, 2000);
+                startGlobalAutoAds();
+            }, 30000); // Resume auto ads after 30s
+        }
+
+        function startClickAdCooldown() {
+            let btn = document.getElementById('click-ad-btn');
+            let timeLeft = 20;
+            if(btn) {
+                btn.disabled = true;
+                let timer = setInterval(() => {
+                    btn.innerText = `Wait: ${timeLeft}s`;
+                    timeLeft--;
+                    if(timeLeft < 0) {
+                        clearInterval(timer);
+                        btn.disabled = false;
+                        btn.innerText = "OPEN"; 
+                    }
+                }, 1000);
+            }
         }
 
 
@@ -1205,11 +1264,11 @@
                 return;
             }
 
-            if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
-            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
+            if (!adsgramRewardController) return showNotify("Please wait a moment and try again", "warning");
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again", "warning");
             
             isAdPlaying = true;
-            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+            stopGlobalAutoAds();
 
             adsgramRewardController.show().then(async (result) => {
                 const rewardAmount = 0.50;
@@ -1226,19 +1285,37 @@
                         showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad!`, "success");
                         updateUI();
                         fetchHistory(true);
+                        startWatchVideoCooldown();
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
 
                 setTimeout(() => {
                     isAdPlaying = false;
-                    scheduleNextAd('MONETAG', 30000); // 30s buffer
-                }, 2000);
+                    startGlobalAutoAds();
+                }, 30000); // Delay auto ads after reward
 
             }).catch((e) => {
-                showNotify("Ad was not completed.", "warning");
+                showNotify("Please wait a moment and try again", "warning");
                 isAdPlaying = false;
-                scheduleNextAd('MONETAG', 30000); // 30s buffer
+                startGlobalAutoAds();
             });
+        }
+
+        function startWatchVideoCooldown() {
+            let btn = document.getElementById('watch-video-btn');
+            let timeLeft = 10;
+            if(btn) {
+                btn.disabled = true;
+                let timer = setInterval(() => {
+                    btn.innerText = `Wait: ${timeLeft}s`;
+                    timeLeft--;
+                    if(timeLeft < 0) {
+                        clearInterval(timer);
+                        btn.disabled = false;
+                        btn.innerText = "WATCH"; 
+                    }
+                }, 1000);
+            }
         }
 
         function toggleHistory() {
@@ -1367,7 +1444,6 @@
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
                         
                         let text = "";
-                        const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         
                         if (selectedMethodName === 'BANK') {
                             text = `✅ Withdrawal Request Received\n\nHello Support Center, we have received your request.\n\n🔢 Transaction ID: #${txId}\n💰 Amount: Rs ${amt.toFixed(2)}\n🏦 Method: BANK\n📍 Bank Name: ${bankName}\n📍 Branch: ${bankBranch}\n📍 Name: ${accName}\n💳 Acc No: ${addr}\n⏳ Status: Processing\n\nThank you for using EarnX24!`;
@@ -1471,40 +1547,6 @@
             }
         }
 
-        function showNotify(msg, type = 'warning') {
-            const box = document.getElementById('custom-notify'); 
-            if(box) {
-                const nMsg = document.getElementById('notify-msg');
-                if(nMsg) nMsg.innerText = msg;
-                box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
-                box.classList.add('active'); 
-                setTimeout(() => box.classList.remove('active'), 3000);
-            }
-        }
-        
-        function openSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.add('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'block'; }
-        function closeSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
-        function openSheet(id) { 
-            const sh = document.getElementById(id);
-            if(sh) sh.classList.add('active'); 
-            const so = document.getElementById('sheet-overlay');
-            if(so) so.style.display = 'block'; 
-            
-            if (id === 'withdraw-sheet') {
-                selectedMethodName = null; 
-                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-                const wi = document.getElementById('withdraw-inputs');
-                if(wi) wi.classList.add('hidden');
-                
-                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(fid => {
-                    const el = document.getElementById(fid);
-                    if(el) el.value = '';
-                });
-            }
-        }
-        function closeSheet(id) { const sh = document.getElementById(id); if(sh) sh.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); }
-
         function updateWheelUI() {
             const scd = document.getElementById('spin-chances-display');
             if(scd) scd.innerText = spinChances;
@@ -1518,7 +1560,35 @@
 
         function spinWheel() {
             if (spinChances <= 0) return showNotify("No spins left! Invite friends to earn more.", "warning");
-            const btn = document.getElementById('spin-btn'); 
+            
+            let btn = document.getElementById('spin-btn'); 
+
+            if (requireSpinAd) {
+                if (!adsgramController || isAdPlaying || isClickAdActive) {
+                    return showNotify("Please wait a moment and try again", "warning");
+                }
+                
+                isAdPlaying = true;
+                stopGlobalAutoAds();
+                if(btn) { btn.disabled = true; btn.innerText = "LOADING..."; }
+
+                adsgramController.show().then(() => {
+                    isAdPlaying = false;
+                    requireSpinAd = false; 
+                    if(btn) { btn.disabled = false; btn.innerText = "SPIN NOW"; }
+                    showNotify("Click SPIN NOW again to play.", "success");
+                    setTimeout(startGlobalAutoAds, 30000);
+                }).catch(() => {
+                    isAdPlaying = false;
+                    if(btn) { btn.disabled = false; btn.innerText = "SPIN NOW"; }
+                    showNotify("Please wait a moment and try again", "warning");
+                    setTimeout(startGlobalAutoAds, 30000);
+                });
+                return;
+            }
+
+            // Execute Actual Spin
+            requireSpinAd = true; 
             if(btn) btn.disabled = true;
             spinChances--; updateWheelUI();
             try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
@@ -1549,9 +1619,9 @@
             }, 7000); 
         }
 
+        // --- GAME LOGIC (Without Vibrations) ---
         let gameBoard = [], sessionEarnings = 0, firstSelection = null, isAnimating = false;
         let bombsHit = 0; 
-        let gameLocked = false;
         
         const ICONS = ['ph-heart', 'ph-star', 'ph-diamond', 'ph-leaf', 'ph-lightning', 'ph-bomb']; 
         const COLORS = ['text-pink-500', 'text-yellow-400', 'text-blue-400', 'text-emerald-400', 'text-purple-400', 'text-red-500'];
@@ -1618,6 +1688,10 @@
             isAnimating = false;
             firstSelection = null;
 
+            isGameActive = true;
+            stopGlobalAutoAds();
+            startGameAutoAds();
+
             const startOverlay = document.getElementById('game-start-overlay');
             if (startOverlay) startOverlay.classList.add('hidden');
             
@@ -1650,6 +1724,10 @@
 
         function closeGame() {
             if (isAnimating && !gameLocked) return; 
+            isGameActive = false;
+            stopGameAutoAds();
+            startGlobalAutoAds();
+
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.remove('active');
             isAnimating = false;
@@ -1660,7 +1738,7 @@
             return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
-        // --- Hosa Match Checking Logic (Svalpa vega) ---
+        // --- Naya Match Checking Logic (Tez / Smooth) ---
         function swapInArray(r1, c1, r2, c2) {
             let temp = gameBoard[r1][c1];
             gameBoard[r1][c1] = gameBoard[r2][c2];
@@ -1727,7 +1805,6 @@
             }
             gameBoard[0][0] = 1; gameBoard[0][1] = 1; gameBoard[1][2] = 1;
         }
-        // ------------------------------------
 
         function initBoard() {
             const grid = document.getElementById('match3-board');
@@ -1819,14 +1896,6 @@
             return matched.filter((v, i, a) => a.findIndex(t => (t.r === v.r && t.c === v.c)) === i);
         }
 
-        function triggerScreenShake() {
-            const fs = document.getElementById('game-full-screen');
-            if(fs) {
-                fs.classList.add('shake-screen');
-                setTimeout(() => fs.classList.remove('shake-screen'), 600);
-            }
-        }
-
         async function processMatches(matches) {
             let isBombTriggered = false;
             let matchCount = matches.length;
@@ -1854,7 +1923,6 @@
 
             if (isBombTriggered) {
                 bombsHit++;
-                triggerScreenShake();
                 
                 let statusCircle = document.getElementById('bomb-status-circle');
                 let alertIcon = document.getElementById('bomb-alert-icon');
@@ -1890,6 +1958,10 @@
                     if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
 
                     gameLocked = true;
+                    isGameActive = false;
+                    stopGameAutoAds();
+                    startGlobalAutoAds();
+                    setTimeout(() => playMonetagAutoAd(), 1000); 
                     
                     const gst = document.getElementById('game-status-text');
                     if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
@@ -1917,7 +1989,7 @@
                 if (sessionEarnings + earnedNow >= 10) {
                     earnedNow = 10 - sessionEarnings;
                     sessionEarnings = 10;
-                    showNotify("🎉 Maximum Limit Rs 10 Reached!", "success");
+                    showNotify("Maximum Limit Rs 10 Reached!", "success");
                 } else {
                     sessionEarnings += earnedNow;
                 }
@@ -2004,6 +2076,10 @@
         async function claimAndExitGame() {
             if (isAnimating && !gameLocked) return; 
 
+            isGameActive = false;
+            stopGameAutoAds();
+            startGlobalAutoAds();
+
             const btns = document.querySelectorAll("#claim-exit-btn, #back-menu-btn");
             btns.forEach(b => { 
                 b.disabled = true; 
@@ -2026,6 +2102,8 @@
                 }
             }
             
+            playMonetagAutoAd(); 
+
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.remove('active');
             updateUI();
