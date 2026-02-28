@@ -56,8 +56,6 @@
             position: relative; 
             overscroll-behavior: none; 
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
         }
@@ -74,15 +72,16 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
+        /* Z-index Adjustments for Modals */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 290; display: none; transition: opacity 0.3s; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 300; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
-        .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 100; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100dvh; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 310; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
         .side-panel.active { right: 0; }
-        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 90; display: none; }
         
         .method-btn.selected { border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
         .spinner { border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; width: 14px; height: 14px; animation: spin 0.8s linear infinite; }
-        .history-item { opacity: 0; transform: translateY(-20px); animation: slideDown 0.4s forwards; }
         
         @keyframes slideDown { to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -117,7 +116,7 @@
             80% { transform: translateY(-50px) scale(1); opacity: 1; filter: drop-shadow(0 0 5px rgba(251,191,36,0.6)); }
             100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
         }
-        .float-points-anim { animation: floatPoints 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; position: absolute; z-index: 50; font-weight: 900; color: #fbbf24; text-shadow: 0 0 10px rgba(251,191,36,0.8); font-size: 2.5rem; pointer-events: none; }
+        .float-points-anim { animation: floatPoints 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; position: absolute; z-index: 50; font-weight: 900; font-size: 2.5rem; pointer-events: none; }
     </style>
 </head>
 
@@ -133,7 +132,6 @@
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
-        <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
@@ -142,22 +140,31 @@
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
         <!-- Header -->
         <div class="flex justify-between items-center mb-8 shrink-0 relative z-20">
-            <!-- Vennaki (Back) Button -->
+            <!-- Back Button -->
             <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
             
-            <!-- Game Rules (Aata Niyamalu) Button -->
+            <!-- Game Rules Button -->
             <button onclick="openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
 
+        <!-- Tickets Header Inside Game -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-amber-500/20 backdrop-blur-md px-5 py-2 rounded-full border border-amber-500/40 flex items-center gap-2 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+                <i class="ph-fill ph-ticket text-amber-400 text-xl drop-shadow-md"></i>
+                <span id="game-inner-tickets" class="text-sm font-black text-white">0</span>
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest ml-1">Tickets</span>
+            </div>
+        </div>
+
         <!-- Slot Machine Area -->
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
             
-            <p class="text-xs text-amber-100/50 font-black uppercase tracking-[0.3em] mb-2">Session Points</p>
-            <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-12 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
+            <p class="text-[10px] text-amber-100/50 font-black uppercase tracking-[0.3em] mb-1">Session Points</p>
+            <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-10 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
 
             <!-- The Slots -->
             <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.15)] relative mb-12">
@@ -179,7 +186,6 @@
             </div>
 
             <!-- Action Button -->
-            <!-- Idi testing kosam unlimited tickets isthundi, ayite UI lo tickets display chestham -->
             <button id="spin-btn" onclick="spinSlot()" class="bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-12 py-5 rounded-[2rem] text-black font-black text-2xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-center items-center gap-3">
                 SPIN 
                 <span class="text-sm bg-black/20 px-3 py-1 rounded-xl flex items-center gap-1 font-bold">1 <i class="ph-fill ph-ticket"></i></span>
@@ -205,30 +211,24 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
-            <!-- Balance Card (Rs & Pts display) -->
-            <div class="glass p-6 rounded-[2.5rem] border-t border-white/10 relative">
+            <!-- Optimized Balance Card -->
+            <div class="glass p-6 rounded-[3rem] border-t border-white/10 relative overflow-hidden bg-gradient-to-b from-[#0f172a] to-[#020617]">
+                
                 <div class="absolute top-6 right-6">
-                    <span id="energy-display" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 shadow-sm">
-                        <i class="ph-fill ph-ticket"></i> Tickets: 0
-                    </span>
+                    <div class="bg-amber-500/10 border border-amber-500/30 px-4 py-1.5 rounded-2xl flex items-center gap-2 shadow-[0_0_15px_rgba(251,191,36,0.15)]">
+                        <i class="ph-fill ph-coins text-amber-400 text-lg"></i>
+                        <span id="pts-val-display" class="text-amber-400 text-sm font-black">0 Pts</span>
+                    </div>
                 </div>
                 
-                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest text-left mt-2">Pradhana Balance</p>
-                <div class="flex items-center gap-2 mb-1">
-                    <h1 id="bal-val-display" class="text-4xl font-black italic text-sky-400 tracking-tight">Rs 0.00</h1>
+                <p class="text-slate-400 text-[11px] font-black uppercase mb-1 tracking-widest text-left mt-2">Pradhana Balance</p>
+                <div class="flex flex-col mb-5">
+                    <h1 id="bal-val-display" class="text-5xl font-black italic text-sky-400 tracking-tight drop-shadow-md">Rs 0.00</h1>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-2 bg-black/40 px-3 py-1 rounded-lg w-fit border border-white/5">1000 Pts = Rs 10.00</p>
                 </div>
                 
-                <!-- Displaying PTS conversion nicely -->
-                <div class="mb-4 bg-black/30 border border-white/5 rounded-xl px-3 py-2 w-fit">
-                    <p class="text-[10px] text-slate-300 font-bold flex items-center gap-2">
-                        <i class="ph-fill ph-coins text-amber-400"></i>
-                        <span id="pts-val-display" class="text-amber-400 text-xs font-black">0 Pts</span> 
-                        <span class="text-[8px] text-slate-500 tracking-widest uppercase ml-1">(1000 Pts = Rs 10)</span>
-                    </p>
-                </div>
-
                 <div class="flex gap-2">
-                    <button onclick="openSheet('withdraw-sheet')" class="w-full bg-[#0ea5e9] py-3 rounded-xl text-[10px] font-black uppercase text-white btn-animate">Withdraw</button>
+                    <button onclick="openSheet('withdraw-sheet')" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white btn-animate shadow-lg shadow-sky-500/30">Withdraw</button>
                 </div>
             </div>
 
@@ -247,7 +247,7 @@
                 <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
             </div>
 
-            <!-- Crypto Slot Game Trigger (Updated Icon) -->
+            <!-- Crypto Slot Game Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -299,7 +299,7 @@
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10 play-anim-icon">
                         <i class="ph-fill ph-aperture text-[32px] animate-spin-slow drop-shadow-md"></i>
                     </div>
-                    <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to 5000 Pts</p></div>
+                    <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to 1000 Pts</p></div>
                 </div>
                 <button onclick="openSheet('wheel-sheet')" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
@@ -332,60 +332,6 @@
 
     <!-- Modals Overlay -->
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
-
-    <!-- Game Rules Modal (Aata Niyamalu) -->
-    <div id="game-rules-sheet" class="bottom-sheet flex flex-col">
-        <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-book-open text-2xl"></i></div>
-            <div>
-                <h2 class="text-lg font-black text-white uppercase tracking-widest">Game Rules</h2>
-                <p class="text-[11px] text-amber-400 font-bold">Winning Probabilities</p>
-            </div>
-            <button onclick="closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
-        </div>
-        <div class="flex-1 space-y-4 pb-4">
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex gap-1">
-                        <i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-white">Jackpot (3 Matches)</p>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Win 50 Points</p>
-                    </div>
-                </div>
-                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">10% Chance</span>
-            </div>
-
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex gap-1">
-                        <i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-white">Small Win (2 Matches)</p>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Win 10 Points</p>
-                    </div>
-                </div>
-                <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">30% Chance</span>
-            </div>
-
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex gap-1">
-                        <i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-white">No Match (0 Matches)</p>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Try Again</p>
-                    </div>
-                </div>
-                <span class="bg-red-500/20 text-red-400 px-2 py-1 rounded-md text-[10px] font-black">60% Chance</span>
-            </div>
-            
-            <p class="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-widest">Cost: 1 Ticket per spin. All winnings are saved instantly.</p>
-        </div>
-    </div>
 
     <!-- Side Panel -->
     <div id="side-panel" class="side-panel">
@@ -458,16 +404,16 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v3.0.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Premium Slots Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v3.1.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Optimize Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Premium Casino Style Slot Machine!</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Trending coins added: HMSTR, DOGS, NOT.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Points conversion UI updated nicely.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Ads and Clicks now reward Tickets.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Points conversion UI optimized beautifully.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game rules open correctly inside the game!</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Confetti falling effect made super smooth.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>No Match text added for losses.</span></li>
                 </ul>
             </div>
         </div>
@@ -574,6 +520,7 @@
     <!-- Lucky Wheel Sheet -->
     <div id="wheel-sheet" class="bottom-sheet">
         <button onclick="closeSheet('wheel-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 z-50"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <button onclick="openSheet('wheel-rules-sheet')" class="absolute left-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 z-50 btn-animate"><i class="ph-bold ph-question"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-3"></div>
         <h2 class="text-xl font-black text-white mb-1 text-center uppercase italic">Lucky Wheel</h2>
         <p class="text-center text-[10px] text-slate-400 mb-4 uppercase tracking-wider">Test your luck & win big</p>
@@ -610,7 +557,100 @@
         </div>
     </div>
 
+    <!-- Game Rules Modal (Slot Machine Niyamalu) -->
+    <div id="game-rules-sheet" class="bottom-sheet flex flex-col">
+        <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-book-open text-2xl"></i></div>
+            <div>
+                <h2 class="text-lg font-black text-white uppercase tracking-widest">Game Rules</h2>
+                <p class="text-[11px] text-amber-400 font-bold">Winning Probabilities</p>
+            </div>
+            <button onclick="closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        <div class="flex-1 space-y-4 pb-4">
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-white">Jackpot (3 Matches)</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Win 50 Points</p>
+                    </div>
+                </div>
+                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">10% Chance</span>
+            </div>
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-coin text-amber-400 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-white">Small Win (2 Matches)</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Win 10 Points</p>
+                    </div>
+                </div>
+                <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">30% Chance</span>
+            </div>
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-white">No Match (0 Matches)</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Try Again</p>
+                    </div>
+                </div>
+                <span class="bg-red-500/20 text-red-400 px-2 py-1 rounded-md text-[10px] font-black">60% Chance</span>
+            </div>
+            
+            <p class="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-widest">Cost: 1 Ticket per spin. All winnings are saved instantly.</p>
+        </div>
+    </div>
+
+    <!-- Wheel Rules Modal (Wheel Niyamalu) -->
+    <div id="wheel-rules-sheet" class="bottom-sheet flex flex-col">
+        <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-aperture text-2xl"></i></div>
+            <div>
+                <h2 class="text-lg font-black text-white uppercase tracking-widest">Wheel Rules</h2>
+                <p class="text-[11px] text-pink-400 font-bold">Winning Probabilities</p>
+            </div>
+            <button onclick="closeSheet('wheel-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+        </div>
+        <div class="flex-1 space-y-3 pb-4">
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-white">1000 Pts (Jackpot)</p>
+                <span class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md text-[10px] font-black">5% Chance</span>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-white">200 Pts</p>
+                <span class="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-md text-[10px] font-black">10% Chance</span>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-white">100 Pts</p>
+                <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">20% Chance</span>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-white">500 Pts</p>
+                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">25% Chance</span>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-white">50 Pts</p>
+                <span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-black">25% Chance</span>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                <p class="text-sm font-black text-slate-400">Try Again</p>
+                <span class="bg-red-500/20 text-red-400 px-2 py-1 rounded-md text-[10px] font-black">15% Chance</span>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Idi user data mariyu functions declare chestundi (Setup variables)
         const tg = window.Telegram?.WebApp || {};
         const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
@@ -697,7 +737,7 @@
         }
 
         // --- CLICK ADS LOGIC ---
-        // Idi user ads chuste tickets isthundi
+        // Idi user ads chuste tickets isthundi (Gives tickets instead of points)
         function startClickAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -726,7 +766,7 @@
         }
 
         // --- WATCH VIDEO LOGIC ---
-        // Idi video ads kosam tickets isthundi
+        // Idi video ads kosam tickets isthundi (Gives tickets instead of points)
         function showRewardAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -755,7 +795,7 @@
         }
 
         // --- DAILY CHECK-IN LOGIC ---
-        // Rojuki okasari check-in tickets
+        // Rojuki okasari check-in tickets (Daily reward timer logic)
         function updateDailyTimer() {
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const btn = document.getElementById('daily-claim-btn');
@@ -910,7 +950,8 @@
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-slot-machine' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        // Fix for Game Reward Icon missing (Using ph-game-controller instead of non-existent ph-slot-machine)
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
@@ -926,7 +967,7 @@
                             amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
                         }
                         
-                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass}"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
+                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass} text-xl"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
                     }).join('');
                 }
             } catch(e) { console.error(e); }
@@ -1133,11 +1174,12 @@
             } catch(e) { console.error(e); }
         }
 
+        // Idi balance UI update chestundi (Update UI for Balance and Points)
         function updateUI() {
             const balValDisplay = document.getElementById('bal-val-display');
             if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
             
-            // PTS convert cheyyadam
+            // PTS convert cheyyadam (1000 Pts = Rs 10 -> 100 Pts = Rs 1.00)
             const ptsValDisplay = document.getElementById('pts-val-display');
             if (ptsValDisplay) {
                 let pts = Math.round(currentBalance * 100);
@@ -1199,7 +1241,7 @@
             }
         }
         function closeSheet(id) { const sh = document.getElementById(id); if(sh) sh.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); }
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('wheel-sheet'); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); closeSheet('wheel-rules-sheet'); }
 
         function updateWheelUI() {
             const scd = document.getElementById('spin-chances-display');
@@ -1262,12 +1304,19 @@
         let slotPoints = 0; 
         let isSpinning = false;
 
-        function showFloatingText(text, x, y) {
+        // Idi points floating text chupistundi (Shows floating text on win/loss)
+        function showFloatingText(text, x, y, isRed=false) {
             let el = document.createElement('div');
             el.className = 'float-points-anim';
             el.style.left = `${x}px`;
             el.style.top = `${y}px`;
             el.innerText = text;
+            
+            if(isRed) {
+                el.style.color = '#ef4444';
+                el.style.textShadow = '0 0 15px rgba(239,68,68,0.9)';
+            }
+            
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1500);
         }
@@ -1353,12 +1402,14 @@
                     pointsWon = 50; 
                     if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
                     
-                    // Paata paata ga (colorful) confetti
+                    // Paata paata ga (colorful) confetti - Optimized for faster fall
                     confetti({ 
-                        particleCount: 200, 
-                        spread: 100, 
+                        particleCount: 120, 
+                        spread: 90, 
                         origin: { y: 0.5 }, 
                         zIndex: 1000, 
+                        ticks: 120,     // Idi confetti twaraga maayam aayela chestundi
+                        gravity: 1.5,   // Idi fast ga kinda padela chestundi
                         colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308', '#d946ef', '#06b6d4'] 
                     });
                     showFloatingText("+50 Pts", window.innerWidth / 2 - 40, window.innerHeight / 2 - 50);
@@ -1368,6 +1419,8 @@
                     showFloatingText("+10 Pts", window.innerWidth / 2 - 40, window.innerHeight / 2 - 50);
                 } else {
                     if(navigator.vibrate) navigator.vibrate(50); 
+                    // Loss ainappudu No Match text chupisthundi
+                    showFloatingText("No Match!", window.innerWidth / 2 - 60, window.innerHeight / 2 - 50, true);
                 }
 
                 if(pointsWon > 0) {
