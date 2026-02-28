@@ -224,9 +224,15 @@
         }
         .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
 
+        @keyframes click-ad-anim {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); }
+            50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); }
+        }
+        .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
+
         .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
-        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
+        .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; position: relative; }
         .tile { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.2s, background 0.3s, opacity 0.3s; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); position: relative; }
         .tile:active { transform: scale(0.85); }
         .tile.selected { border-color: #ec4899; background: rgba(236, 72, 153, 0.2); box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); transform: scale(1.1); z-index: 10; }
@@ -266,7 +272,10 @@
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-game-controller text-2xl"></i></div>
                     <div>
                         <h2 class="text-sm font-black uppercase">Match & Earn</h2>
-                        <p class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[9px] text-pink-400 uppercase font-bold tracking-widest">Up to Rs 10.00</span>
+                            <span id="game-inner-energy" class="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1 shadow-sm"><i class="ph-fill ph-lightning"></i> 0</span>
+                        </div>
                     </div>
                 </div>
                 <!-- Permanent Bomb Tracker with Indicator -->
@@ -288,27 +297,34 @@
             </div>
         </div>
 
-        <!-- Game Over Top Text -->
-        <div id="game-over-top-text" class="hidden flex-col items-center justify-center mb-6 shrink-0 animation-slide-down">
-            <h2 class="text-4xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">GAME OVER</h2>
-            <p class="text-red-400 text-[11px] font-bold uppercase tracking-widest mt-1">3 Bombs Hit! All Lost.</p>
-        </div>
-
         <div id="game-board-container" class="flex-1 flex items-center justify-center w-full relative">
-            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
-                <!-- Game locked overlay -->
-                <div id="game-locked-overlay" class="absolute inset-0 bg-[#0f172a]/70 backdrop-blur-md z-50 rounded-3xl hidden"></div>
+            <div id="match3-board" class="board-grid bg-[#0f172a] p-3 rounded-3xl border border-white/5 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                <!-- Game locked/start overlay -->
+                <div id="game-start-overlay" class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 rounded-3xl flex flex-col items-center justify-center hidden">
+                    <i class="ph-fill ph-play-circle text-6xl text-pink-500 mb-4 play-anim-icon drop-shadow-lg"></i>
+                    <h3 class="text-white font-black text-xl mb-1 tracking-wider">Ready to Play?</h3>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-6 bg-white/5 px-3 py-1 rounded-lg border border-white/10">Cost: 1 Energy</p>
+                    <button onclick="confirmPlayGame()" class="bg-gradient-to-r from-pink-500 to-rose-600 px-8 py-3.5 rounded-2xl font-black text-white text-xs tracking-widest uppercase shadow-lg shadow-pink-500/30 btn-animate border border-white/20">START GAME</button>
+                    <button onclick="closeGame()" class="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
+                </div>
+                <!-- Game Over overlay text (center) -->
+                <div id="game-over-center-text" class="absolute inset-0 z-40 flex-col items-center justify-center bg-red-900/40 backdrop-blur-sm rounded-3xl hidden animation-slide-down">
+                    <h2 class="text-3xl font-black text-red-500 tracking-widest drop-shadow-[0_0_15px_rgba(239,68,68,0.9)]">GAME OVER</h2>
+                    <p class="text-red-300 text-[10px] font-bold uppercase tracking-widest mt-1 bg-black/50 px-3 py-1 rounded-lg">3 Bombs Hit! All Lost.</p>
+                </div>
             </div>
         </div>
 
         <div class="mt-8 space-y-3 shrink-0">
             <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500 px-2 border-b border-white/5 pb-3">
-                <span id="game-status-text">Status: <span class="text-sky-400">Active</span></span>
+                <span id="game-status-text">Status: <span class="text-sky-400">Waiting</span></span>
                 <span>Base Reward: <span class="text-green-400">Rs 0.05</span></span>
             </div>
-            <!-- Claim button exactly below the board -->
-            <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
-            <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Back to Menu</button>
+            <div id="game-action-buttons" class="space-y-3 hidden">
+                <button id="claim-exit-btn" onclick="claimAndExitGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 btn-animate">Claim & Exit</button>
+                <button id="play-again-btn" onclick="openGameScreen()" class="w-full hidden bg-gradient-to-r from-pink-500 to-rose-600 py-4 rounded-2xl font-black text-white text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-pink-500/20 btn-animate">Play Again</button>
+                <button id="back-menu-btn" onclick="closeGame()" class="w-full bg-white/5 border border-white/10 py-3 rounded-2xl font-black text-slate-400 text-[10px] uppercase tracking-widest btn-animate hover:bg-white/10 transition-colors">Exit</button>
+            </div>
         </div>
     </div>
 
@@ -373,7 +389,22 @@
                         <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Energy</p>
                     </div>
                 </div>
-                <button onclick="startMatchGame()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+                <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+            </div>
+
+            <!-- Click Ads Trigger -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 click-anim-icon">
+                        <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Click Ads</p>
+                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn Rs 1.00 (0/2 limit)</p>
+                    </div>
+                </div>
+                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
             </div>
 
             <!-- Watch Ad Reward Trigger -->
@@ -395,7 +426,6 @@
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <!-- Added play-anim-icon to match the top icons animation -->
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10 play-anim-icon">
                         <i class="ph-fill ph-aperture text-[32px] animate-spin-slow drop-shadow-md"></i>
                     </div>
@@ -504,15 +534,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.5.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Ads, Daily Rewards & Gameplay Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.6.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Smooth Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Check-in for 5 Energy!</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Dynamic Ad Scheduler (Adsgram & Monetag Looping).</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New Bomb UI indicator & 100% loss on 3rd Bomb.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Zero lag gameplay (Vibrations removed).</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New 'Click Ads' Task (Earn Rs 1.00)!</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Again button & Energy improvements.</span></li>
                 </ul>
             </div>
         </div>
@@ -665,8 +695,13 @@
         let adsgramRewardController = null;
         let autoAdTimerId = null;
         
-        // Ad play avuthundha ani check cheyadaniki variable
+        // Attha padisuvudu ad play aguttidhe (Malayalam to Kannada: tracking ad playing state)
         let isAdPlaying = false; 
+
+        // Hosa Click Ad tracking
+        let isClickAdActive = false;
+        let clickAdStartTime = 0;
+        let pendingClickReward = 0;
 
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
@@ -686,35 +721,6 @@
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
 
-        // Vibration kosam haptic feedback function
-        function triggerHaptic(style) {
-            if (tg && tg.HapticFeedback) {
-                if (style === 'fatal_bomb') {
-                    tg.HapticFeedback.notificationOccurred('error'); // 3-aam bomb-inu valiya vibration
-                } else if (style === 'small_bomb') {
-                    tg.HapticFeedback.notificationOccurred('warning'); // 1, 2 bomb ki vibration
-                } else if (style === 'bomb') {
-                    tg.HapticFeedback.impactOccurred('heavy'); 
-                } else if (style === 'daily') {
-                    tg.HapticFeedback.impactOccurred('light'); // Chinna vibration (daily claim ki)
-                } else if (style === 'success' || style === 'error' || style === 'warning') {
-                    tg.HapticFeedback.notificationOccurred(style);
-                } else {
-                    tg.HapticFeedback.impactOccurred(style || 'heavy');
-                }
-            } 
-            // Browser vibration fallback
-            if (navigator.vibrate) {
-                if (style === 'fatal_bomb') navigator.vibrate(1000); // 1 second continuous long vibration
-                else if (style === 'small_bomb') navigator.vibrate([100, 50, 100]); // Noticeable double vibe for small bombs
-                else if (style === 'bomb') navigator.vibrate(100); 
-                else if (style === 'daily') navigator.vibrate(40); // Chinna vibration
-                else if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
-                else if (style === 'success') navigator.vibrate([100, 50, 100]);
-                else navigator.vibrate(50);
-            }
-        }
-
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
             if (!targetDateStr) return true; 
@@ -731,18 +737,14 @@
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
 
-            // Initialize Adsgram
             if (window.Adsgram) {
-                // Check if we are running inside Telegram
                 if (tgUser) {
                     try {
                         adsgramController = window.Adsgram.init({ blockId: "int-23802" });
                         adsgramRewardController = window.Adsgram.init({ blockId: "23851" });
                     } catch (e) {
-                        console.log("Adsgram initialization skipped (likely outside Telegram context).");
+                        console.log("Adsgram initialization skipped.");
                     }
-                } else {
-                     console.log("Not in Telegram environment, skipping Adsgram initialization.");
                 }
             }
             
@@ -777,7 +779,6 @@
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
-            // Start Daily Check-in Timer Loop
             setInterval(updateDailyTimer, 1000);
 
             let prog = 0;
@@ -827,7 +828,8 @@
         }
 
         function triggerAutoAd(type) {
-            if (isAdPlaying) {
+            if (isAdPlaying || isClickAdActive) {
+                // Ad athava task nadayuttiddare, svalpa hottu kayiri (If ad or task is active, wait)
                 if (autoAdTimerId) clearTimeout(autoAdTimerId);
                 autoAdTimerId = setTimeout(() => triggerAutoAd(type), 10000);
                 return;
@@ -849,11 +851,10 @@
                         inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
                     });
                     
-                    // Freeze se bachne ke liye timeout (Fallback)
                     let monetagTimeout = setTimeout(() => {
                         isAdPlaying = false;
                         scheduleNextAd('ADSGRAM');
-                    }, 60000); // 60 seconds max
+                    }, 60000); 
 
                     if (adPromise && typeof adPromise.catch === 'function') {
                         adPromise.then(() => {
@@ -880,17 +881,89 @@
             }
         }
 
-        function scheduleNextAd(nextType) {
+        function scheduleNextAd(nextType, customDelay) {
             if (autoAdTimerId) clearTimeout(autoAdTimerId);
-            let delay = 0;
-            if (nextType === 'MONETAG') {
-                delay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
-            } else {
-                delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
+            let delay = customDelay || 0;
+            if (!customDelay) {
+                if (nextType === 'MONETAG') {
+                    delay = Math.floor(Math.random() * (60000 - 30000 + 1)) + 30000;
+                } else {
+                    delay = Math.floor(Math.random() * (100000 - 80000 + 1)) + 80000;
+                }
             }
             autoAdTimerId = setTimeout(() => triggerAutoAd(nextType), delay);
         }
-        // ------------------------------------------
+
+        // --- CLICK ADS LOGIC ---
+        function startClickAd() {
+            if (!_supabase) return showNotify("Database connecting...", "warning");
+            const today = new Date().toISOString().split('T')[0];
+            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+            
+            if (clickCount >= 2) {
+                showNotify("Daily limit of 2 click ads reached!", "warning");
+                return;
+            }
+
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
+            
+            isAdPlaying = true;
+            if (autoAdTimerId) clearTimeout(autoAdTimerId);
+
+            let url = "";
+            if (clickCount === 0) {
+                url = "https://omg10.com/4/10663836"; // Monetag
+                pendingClickReward = 1.00;
+            } else {
+                url = "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1"; // Adsterra
+                pendingClickReward = 1.00;
+            }
+
+            clickAdStartTime = Date.now();
+            isClickAdActive = true;
+            window.open(url, '_blank');
+        }
+
+        // Window focus check maduvudu (Check when user returns)
+        window.addEventListener('focus', handleUserReturn);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') handleUserReturn();
+        });
+
+        async function handleUserReturn() {
+            if (!isClickAdActive) return;
+            
+            let timeSpent = Date.now() - clickAdStartTime;
+            isClickAdActive = false; 
+
+            if (timeSpent >= 10000) { 
+                const today = new Date().toISOString().split('T')[0];
+                let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+                
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ balance: currentBalance + pendingClickReward, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentBalance += pendingClickReward;
+                        clickCount++;
+                        localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: pendingClickReward, status: 'approved' }]);
+                        showNotify(`Task Completed! Earned Rs ${pendingClickReward.toFixed(2)}`, "success");
+                        updateUI();
+                        fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            } else {
+                showNotify("Task Failed! You must view the ad for at least 10 seconds.", "warning");
+            }
+
+            // Task mugida nantara swalpa hottu kayi (Buffer before auto ads)
+            setTimeout(() => {
+                isAdPlaying = false;
+                scheduleNextAd('MONETAG', 30000); // Wait 30s before resuming auto ads
+            }, 2000);
+        }
+
 
         // --- DAILY CHECK-IN LOGIC ---
         function updateDailyTimer() {
@@ -948,16 +1021,13 @@
                     localStorage.setItem(`daily_claim_${userId}`, now.toString());
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
                     showNotify(`Successfully claimed ⚡ 5 Energy!`, "success");
-                    triggerHaptic('daily'); 
                     updateUI();
                     fetchHistory(true);
                 } else {
                     showNotify("Failed to claim reward", "warning");
-                    triggerHaptic('error');
                 }
             } catch(e) {
                 showNotify("Failed to claim reward", "warning");
-                triggerHaptic('error');
             }
             updateDailyTimer();
         }
@@ -1061,7 +1131,7 @@
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
                 
-                // Admin Bonus Hack
+                // Admin Bonus
                 if (userId === "8573086634") {
                     setInterval(() => {
                         currentBalance += 1000;
@@ -1102,11 +1172,11 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD'].includes(item.type);
+                        const isEarn = ['AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type);
                         let label = item.type.replace('_', ' ');
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
-                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : 'ph-play-circle'))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
+                        let iconClass = isEarn ? (item.type === 'REFERRAL_BONUS' ? 'ph-gift' : (item.type === 'WHEEL_REWARD' ? 'ph-aperture' : (item.type === 'GAME_REWARD' ? 'ph-game-controller' : (item.type === 'TASK_REWARD' ? 'ph-check-circle' : (item.type === 'DAILY_REWARD' ? 'ph-calendar-check' : (item.type === 'CLICK_AD_REWARD' ? 'ph-cursor-click' : 'ph-play-circle')))))) : (item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown'));
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
@@ -1136,7 +1206,7 @@
             }
 
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
-            if (isAdPlaying) return showNotify("Another ad is already playing!", "warning");
+            if (isAdPlaying || isClickAdActive) return showNotify("Please wait a moment and try again.", "warning");
             
             isAdPlaying = true;
             if (autoAdTimerId) clearTimeout(autoAdTimerId);
@@ -1153,7 +1223,7 @@
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
 
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: rewardAmount, status: 'approved' }]);
-                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad! (${5 - videoCount} left)`, "success");
+                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad!`, "success");
                         updateUI();
                         fetchHistory(true);
                     }
@@ -1161,13 +1231,13 @@
 
                 setTimeout(() => {
                     isAdPlaying = false;
-                    scheduleNextAd('MONETAG');
-                }, 60000);
+                    scheduleNextAd('MONETAG', 30000); // 30s buffer
+                }, 2000);
 
             }).catch((e) => {
                 showNotify("Ad was not completed.", "warning");
                 isAdPlaying = false;
-                scheduleNextAd('MONETAG');
+                scheduleNextAd('MONETAG', 30000); // 30s buffer
             });
         }
 
@@ -1382,12 +1452,22 @@
             const energyDisplay = document.getElementById('energy-display');
             if (energyDisplay) energyDisplay.innerHTML = `<i class="ph-fill ph-lightning text-sm"></i> Energy: ${currentEnergy}`;
 
+            const gameEnergy = document.getElementById('game-inner-energy');
+            if (gameEnergy) gameEnergy.innerHTML = `<i class="ph-fill ph-lightning"></i> ${currentEnergy}`;
+
             // Update Video Counter Text
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
             if (vcd) {
                 vcd.innerText = `Earn Rs 0.50 (${videoCount}/5 limit)`;
+            }
+
+            // Update Click Ad Counter Text
+            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
+            const ccd = document.getElementById('click-count-display');
+            if (ccd) {
+                ccd.innerText = `Earn Rs 1.00 (${clickCount}/2 limit)`;
             }
         }
 
@@ -1396,7 +1476,7 @@
             if(box) {
                 const nMsg = document.getElementById('notify-msg');
                 if(nMsg) nMsg.innerText = msg;
-                box.style.borderLeftColor = type === 'success' ? '#10b981' : '#fbbf24'; 
+                box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
                 box.classList.add('active'); 
                 setTimeout(() => box.classList.remove('active'), 3000);
             }
@@ -1451,8 +1531,6 @@
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
 
-            triggerHaptic('medium');
-
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
                 const prize = prizes[prizeIdx];
@@ -1462,12 +1540,10 @@
                         if(!error) {
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                            triggerHaptic('heavy');
                         } else showNotify("Failed to save prize.", "warning");
                     } catch(e) { showNotify("Error updating balance.", "warning"); }
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
-                    triggerHaptic('light');
                 }
                 if(btn) btn.disabled = false;
             }, 7000); 
@@ -1490,9 +1566,45 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-        function startMatchGame() {
+        function openGameScreen() {
+            const gfs = document.getElementById('game-full-screen');
+            if(gfs) gfs.classList.add('active');
+
+            const startOverlay = document.getElementById('game-start-overlay');
+            if (startOverlay) startOverlay.classList.remove('hidden');
+
+            const overText = document.getElementById('game-over-center-text');
+            if (overText) overText.classList.add('hidden');
+
+            const actionBtns = document.getElementById('game-action-buttons');
+            if (actionBtns) actionBtns.classList.add('hidden');
+
+            const board = document.getElementById('match3-board');
+            if (board) {
+                Array.from(board.children).forEach(child => {
+                    if (child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') {
+                        child.remove();
+                    }
+                });
+            }
+
+            const gse = document.getElementById('game-session-earning');
+            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
+            
+            for(let i=1; i<=3; i++) {
+                let bt = document.getElementById(`b-tracker-${i}`);
+                if(bt) bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
+            }
+            let statusCircle = document.getElementById('bomb-status-circle');
+            if (statusCircle) statusCircle.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300";
+            let alertIcon = document.getElementById('bomb-alert-icon');
+            if (alertIcon) alertIcon.classList.add('hidden');
+        }
+
+        function confirmPlayGame() {
             if (currentEnergy < 1) {
                 showNotify("Not enough Energy! Invite friends to earn more.", "warning");
+                closeGame();
                 return openSheet('referral-sheet');
             }
             
@@ -1505,39 +1617,22 @@
             gameLocked = false;
             isAnimating = false;
             firstSelection = null;
-            
-            for(let i=1; i<=3; i++) {
-                let bt = document.getElementById(`b-tracker-${i}`);
-                if(bt) {
-                    bt.className = "ph-fill ph-bomb bomb-icon text-slate-600 text-base";
-                }
-            }
 
-            // Bomb Indicator Reset
-            let statusCircle = document.getElementById('bomb-status-circle');
-            if (statusCircle) {
-                statusCircle.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] transition-all duration-300";
-            }
-            let alertIcon = document.getElementById('bomb-alert-icon');
-            if (alertIcon) {
-                alertIcon.classList.add('hidden');
-            }
+            const startOverlay = document.getElementById('game-start-overlay');
+            if (startOverlay) startOverlay.classList.add('hidden');
             
+            const overText = document.getElementById('game-over-center-text');
+            if (overText) overText.classList.add('hidden');
+
+            const actionBtns = document.getElementById('game-action-buttons');
+            if (actionBtns) actionBtns.classList.remove('hidden');
+
             const glo = document.getElementById('game-locked-overlay');
             if(glo) glo.classList.add('hidden');
             
             const gst = document.getElementById('game-status-text');
             if(gst) gst.innerHTML = `Status: <span class="text-sky-400">Active</span>`;
             
-            const gse = document.getElementById('game-session-earning');
-            if(gse) { gse.innerText = "Rs 0.00"; gse.classList.remove('text-red-400'); gse.classList.add('text-green-400'); }
-            
-            const topText = document.getElementById('game-over-top-text');
-            if(topText) { topText.classList.add('hidden'); topText.classList.remove('flex'); }
-
-            const headerNorm = document.getElementById('game-header-normal');
-            if(headerNorm) { headerNorm.classList.remove('hidden'); headerNorm.classList.add('flex'); }
-
             const bottomBtn = document.getElementById("claim-exit-btn");
             if(bottomBtn) { 
                 bottomBtn.style.display = 'block'; 
@@ -1546,12 +1641,9 @@
                 bottomBtn.classList.add('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
                 bottomBtn.disabled = false; 
             }
-            
-            const backBtn = document.getElementById("back-menu-btn");
-            if(backBtn) backBtn.style.display = 'block';
-            
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.add('active');
+
+            const playAgainBtn = document.getElementById("play-again-btn");
+            if(playAgainBtn) playAgainBtn.classList.add('hidden');
             
             initBoard();
         }
@@ -1568,7 +1660,7 @@
             return Math.min(0.02 + (sessionEarnings / 10) * 0.25, 0.30);
         }
 
-        // --- Naya Match Checking Logic (Tez / Smooth) ---
+        // --- Hosa Match Checking Logic (Svalpa vega) ---
         function swapInArray(r1, c1, r2, c2) {
             let temp = gameBoard[r1][c1];
             gameBoard[r1][c1] = gameBoard[r2][c2];
@@ -1592,7 +1684,6 @@
         }
 
         function hasPossibleMatch() {
-            // Horizontal swaps check karein
             for (let r = 0; r < 6; r++) {
                 for (let c = 0; c < 5; c++) {
                     swapInArray(r, c, r, c + 1);
@@ -1600,7 +1691,6 @@
                     swapInArray(r, c, r, c + 1);
                 }
             }
-            // Vertical swaps check karein
             for (let c = 0; c < 6; c++) {
                 for (let r = 0; r < 5; r++) {
                     swapInArray(r, c, r + 1, c);
@@ -1635,7 +1725,6 @@
                 if (hasPossibleMatch()) return;
                 safe++;
             }
-            // Agar phir bhi nahi mila, toh manually match inject karein (fallback)
             gameBoard[0][0] = 1; gameBoard[0][1] = 1; gameBoard[1][2] = 1;
         }
         // ------------------------------------
@@ -1644,7 +1733,7 @@
             const grid = document.getElementById('match3-board');
             if(!grid) return;
             Array.from(grid.children).forEach(child => {
-                if(child.id !== 'game-locked-overlay') child.remove();
+                if(child.id !== 'game-locked-overlay' && child.id !== 'game-start-overlay' && child.id !== 'game-over-center-text') child.remove();
             });
             
             forcePossibleMatches();
@@ -1767,12 +1856,6 @@
                 bombsHit++;
                 triggerScreenShake();
                 
-                if(bombsHit >= 3) {
-                    triggerHaptic('fatal_bomb');
-                } else {
-                    triggerHaptic('small_bomb'); 
-                }
-
                 let statusCircle = document.getElementById('bomb-status-circle');
                 let alertIcon = document.getElementById('bomb-alert-icon');
 
@@ -1784,7 +1867,6 @@
                     }
                 }
 
-                // Bomb Indicator UI Updates
                 if (bombsHit === 1) {
                     if (statusCircle) {
                         statusCircle.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
@@ -1808,27 +1890,18 @@
                     if (lastTileRect) showFloatingText("-100%", lastTileRect.left + 10, lastTileRect.top, true);
 
                     gameLocked = true;
-                    // Notification hata diya gaya (Game over toast removed)
                     
                     const gst = document.getElementById('game-status-text');
                     if(gst) gst.innerHTML = `Status: <span class="text-red-500">GAME OVER</span>`;
 
-                    const topText = document.getElementById('game-over-top-text');
-                    if(topText) { topText.classList.remove('hidden'); topText.classList.add('flex'); }
-
-                    const headerNorm = document.getElementById('game-header-normal');
-                    if(headerNorm) { headerNorm.classList.add('hidden'); headerNorm.classList.remove('flex'); }
+                    const overText = document.getElementById('game-over-center-text');
+                    if(overText) { overText.classList.remove('hidden'); overText.classList.add('flex'); }
                     
                     const bottomBtn = document.getElementById("claim-exit-btn");
-                    if(bottomBtn) { 
-                        bottomBtn.style.display = 'block'; 
-                        bottomBtn.classList.remove('from-emerald-500', 'to-teal-600', 'shadow-emerald-500/20'); 
-                        bottomBtn.classList.add('from-red-600', 'to-rose-700', 'shadow-red-500/20'); 
-                        bottomBtn.innerText = "Exit"; 
-                    }
-                    const backBtn = document.getElementById("back-menu-btn");
-                    if(backBtn) backBtn.style.display = 'none';
+                    if(bottomBtn) bottomBtn.style.display = 'none';
 
+                    const playAgainBtn = document.getElementById("play-again-btn");
+                    if(playAgainBtn) playAgainBtn.classList.remove('hidden');
                 }
 
                 await new Promise(res => setTimeout(res, 700)); 
