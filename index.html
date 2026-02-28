@@ -7,9 +7,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <!-- Adsgram SDK -->
+    <!-- Adsgram SDK (Adsgram SDK sethisu) -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <!-- Monetag SDK -->
+    <!-- Monetag SDK (Monetag SDK sethisu) -->
     <script src="//libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
     
     <!-- Telegram CloudStorage polyfill -->
@@ -140,7 +140,6 @@
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
-        <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
@@ -322,7 +321,7 @@
                 <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
-            <!-- Click Ads Trigger -->
+            <!-- Click Ads Trigger (Adsterra & Monetag Integration) -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -464,16 +463,16 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v5.0.0</h3>
+                <h3 class="text-2xl font-black text-white tracking-wider">v5.5.0</h3>
                 <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Optimize Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Adsgram Auto-launch & Interstitial integration.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Monetag In-App interstitial triggered every 10th spin.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Clean UI with updated SPIN buttons.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Click Ads correctly log as AD REWARD in history.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Adsgram Auto-launch & Home Screen integration.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Monetag In-App interstitial triggered every 5th spin.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Anti-Cheat 10s tracking added to Click Ads.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Automatic Session Expiry after 5 minutes of usage.</span></li>
                 </ul>
             </div>
         </div>
@@ -696,7 +695,13 @@
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
-        let sessionSpinCount = 0; // Helps track spins for Ad Logic
+        let sessionSpinCount = 0; 
+        
+        // Session variables
+        let sessionExpired = false;
+        let isWatchingAd = false;
+        let adStartTime = 0;
+        let adTimer = null;
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -734,12 +739,23 @@
             });
         }
 
-        // Play auto launch ad
         function playAppLaunchAd() {
             playAdsgramAd('int-23802').then(() => {
-                console.log("App launch ad completed/skipped");
+                console.log("App launch ad finished");
             });
         }
+
+        // Anti-cheat listener for 10s Click Ads
+        window.addEventListener('click', (e) => {
+            if (isWatchingAd) {
+                let elapsed = Date.now() - adStartTime;
+                if (elapsed < 10000) { // 10 seconds check
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showNotify("You must watch the ad for 10 seconds!", "error");
+                }
+            }
+        }, true); // Use capture phase
 
         async function initApp() {
             if (window.supabase) {
@@ -770,7 +786,25 @@
 
             setInterval(updateDailyTimer, 1000);
 
-            // Exactly stops at 100%
+            // Auto ad timer (Swayam jaahiraatu timer 1 minute)
+            let autoAdInterval = setInterval(() => {
+                if (!sessionExpired) {
+                    const isGameOpen = document.getElementById('game-full-screen').classList.contains('active');
+                    const isWheelOpen = document.getElementById('wheel-full-screen').classList.contains('active');
+                    if (!isGameOpen && !isWheelOpen && !isSpinning) {
+                        playAdsgramAd('int-23802');
+                    }
+                }
+            }, 60000); // 1 minute
+
+            // Session Expire Timer (5 minutes)
+            setTimeout(() => {
+                sessionExpired = true;
+                clearInterval(autoAdInterval);
+                document.body.innerHTML = '<div style="display:flex; height:100vh; width:100vw; background:#020617; color:white; align-items:center; justify-content:center; flex-direction:column; z-index:9999; position:fixed; top:0; left:0;"><h1 style="color:#ef4444; font-weight:900; font-size:24px; margin-bottom:10px; letter-spacing:2px;">SESSION EXPIRED</h1><p style="color:#94a3b8; font-size:12px; font-weight:bold; text-transform:uppercase; letter-spacing:1px;">Please reload the app</p></div>';
+            }, 300000); // 5 mins
+
+            // Exact 100% Loading Logic
             let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
                 if (!isDataReady) {
@@ -809,14 +843,27 @@
         // --- CLICK ADS LOGIC ---
         function startClickAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
+            if (isWatchingAd) return; // Prevent multiple clicks
+
             const today = new Date().toISOString().split('T')[0];
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             
             if (clickCount >= 2) return showNotify("Daily limit of 2 click ads reached!", "warning");
             
-            showNotify("Processing task...", "success");
+            let adUrl = clickCount === 0 
+                ? "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1" 
+                : "https://omg10.com/4/10663836";
+
+            // Open in new tab so it doesn't break telegram
+            window.open(adUrl, '_blank');
             
-            setTimeout(async () => {
+            isWatchingAd = true;
+            adStartTime = Date.now();
+            showNotify("Watch the ad for 10 seconds...", "success");
+            
+            // Wait exactly 10s to give reward
+            adTimer = setTimeout(async () => {
+                isWatchingAd = false;
                 try {
                     const currentIsoDate = new Date().toISOString();
                     const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
@@ -824,14 +871,20 @@
                         currentEnergy += 1;
                         clickCount++;
                         localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
-                        // Record as CLICK_AD_REWARD
+                        // Record as CLICK_AD_REWARD (shown as AD REWARD with cursor icon)
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Task Completed! Earned 1 🎟️`, "success");
+                        
                         updateUI();
                         fetchHistory(true);
+
+                        if (tg && tg.showAlert) {
+                            tg.showAlert("Congratulations! Ad click completed. Earned 1 🎟️");
+                        } else {
+                            alert("Congratulations! Ad click completed. Earned 1 🎟️");
+                        }
                     }
                 } catch(e) { showNotify("Failed to credit reward", "warning"); }
-            }, 1500);
+            }, 10000);
         }
 
         // --- WATCH VIDEO LOGIC ---
@@ -1038,8 +1091,8 @@
                             if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
                             else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
                             else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
-                            else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera'; // Video Ad Icon
-                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; // Click Ad Icon
+                            else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera'; 
+                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; // Proper Icon for Click Ads
                             else if (item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
                             else if (item.type === 'DAILY_REWARD') iconClass = 'ph-calendar-check';
                         } else {
@@ -1424,6 +1477,7 @@
 
         let slotPoints = 0; 
         let isSpinning = false;
+        let disableGameAds = false;
 
         function showSlotMessage(msg, type) {
             const box = document.getElementById('slot-message-box');
@@ -1471,6 +1525,8 @@
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.add('active');
             slotPoints = 0;
+            sessionSpinCount = 0;
+            disableGameAds = false;
             updateSlotScoreUI(slotPoints);
             const box = document.getElementById('slot-message-box');
             if(box) box.classList.remove('active');
@@ -1501,28 +1557,23 @@
                 return;
             }
 
-            sessionSpinCount++; // Track spins for Ad Logic
+            sessionSpinCount++; // Track spins for ad triggering
 
-            // Crypto Spin Ad Logic
-            if (sessionSpinCount === 3 || sessionSpinCount === 6 || sessionSpinCount === 9 || sessionSpinCount === 15 || sessionSpinCount === 18 || sessionSpinCount === 21) {
-                showNotify("Loading Sponsored Ad...", "success");
-                await playAdsgramAd('int-23802');
-            } else if (sessionSpinCount === 10) {
-                showNotify("Loading Special Offer...", "success");
-                if (typeof show_10365806 === 'function') {
-                    show_10365806({
-                      type: 'inApp',
-                      inAppSettings: {
-                        frequency: 2,
-                        capping: 0.1,
-                        interval: 30,
-                        timeout: 5,
-                        everyPage: false
-                      }
-                    });
+            if (!disableGameAds) {
+                if (sessionSpinCount === 5) {
+                    showNotify("Loading Special Offer...", "success");
+                    if (typeof show_10365806 === 'function') {
+                        show_10365806({
+                          type: 'inApp',
+                          inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
+                        });
+                    }
+                    disableGameAds = true; // No more Adsgram inside game session after monetag
+                    await new Promise(r => setTimeout(r, 1000));
+                } else if (sessionSpinCount === 3) {
+                    showNotify("Loading Sponsored Ad...", "success");
+                    await playAdsgramAd('int-23802');
                 }
-                // Delay to allow Monetag overlay to show without confusing the spin
-                await new Promise(r => setTimeout(r, 1000));
             }
 
             // Ticket deduct
@@ -1619,7 +1670,6 @@
                     pointsWon = 50; 
                     if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
                     
-                    // Optimized Confetti
                     confetti({ 
                         particleCount: 150, spread: 120, origin: { y: 0.5 }, 
                         zIndex: 1000, ticks: 80, gravity: 1.8,
@@ -1637,7 +1687,7 @@
                 } 
                 else {
                     if(navigator.vibrate) navigator.vibrate(50); 
-                    // No match text is removed as requested
+                    // No match text is removed
                 }
 
                 if(pointsWon > 0) {
