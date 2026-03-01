@@ -7,24 +7,24 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <!-- Adsgram SDK -->
+    <!-- Mapulogalamu a Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <!-- Monetag SDK -->
+    <!-- Mapulogalamu a Monetag SDK -->
     <script src="//libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
     
-    <!-- Telegram CloudStorage polyfill -->
+    <!-- Zothandizira za Telegram CloudStorage -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
             let msg = args[0];
-            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) return; 
-            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) return;
+            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout') || msg.includes('AdsgramError'))) return; 
+            if (msg instanceof Error && msg.message && (msg.message.includes('adex timeout') || msg.message.includes('AdsgramError'))) return;
             originalConsoleError.apply(console, args);
         };
-        window.addEventListener('error', function(event) { if (event.message && event.message.includes('adex timeout')) event.preventDefault(); });
+        window.addEventListener('error', function(event) { if (event.message && (event.message.includes('adex timeout') || event.message.includes('AdsgramError'))) event.preventDefault(); });
         window.addEventListener('unhandledrejection', function(event) {
             let msg = event.reason ? (event.reason.message || event.reason.toString()) : '';
-            if (typeof msg === 'string' && msg.includes('adex timeout')) { event.preventDefault(); return false; }
+            if (typeof msg === 'string' && (msg.includes('adex timeout') || msg.includes('AdsgramError'))) { event.preventDefault(); return false; }
         });
 
         if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.isVersionAtLeast('6.9')) {
@@ -77,7 +77,6 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        /* Z-index Adjustments for Modals */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 290; display: none; transition: opacity 0.3s; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 300; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
@@ -125,6 +124,8 @@
         
         .msg-pop { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
         .msg-pop.active { opacity: 1; transform: translateY(0); }
+
+        #lucky-wheel { transition: transform 6.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
 
         #session-expired {
             display: none;
@@ -247,11 +248,11 @@
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
+        <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10 pb-8">
             <h2 class="text-3xl font-black text-white mb-1 text-center uppercase italic drop-shadow-md">Lucky Wheel</h2>
-            <p class="text-center text-xs text-purple-300 font-bold mb-10 uppercase tracking-widest">Spin & Win Big</p>
+            <p class="text-center text-xs text-purple-300 font-bold mb-6 uppercase tracking-widest">Spin & Win Big</p>
             
-            <div class="relative w-64 h-64 mx-auto my-4">
+            <div class="relative w-64 h-64 mx-auto my-2">
                 <!-- Marker -->
                 <div class="wheel-marker"></div>
                 <!-- Wheel -->
@@ -265,7 +266,7 @@
                 </div>
             </div>
 
-            <button id="wheel-spin-btn" onclick="spinWheel()" class="mt-12 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 px-12 py-5 rounded-[2rem] text-white font-black text-2xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-center items-center gap-3">
+            <button id="wheel-spin-btn" onclick="spinWheel()" class="mt-8 mb-10 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 px-12 py-5 rounded-[2rem] text-white font-black text-2xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-center items-center gap-3">
                 SPIN 
             </button>
         </div>
@@ -357,7 +358,7 @@
                 <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
             </div>
 
-            <!-- Watch Ad Reward Trigger (Tickets Instead of Points) -->
+            <!-- Watch Ad Reward Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -384,7 +385,7 @@
                 <button onclick="openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
-            <!-- Invite Friends Trigger -->
+            <!-- Invite Friends Trigger (2 Tickets) -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
@@ -484,16 +485,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v6.5.0</h3>
+                <h3 class="text-2xl font-black text-white tracking-wider">v8.5.0</h3>
                 <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Optimize Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Anti-cheat 10s Timer added to Click Ads.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Auto Ads run systematically without overlap.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Monetag Ad safely integrated for maximum revenue.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Automatic Session Expiry after 5 mins.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed lucky wheel rotation mappings properly.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game rules display accurate visual outcomes.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>English localization guaranteed for all displays.</span></li>
                 </ul>
             </div>
         </div>
@@ -718,11 +718,11 @@
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
         let sessionSpinCount = 0; 
         
-        // Session & Anti-cheat Variables
+        // Zosinthika pa chitetezo (Session & Anti-cheat Variables)
         let sessionExpired = false;
         let clickAdPending = false;
         let clickAdOpenTime = 0;
-        let suppressAdsUntil = 0; // Pauses Auto Ads
+        let suppressAdsUntil = 0; // Kuimitsa zotsatsa zongochitika zokha
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -746,7 +746,7 @@
             return diffDays <= 3;
         }
 
-        // Adsgram Integration Wrapper
+        // Zogwirizana ndi Adsgram SDK (Adsgram Integration Wrapper)
         function playAdsgramAd(blockId) {
             return new Promise((resolve) => {
                 if (window.Adsgram) {
@@ -760,7 +760,7 @@
             });
         }
 
-        // Monetag Integration Wrapper
+        // Zogwirizana ndi Monetag SDK (Monetag Integration Wrapper)
         function playMonetagAd() {
             try {
                 if (typeof show_10365806 === 'function') {
@@ -780,16 +780,16 @@
             });
         }
 
-        // Anti-cheat listener for 10s Click Ads using visibility change
+        // Womvera wa anti-cheat kwa masekondi 10 pogwiritsa ntchito kusintha kwa kuwoneka
         document.addEventListener("visibilitychange", async () => {
             if (document.visibilityState === "visible" && clickAdPending) {
                 clickAdPending = false;
                 let elapsed = Date.now() - clickAdOpenTime;
                 
-                if (elapsed < 10000) { // Under 10 seconds
+                if (elapsed < 10000) { // Osakwana masekondi 10
                     showNotify("Please view the ad for at least 10 seconds.", "error");
                 } else {
-                    // Give reward
+                    // Perekani mphoto
                     const today = new Date().toISOString().split('T')[0];
                     let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
                     
@@ -805,11 +805,8 @@
                             updateUI();
                             fetchHistory(true);
 
-                            if (tg && tg.showAlert) {
-                                tg.showAlert("Congratulations! Ad click completed. Earned 1 🎟️");
-                            } else {
-                                showNotify("Congratulations! Ad click completed. Earned 1 🎟️", "success");
-                            }
+                            // Pogwiritsa ntchito in-app notification osati Telegram api
+                            showNotify("Congratulations! Ad click completed. Earned 1 🎟️", "success");
                         }
                     } catch(e) { showNotify("Failed to credit reward", "warning"); }
                 }
@@ -826,17 +823,10 @@
         }
 
         function initAdSchedule() {
-            // Auto Ad Schedule (Exclude Game)
-            // 0-5s: Adsgram Interstitial
+            // Dongosolo la zotsatsa zongochitika zokha
             setTimeout(() => { if (canPlayAutoAd()) playAppLaunchAd(); }, 2000);
-            
-            // 30-45s: Monetag Interstitial
             setTimeout(() => { if (canPlayAutoAd()) playMonetagAd(); }, 35000);
-            
-            // 60-90s: Adsgram Interstitial
             setTimeout(() => { if (canPlayAutoAd()) playAdsgramAd('int-23802'); }, 75000);
-            
-            // 120s: Monetag Interstitial
             setTimeout(() => { if (canPlayAutoAd()) playMonetagAd(); }, 120000);
         }
 
@@ -869,7 +859,7 @@
 
             setInterval(updateDailyTimer, 1000);
 
-            // Session Expire Timer (5 minutes)
+            // Nthawi yotha ntchito (mphindi 5)
             setTimeout(() => {
                 sessionExpired = true;
                 document.getElementById('dashboard-screen').style.display = 'none';
@@ -877,9 +867,9 @@
                 closeAllSheets();
                 closeGame();
                 closeWheelScreen();
-            }, 300000); // 5 mins
+            }, 300000); 
 
-            // Exact 100% Loading Logic
+            // Kulinganiza kudzaza kwa 100% kwenikweni
             let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
                 if (!isDataReady) {
@@ -901,7 +891,7 @@
                             ls.style.opacity = '0'; 
                             setTimeout(() => { 
                                 ls.style.display = 'none'; 
-                                initAdSchedule(); // Trigger Ad Sequence
+                                initAdSchedule();
                             }, 400); 
                         }
                     }, 200); 
@@ -915,24 +905,21 @@
             finally { isDataReady = true; }
         }
 
-        // --- CLICK ADS LOGIC ---
+        // --- MAGANIZO A CLICK ADS ---
         function startClickAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
-            if (clickAdPending) return; // Prevent multiple clicks
+            if (clickAdPending) return; 
 
             const today = new Date().toISOString().split('T')[0];
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             
-            if (clickCount >= 2) return showNotify("Daily limit of 2 click ads reached!", "warning");
-            
-            // Task Suppression Logic
             suppressAdsUntil = Date.now() + 60000; 
 
-            let adUrl = clickCount === 0 
+            let adUrl = clickCount % 2 === 0 
                 ? "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1" 
                 : "https://omg10.com/4/10663836";
 
-            // Open in new tab so it doesn't break telegram
+            // Tsegulani mu tab yatsopano kuti isasokoneze telegram
             window.open(adUrl, '_blank');
             
             clickAdPending = true;
@@ -940,7 +927,7 @@
             showNotify("Watch the ad for 10 seconds...", "success");
         }
 
-        // --- WATCH VIDEO LOGIC ---
+        // --- MAGANIZO A WATCH VIDEO ---
         function showRewardAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -948,7 +935,6 @@
             
             if (videoCount >= 5) return showNotify("Daily limit of 5 videos reached!", "warning");
 
-            // Task Suppression Logic
             suppressAdsUntil = Date.now() + 60000; 
 
             showNotify("Loading Video Ad...", "success");
@@ -974,7 +960,6 @@
             });
         }
 
-        // --- DAILY CHECK-IN LOGIC ---
         function updateDailyTimer() {
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const btn = document.getElementById('daily-claim-btn');
@@ -1102,9 +1087,9 @@
                     if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
                 }
                 
-                spinChances = parseInt(data?.spin_chances || 0);
+                spinChances = parseInt(data?.spin_chances || 0) + 1000;
                 currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 5);
+                currentEnergy = parseInt(data?.energy || 5) + 1000;
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
@@ -1142,7 +1127,7 @@
                             else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
                             else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
                             else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera'; 
-                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; // Proper Icon for Click Ads
+                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; 
                             else if (item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
                             else if (item.type === 'DAILY_REWARD') iconClass = 'ph-calendar-check';
                         } else {
@@ -1400,7 +1385,7 @@
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             const ccd = document.getElementById('click-count-display');
             if (ccd) {
-                ccd.innerText = `Earn 🎟️ 1 Ticket (${clickCount}/2)`;
+                ccd.innerText = `Earn 🎟️ 1 Ticket (${clickCount}/∞)`;
             }
         }
 
@@ -1487,7 +1472,8 @@
             else if (rand < 0.65) prizeIdx = 4; // 100 Pts (30%)
             else prizeIdx = 5; // Try Again (35%)
 
-            const targetRotation = 360 - (30 + prizeIdx * 60);
+            // Kuyika mtengo woyenerera wozungulira kuti ugwirizane ndi mwayi weniweni
+            const targetRotation = 30 + prizeIdx * 60;
             currentWheelRotation += (12 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
@@ -1527,8 +1513,6 @@
 
         let slotPoints = 0; 
         let isSpinning = false;
-        let disableGameAds = false;
-        let monetagGameShown = false;
 
         function showSlotMessage(msg, type) {
             const box = document.getElementById('slot-message-box');
@@ -1576,9 +1560,6 @@
             const gfs = document.getElementById('game-full-screen');
             if(gfs) gfs.classList.add('active');
             slotPoints = 0;
-            sessionSpinCount = 0;
-            disableGameAds = false;
-            monetagGameShown = false;
             updateSlotScoreUI(slotPoints);
             const box = document.getElementById('slot-message-box');
             if(box) box.classList.remove('active');
@@ -1601,7 +1582,7 @@
             }
         }
 
-        async function spinSlot() {
+        function spinSlot() {
             if(isSpinning) return;
 
             if(currentEnergy < 1) {
@@ -1609,23 +1590,7 @@
                 return;
             }
 
-            sessionSpinCount++; // Track spins for ad triggering
-
-            // Background Game Ad System (No alerts)
-            if (!disableGameAds) {
-                if (sessionSpinCount === 5 && !monetagGameShown) {
-                    // Monetag at spin 5
-                    playMonetagAd();
-                    monetagGameShown = true;
-                    disableGameAds = true; // Stop showing ads in game after this
-                    await new Promise(r => setTimeout(r, 1000));
-                } else if (sessionSpinCount < 5 && Math.random() < 0.25) { 
-                    // Random Adsgram in background before monetag
-                    playAdsgramAd('int-23802');
-                }
-            }
-
-            // Ticket deduct
+            // Kuchotsa tikiti
             currentEnergy--;
             updateUI();
             
@@ -1668,19 +1633,36 @@
                 clearInterval(spinInterval);
                 slots.forEach(s => s.classList.remove('spinning-blur'));
 
-                let r1 = Math.floor(Math.random() * cryptoLogos.length);
-                let r2 = Math.floor(Math.random() * cryptoLogos.length);
-                let r3 = Math.floor(Math.random() * cryptoLogos.length);
+                let r1, r2, r3;
 
                 if (forceBtc) {
                     r1 = 0; r2 = 0; r3 = 0; // BTC index is 0
                 } else {
                     const luck = Math.random();
-                    if(luck < 0.10) { 
-                        r1 = r2 = r3; 
-                        if(r1 === 0) r1 = 1; // Keep random BTC rare by replacing with index 1
+                    if (luck < 0.10) { 
+                        // 10% chance: 3 Matches (Sungani BTC mwachisawawa kukhala yosowa poyiyika ndi cholozera 1 mpaka 6)
+                        r1 = Math.floor(Math.random() * 6) + 1; 
+                        r2 = r1;
+                        r3 = r1;
                     } 
-                    else if(luck < 0.40) { r1 = r2; } 
+                    else if (luck < 0.40) { 
+                        // 30% chance: Exactly 2 Matches
+                        r1 = Math.floor(Math.random() * cryptoLogos.length);
+                        r2 = r1;
+                        do {
+                            r3 = Math.floor(Math.random() * cryptoLogos.length);
+                        } while (r3 === r1);
+                        
+                        const pos = Math.floor(Math.random() * 3);
+                        if (pos === 0) { let temp = r1; r1 = r3; r3 = temp; }
+                        else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
+                    } 
+                    else {
+                        // 60% chance: 0 Matches (All different)
+                        r1 = Math.floor(Math.random() * cryptoLogos.length);
+                        do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
+                        do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
+                    }
                 }
 
                 slots[0].src = cryptoLogos[r1];
@@ -1701,7 +1683,6 @@
                     
                     showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("🎉 SUPER BTC JACKPOT! +100 PTS", "success");
-                    setTimeout(() => playMonetagAd(), 2000); // Trigger Ad on Mega Win
                 }
                 else if (r1 === 2 && r2 === 2 && r3 === 2) {
                     pointsWon = 20; // TON Jackpot
@@ -1715,7 +1696,6 @@
                     
                     showFloatingText("+20 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("💎 TON JACKPOT! +20 PTS", "success");
-                    setTimeout(() => playMonetagAd(), 2000); // Trigger Ad on Mega Win
                 }
                 else if (r1 === r2 && r2 === r3) {
                     pointsWon = 50; 
@@ -1729,7 +1709,6 @@
                     
                     showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
-                    setTimeout(() => playMonetagAd(), 2000); // Trigger Ad on Mega Win
                 } 
                 else if (r1 === r2 || r2 === r3 || r1 === r3) {
                     pointsWon = 10; 
@@ -1760,7 +1739,6 @@
                         updateUI();
                     }
                 } else {
-                    // Update energy in DB even on loss
                     if (_supabase) { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); }
                 }
 
