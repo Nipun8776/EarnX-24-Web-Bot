@@ -7,24 +7,19 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
-    <!-- Mapulogalamu a Adsgram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-    <!-- Mapulogalamu a Monetag SDK -->
-    <script src="//libtl.com/sdk.js" data-zone="10365806" data-sdk="show_10365806"></script>
-    
-    <!-- Zothandizira za Telegram CloudStorage -->
+    <!-- Telegram CloudStorage polyfill -->
     <script>
         const originalConsoleError = console.error;
         console.error = function(...args) {
             let msg = args[0];
-            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout') || msg.includes('AdsgramError'))) return; 
-            if (msg instanceof Error && msg.message && (msg.message.includes('adex timeout') || msg.message.includes('AdsgramError'))) return;
+            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) return; 
+            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) return;
             originalConsoleError.apply(console, args);
         };
-        window.addEventListener('error', function(event) { if (event.message && (event.message.includes('adex timeout') || event.message.includes('AdsgramError'))) event.preventDefault(); });
+        window.addEventListener('error', function(event) { if (event.message && event.message.includes('adex timeout')) event.preventDefault(); });
         window.addEventListener('unhandledrejection', function(event) {
             let msg = event.reason ? (event.reason.message || event.reason.toString()) : '';
-            if (typeof msg === 'string' && (msg.includes('adex timeout') || msg.includes('AdsgramError'))) { event.preventDefault(); return false; }
+            if (typeof msg === 'string' && msg.includes('adex timeout')) { event.preventDefault(); return false; }
         });
 
         if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.isVersionAtLeast('6.9')) {
@@ -100,10 +95,6 @@
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
         @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
         .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
-        @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
-        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
-        @keyframes click-ad-anim { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); } 50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); } }
-        .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
 
         /* Game Specific Styles */
         .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
@@ -126,19 +117,6 @@
         .msg-pop.active { opacity: 1; transform: translateY(0); }
 
         #lucky-wheel { transition: transform 6.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
-
-        #session-expired {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #020617;
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        #session-expired.active { display: flex; }
     </style>
 </head>
 
@@ -159,29 +137,17 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
-    <!-- Session Expired Screen -->
-    <div id="session-expired">
-        <i class="ph-fill ph-clock-countdown text-6xl text-red-500 mb-4 animate-pulse"></i>
-        <h1 class="text-3xl font-black text-red-500 tracking-widest uppercase drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">Session Expired</h1>
-        <p class="text-slate-400 mt-2 font-bold uppercase tracking-widest text-xs">Please reload the app</p>
-    </div>
-
     <!-- Crypto Slot Game Full Screen -->
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
-        <!-- Header -->
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
-            <!-- Back Button -->
             <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            
-            <!-- Game Rules Button -->
             <button onclick="openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
 
-        <!-- Tickets Header Inside Game -->
         <div class="flex justify-center mb-6">
             <div class="bg-amber-500/20 backdrop-blur-md px-5 py-2 rounded-full border border-amber-500/40 flex items-center gap-2 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
                 <i class="ph-fill ph-ticket text-amber-400 text-xl drop-shadow-md"></i>
@@ -190,37 +156,28 @@
             </div>
         </div>
 
-        <!-- Slot Machine Area -->
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
-            
             <p class="text-[10px] text-amber-100/50 font-black uppercase tracking-[0.3em] mb-1">Session Points</p>
             <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-8 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
 
-            <!-- The Slots Container -->
             <div id="slot-machine-container" class="relative">
                 <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.2)] relative z-10">
-                    <!-- Highlight bar -->
                     <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
                     
-                    <!-- Col 1 -->
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
                         <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
-                    <!-- Col 2 -->
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
                         <img id="slot-img-2" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
-                    <!-- Col 3 -->
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
                         <img id="slot-img-3" src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
                 </div>
             </div>
 
-            <!-- Game Bottom Alert Text -->
             <div id="slot-message-box" class="h-8 mt-4 text-center text-lg font-black uppercase tracking-widest msg-pop"></div>
 
-            <!-- Action Button -->
             <button id="spin-btn" onclick="spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-12 py-5 rounded-[2rem] text-black font-black text-2xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-center items-center gap-3">
                 SPIN 
             </button>
@@ -229,12 +186,10 @@
 
     <!-- Lucky Wheel Full Screen -->
     <div id="wheel-full-screen" class="game-full-screen p-6 pb-12">
-        <!-- Header -->
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
             <button onclick="closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            
             <button onclick="openSheet('wheel-rules-sheet')" class="w-10 h-10 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center text-purple-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
@@ -253,9 +208,7 @@
             <p class="text-center text-xs text-purple-300 font-bold mb-6 uppercase tracking-widest">Spin & Win Big</p>
             
             <div class="relative w-64 h-64 mx-auto my-2">
-                <!-- Marker -->
                 <div class="wheel-marker"></div>
-                <!-- Wheel -->
                 <div id="lucky-wheel" class="w-full h-full rounded-full border-[6px] border-[#0f172a] shadow-[0_0_40px_rgba(168,85,247,0.4)] overflow-hidden relative" style="background: conic-gradient(#ef4444 0 60deg, #10b981 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #d946ef 240deg 300deg, #8b5cf6 300deg 360deg);">
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">Try<br>Again</div>
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(90deg) translateY(-85px);">100 Pts</div>
@@ -291,7 +244,6 @@
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
             <!-- Optimized Balance Card -->
             <div class="glass p-6 rounded-[3rem] border-t border-white/10 relative overflow-hidden bg-gradient-to-b from-[#0f172a] to-[#020617]">
-                
                 <div class="absolute top-6 right-6">
                     <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-[0_0_15px_rgba(251,191,36,0.15)]">
                         <i class="ph-fill ph-ticket text-amber-400 text-sm"></i>
@@ -343,7 +295,7 @@
                 <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
-            <!-- Click Ads Trigger (Tickets Instead of Points) -->
+            <!-- Click Ads Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
@@ -352,7 +304,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Click Ads</p>
-                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/2)</p>
+                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/∞)</p>
                     </div>
                 </div>
                 <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
@@ -385,7 +337,7 @@
                 <button onclick="openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
-            <!-- Invite Friends Trigger (2 Tickets) -->
+            <!-- Invite Friends Trigger -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
@@ -485,14 +437,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v8.5.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Super Optimize Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v9.5.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Wheel Fix & Haptic Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed lucky wheel rotation mappings properly.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Game rules display accurate visual outcomes.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Telegram Native Haptic Feedback API for proper vibration on all devices.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Claim Telegram bot notification fixed to trigger appropriately.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>English localization guaranteed for all displays.</span></li>
                 </ul>
             </div>
@@ -716,13 +669,6 @@
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
-        let sessionSpinCount = 0; 
-        
-        // Zosinthika pa chitetezo (Session & Anti-cheat Variables)
-        let sessionExpired = false;
-        let clickAdPending = false;
-        let clickAdOpenTime = 0;
-        let suppressAdsUntil = 0; // Kuimitsa zotsatsa zongochitika zokha
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -746,88 +692,22 @@
             return diffDays <= 3;
         }
 
-        // Zogwirizana ndi Adsgram SDK (Adsgram Integration Wrapper)
-        function playAdsgramAd(blockId) {
-            return new Promise((resolve) => {
-                if (window.Adsgram) {
-                    const AdController = window.Adsgram.init({ blockId: blockId });
-                    AdController.show()
-                        .then(() => { resolve(true); })
-                        .catch(() => { resolve(false); }); 
-                } else {
-                    resolve(false);
-                }
-            });
-        }
-
-        // Zogwirizana ndi Monetag SDK (Monetag Integration Wrapper)
-        function playMonetagAd() {
-            try {
-                if (typeof show_10365806 === 'function') {
-                    show_10365806({
-                      type: 'inApp',
-                      inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false }
-                    });
-                }
-            } catch (e) {
-                console.log("Monetag skipped");
+        // Mapulogalamu othandizira kugwedezeka kwa foni popanda zolakwika
+        function triggerVibration(type) {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                const haptic = window.Telegram.WebApp.HapticFeedback;
+                try {
+                    if (type === 'heavy') haptic.impactOccurred('heavy');
+                    else if (type === 'success') haptic.notificationOccurred('success');
+                    else if (type === 'error') haptic.notificationOccurred('error');
+                    else if (type === 'light') haptic.impactOccurred('light');
+                } catch(e) {}
+            } else if (navigator.vibrate) {
+                if (type === 'heavy') navigator.vibrate([300, 100, 300]);
+                else if (type === 'success') navigator.vibrate([200, 100, 200]);
+                else if (type === 'error') navigator.vibrate(50);
+                else if (type === 'light') navigator.vibrate(50);
             }
-        }
-
-        function playAppLaunchAd() {
-            playAdsgramAd('int-23802').then(() => {
-                console.log("App launch ad finished");
-            });
-        }
-
-        // Womvera wa anti-cheat kwa masekondi 10 pogwiritsa ntchito kusintha kwa kuwoneka
-        document.addEventListener("visibilitychange", async () => {
-            if (document.visibilityState === "visible" && clickAdPending) {
-                clickAdPending = false;
-                let elapsed = Date.now() - clickAdOpenTime;
-                
-                if (elapsed < 10000) { // Osakwana masekondi 10
-                    showNotify("Please view the ad for at least 10 seconds.", "error");
-                } else {
-                    // Perekani mphoto
-                    const today = new Date().toISOString().split('T')[0];
-                    let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
-                    
-                    try {
-                        const currentIsoDate = new Date().toISOString();
-                        const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
-                        if (!error) {
-                            currentEnergy += 1;
-                            clickCount++;
-                            localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
-                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' }]);
-                            
-                            updateUI();
-                            fetchHistory(true);
-
-                            // Pogwiritsa ntchito in-app notification osati Telegram api
-                            showNotify("Congratulations! Ad click completed. Earned 1 🎟️", "success");
-                        }
-                    } catch(e) { showNotify("Failed to credit reward", "warning"); }
-                }
-            }
-        });
-
-        function canPlayAutoAd() {
-            if (Date.now() < suppressAdsUntil) return false;
-            if (sessionExpired) return false;
-            const isGameOpen = document.getElementById('game-full-screen').classList.contains('active');
-            const isWheelOpen = document.getElementById('wheel-full-screen').classList.contains('active');
-            if (isGameOpen || isWheelOpen || isSpinning) return false;
-            return true;
-        }
-
-        function initAdSchedule() {
-            // Dongosolo la zotsatsa zongochitika zokha
-            setTimeout(() => { if (canPlayAutoAd()) playAppLaunchAd(); }, 2000);
-            setTimeout(() => { if (canPlayAutoAd()) playMonetagAd(); }, 35000);
-            setTimeout(() => { if (canPlayAutoAd()) playAdsgramAd('int-23802'); }, 75000);
-            setTimeout(() => { if (canPlayAutoAd()) playMonetagAd(); }, 120000);
         }
 
         async function initApp() {
@@ -859,17 +739,6 @@
 
             setInterval(updateDailyTimer, 1000);
 
-            // Nthawi yotha ntchito (mphindi 5)
-            setTimeout(() => {
-                sessionExpired = true;
-                document.getElementById('dashboard-screen').style.display = 'none';
-                document.getElementById('session-expired').classList.add('active');
-                closeAllSheets();
-                closeGame();
-                closeWheelScreen();
-            }, 300000); 
-
-            // Kulinganiza kudzaza kwa 100% kwenikweni
             let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
                 if (!isDataReady) {
@@ -891,7 +760,6 @@
                             ls.style.opacity = '0'; 
                             setTimeout(() => { 
                                 ls.style.display = 'none'; 
-                                initAdSchedule();
                             }, 400); 
                         }
                     }, 200); 
@@ -905,29 +773,32 @@
             finally { isDataReady = true; }
         }
 
-        // --- MAGANIZO A CLICK ADS ---
         function startClickAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
-            if (clickAdPending) return; 
 
             const today = new Date().toISOString().split('T')[0];
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             
-            suppressAdsUntil = Date.now() + 60000; 
-
-            let adUrl = clickCount % 2 === 0 
-                ? "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1" 
-                : "https://omg10.com/4/10663836";
-
-            // Tsegulani mu tab yatsopano kuti isasokoneze telegram
-            window.open(adUrl, '_blank');
+            showNotify("Processing task...", "success");
             
-            clickAdPending = true;
-            clickAdOpenTime = Date.now();
-            showNotify("Watch the ad for 10 seconds...", "success");
+            setTimeout(async () => {
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentEnergy += 1;
+                        clickCount++;
+                        localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' }]);
+                        
+                        updateUI();
+                        fetchHistory(true);
+                        showNotify("Congratulations! Task completed. Earned 1 🎟️", "success");
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            }, 1500);
         }
 
-        // --- MAGANIZO A WATCH VIDEO ---
         function showRewardAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -935,29 +806,23 @@
             
             if (videoCount >= 5) return showNotify("Daily limit of 5 videos reached!", "warning");
 
-            suppressAdsUntil = Date.now() + 60000; 
+            showNotify("Processing video reward...", "success");
 
-            showNotify("Loading Video Ad...", "success");
-
-            playAdsgramAd('23851').then(async (completed) => {
-                if (completed) {
-                    try {
-                        const currentIsoDate = new Date().toISOString();
-                        const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
-                        if (!error) {
-                            currentEnergy += 1;
-                            videoCount++;
-                            localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
-                            await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                            showNotify(`Earned 1 🎟️ from Video Task!`, "success");
-                            updateUI();
-                            fetchHistory(true);
-                        }
-                    } catch(e) { showNotify("Failed to credit reward", "warning"); }
-                } else {
-                    showNotify("Ad not completed or failed to load.", "error");
-                }
-            });
+            setTimeout(async () => {
+                try {
+                    const currentIsoDate = new Date().toISOString();
+                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
+                    if (!error) {
+                        currentEnergy += 1;
+                        videoCount++;
+                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
+                        showNotify(`Earned 1 🎟️ from Video Task!`, "success");
+                        updateUI();
+                        fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            }, 1500);
         }
 
         function updateDailyTimer() {
@@ -990,6 +855,9 @@
                     if (notified !== today) {
                         localStorage.setItem(`daily_ready_notified_${userId}`, today);
                         showNotify("🎉 The wait is over! Grab your gifts!", "success");
+                        // Uthenga weniweni pa Telegram kutha kwa nthawi (Timer Complete notification)
+                        let readyText = `🎉 *Woohoo! The wait is over!* ⏰\n*Your daily check-in timer has just finished ticking. Jump back in to grab your gifts!* 🥳`;
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(readyText)}&parse_mode=Markdown`);
                     }
                 }
             } else {
@@ -1021,9 +889,6 @@
                     showNotify(`Successfully claimed 🎟️ 5 Tickets!`, "success");
                     updateUI();
                     fetchHistory(true);
-                    
-                    let readyText = `🎉 *Woohoo! The wait is over!* ⏰\n*Your daily check-in timer has just finished ticking. Jump back in to grab your gifts!* 🥳`;
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(readyText)}&parse_mode=Markdown`);
                 } else showNotify("Failed to claim reward", "warning");
             } catch(e) { showNotify("Failed to claim reward", "warning"); }
             updateDailyTimer();
@@ -1472,9 +1337,14 @@
             else if (rand < 0.65) prizeIdx = 4; // 100 Pts (30%)
             else prizeIdx = 5; // Try Again (35%)
 
-            // Kuyika mtengo woyenerera wozungulira kuti ugwirizane ndi mwayi weniweni
-            const targetRotation = 30 + prizeIdx * 60;
-            currentWheelRotation += (12 * 360) + targetRotation - (currentWheelRotation % 360) + (Math.floor(Math.random() * 40) - 20);
+            // Ndondomeko yotembenuka yowona (Mapping Target Angles correctly)
+            const targetRotationMap = [30, 90, 150, 210, 270, 330]; 
+            const baseRot = currentWheelRotation % 360;
+            let offset = targetRotationMap[prizeIdx] - baseRot;
+            if (offset < 0) offset += 360;
+            
+            currentWheelRotation += (10 * 360) + offset + (Math.floor(Math.random() * 30) - 15);
+            
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
 
@@ -1488,13 +1358,21 @@
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
                             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 1000 });
-                        } else showNotify("Failed to save prize.", "warning");
-                    } catch(e) { showNotify("Error updating balance.", "warning"); }
+                            triggerVibration('success');
+                        } else { 
+                            showNotify("Failed to save prize.", "warning"); 
+                            triggerVibration('error');
+                        }
+                    } catch(e) { 
+                        showNotify("Error updating balance.", "warning"); 
+                        triggerVibration('error');
+                    }
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
+                    triggerVibration('error');
                 }
                 if(btn) btn.disabled = false;
-            }, 7000); 
+            }, 6500); 
         }
 
         // ==========================================
@@ -1590,7 +1468,7 @@
                 return;
             }
 
-            // Kuchotsa tikiti
+            // Ticket deduct
             currentEnergy--;
             updateUI();
             
@@ -1601,7 +1479,7 @@
             const msgBox = document.getElementById('slot-message-box');
             if(msgBox) msgBox.classList.remove('active');
 
-            if(navigator.vibrate) navigator.vibrate(50);
+            triggerVibration('light');
 
             const slots = [
                 document.getElementById('slot-img-1'),
@@ -1640,13 +1518,11 @@
                 } else {
                     const luck = Math.random();
                     if (luck < 0.10) { 
-                        // 10% chance: 3 Matches (Sungani BTC mwachisawawa kukhala yosowa poyiyika ndi cholozera 1 mpaka 6)
                         r1 = Math.floor(Math.random() * 6) + 1; 
                         r2 = r1;
                         r3 = r1;
                     } 
                     else if (luck < 0.40) { 
-                        // 30% chance: Exactly 2 Matches
                         r1 = Math.floor(Math.random() * cryptoLogos.length);
                         r2 = r1;
                         do {
@@ -1658,7 +1534,6 @@
                         else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
                     } 
                     else {
-                        // 60% chance: 0 Matches (All different)
                         r1 = Math.floor(Math.random() * cryptoLogos.length);
                         do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
                         do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
@@ -1673,7 +1548,7 @@
 
                 if (r1 === 0 && r2 === 0 && r3 === 0) {
                     pointsWon = 100; // Super Jackpot
-                    if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+                    triggerVibration('heavy');
                     
                     confetti({ 
                         particleCount: 200, spread: 150, origin: { y: 0.5 }, 
@@ -1686,7 +1561,7 @@
                 }
                 else if (r1 === 2 && r2 === 2 && r3 === 2) {
                     pointsWon = 20; // TON Jackpot
-                    if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    triggerVibration('success');
                     
                     confetti({ 
                         particleCount: 100, spread: 100, origin: { y: 0.5 }, 
@@ -1699,7 +1574,7 @@
                 }
                 else if (r1 === r2 && r2 === r3) {
                     pointsWon = 50; 
-                    if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+                    triggerVibration('success');
                     
                     confetti({ 
                         particleCount: 150, spread: 120, origin: { y: 0.5 }, 
@@ -1712,12 +1587,12 @@
                 } 
                 else if (r1 === r2 || r2 === r3 || r1 === r3) {
                     pointsWon = 10; 
-                    if(navigator.vibrate) navigator.vibrate(200);
+                    triggerVibration('light');
                     showFloatingText("+10 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("✨ SMALL WIN! +10 PTS", "success");
                 } 
                 else {
-                    if(navigator.vibrate) navigator.vibrate(50); 
+                    triggerVibration('error'); 
                 }
 
                 if(pointsWon > 0) {
