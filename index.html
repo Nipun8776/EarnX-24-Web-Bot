@@ -34,11 +34,9 @@
             else window.Telegram.WebApp.CloudStorage = cloudPolyfill;
         }
     </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@400;600;700;900&display=swap');
         
@@ -58,7 +56,6 @@
             user-select: none;
             -webkit-touch-callout: none;
         }
-
         .app-container {
             background-color: #020617;
             width: 100%;
@@ -69,7 +66,6 @@
             display: flex;
             flex-direction: column;
         }
-
         input, textarea, select { user-select: auto; }
         
         #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
@@ -97,17 +93,14 @@
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
         @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
-
         .wheel-marker { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 28px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-
         @keyframes play-pulse { 0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } 50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } }
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
         @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
         .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
         @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
         .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
-
-        /* Game Specific Styles */
+        
         .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -115,7 +108,6 @@
         .slot-col { transition: filter 0.1s ease; }
         .spinning-blur { filter: blur(2px) contrast(1.1); } 
         .glow-text { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
-
         @keyframes floatPoints {
             0% { transform: translateY(0) scale(0.8); opacity: 0; }
             20% { transform: translateY(-20px) scale(1.2); opacity: 1; filter: drop-shadow(0 0 15px rgba(251,191,36,1)); }
@@ -126,21 +118,15 @@
         
         .msg-pop { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
         .msg-pop.active { opacity: 1; transform: translateY(0); }
-
-        /* 2 Seconds Fast Spin Animation */
         #lucky-wheel { transition: transform 2s cubic-bezier(0.1, 0.9, 0.2, 1); }
     </style>
 </head>
-
 <body onload="initApp()">
-
   <div class="app-container">
-
     <div id="custom-notify" class="glass p-4 rounded-2xl flex items-center gap-3 border-l-4 border-amber-400">
         <div id="notify-icon" class="text-amber-400 text-xl"><i class="ph-fill ph-warning-circle"></i></div>
         <div><p id="notify-msg" class="text-[11px] font-bold text-white leading-tight"></p></div>
     </div>
-
     <div id="loading-screen">
         <div class="loader-ring"></div>
         <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
@@ -148,7 +134,7 @@
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
-
+    
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-10 shrink-0 relative z-20">
             <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
@@ -158,15 +144,12 @@
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
-
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
             <p class="text-[10px] text-amber-100/50 font-black uppercase tracking-[0.3em] mb-1">Session Points</p>
             <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-8 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
-
             <div id="slot-machine-container" class="relative">
                 <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.2)] relative z-10">
                     <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
-                    
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
                         <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
@@ -178,10 +161,8 @@
                     </div>
                 </div>
             </div>
-
             <div id="slot-message-box" class="h-8 mt-4 text-center text-lg font-black uppercase tracking-widest msg-pop"></div>
-
-            <button id="spin-btn" onclick="spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
+            <button id="spin-btn" onclick="spinSlotSecure()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
                 <span>SPIN</span>
                 <div class="bg-black/80 text-amber-400 px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-amber-500/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-ticket text-lg"></i> <span id="game-inner-tickets">0</span>
@@ -199,18 +180,15 @@
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
-
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10 pb-8">
             <h2 class="text-3xl font-black text-white mb-1 text-center uppercase italic drop-shadow-md">Lucky Wheel</h2>
             <p class="text-center text-xs text-purple-300 font-bold mb-4 uppercase tracking-widest">Spin & Win Big</p>
-
-            <button id="wheel-spin-btn" onclick="spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
+            <button id="wheel-spin-btn" onclick="spinWheelSecure()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
                 <span>SPIN</span>
                 <div class="bg-black/50 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-purple-400/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
                 </div>
             </button>
-            
             <div class="w-full max-w-[280px] mx-auto mb-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-lg">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-users text-purple-400"></i> Invite Progress</p>
@@ -221,15 +199,12 @@
                 </div>
                 <p class="text-[8px] text-slate-400 mt-2 text-center uppercase font-bold">5 Invites = 1 Free Spin</p>
             </div>
-
             <div class="relative w-[280px] h-[280px] mx-auto my-2">
-                
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-10 z-30 flex justify-center">
                     <div class="w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-400 drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative">
                         <div class="absolute -top-[28px] -left-[14px] w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-200 scale-[0.6]"></div>
                     </div>
                 </div>
-
                 <div class="absolute inset-0 bg-[#111827] rounded-full border-[4px] border-[#1f2937] shadow-[0_10px_30px_rgba(0,0,0,0.8),inset_0_0_15px_rgba(0,0,0,0.9)] z-0">
                     <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(0deg) translate(130px);"></div>
                     <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(30deg) translate(130px);"></div>
@@ -244,9 +219,7 @@
                     <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(300deg) translate(130px);"></div>
                     <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(330deg) translate(130px);"></div>
                 </div>
-
                 <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);">
-                    
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-82.5deg) translateX(35px);">Win Rs 100</div>
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-50deg) translateX(35px);">Win Rs 50</div>
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(0deg) translateX(35px);">Win Rs 20</div>
@@ -265,7 +238,6 @@
                     <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(175deg);"></div>
                     <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(225deg);"></div>
                 </div>
-
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] rounded-full bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 border-[3px] border-yellow-100 shadow-[0_4px_15px_rgba(0,0,0,0.8)] z-20">
                     <div class="w-full h-full rounded-full border border-yellow-600/50"></div>
                 </div>
@@ -403,7 +375,6 @@
     </div>
 
     <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
-
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
             <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 font-bold overflow-hidden border border-white/10 shrink-0 shadow-lg relative">
@@ -540,13 +511,11 @@
                 <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
-
         <div id="withdraw-inputs" class="space-y-4 hidden">
             
             <div id="standard-input-group" class="space-y-4 hidden">
                 <input id="w-address" type="text" inputmode="text" placeholder="Account Details" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             </div>
-
             <div id="bank-input-group" class="space-y-4 hidden">
                 <div class="relative w-full">
                     <select id="w-bank-name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500 appearance-none cursor-pointer">
@@ -572,14 +541,12 @@
                 <input id="w-bank-acc-name" type="text" placeholder="Account Holder Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
                 <input id="w-bank-acc-no" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Account Number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             </div>
-
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
             
             <div id="fee-note-container" class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2 mt-2 hidden">
                 <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
                 <p id="withdraw-fee-note" class="text-[9px] text-red-400 font-bold uppercase tracking-widest leading-tight"></p>
             </div>
-
             <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
         </div>
     </div>
@@ -609,7 +576,6 @@
                 </div>
                 <button onclick="showNotify('Available only if you are active for 3 days and complete all daily tasks.', 'success')" class="bg-amber-500/20 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"><i class="ph-bold ph-info text-lg"></i></button>
             </div>
-
             <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex gap-1">
@@ -624,7 +590,6 @@
                 </div>
                 <button onclick="showNotify('Available once a day if all daily tasks are completed today.', 'success')" class="bg-blue-500/20 text-blue-400 w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"><i class="ph-bold ph-info text-lg"></i></button>
             </div>
-
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex gap-1">
@@ -637,7 +602,6 @@
                 </div>
                 <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">30% Chance</span>
             </div>
-
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex gap-1">
@@ -650,7 +614,6 @@
                 </div>
                 <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">50% Chance</span>
             </div>
-
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex gap-1">
@@ -712,13 +675,12 @@
             </div>
         </div>
     </div>
-
   </div> 
 
   <script>
         const tg = window.Telegram?.WebApp || {};
         
-        // NEW SUPABASE SECURE URL & KEY
+        // YOUR NEW SECURE SUPABASE CREDENTIALS
         const SUPABASE_URL = 'https://dtffdxxygwqzpvfknvvl.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_hhg4Swbe6b3verlcPbXXwQ_lnkibKlt';
         let _supabase;
@@ -740,7 +702,7 @@
             { label: 'Rs 1', val: 1.00, type: 'cash' },
             { label: 'Try Again', val: 0.00, type: 'empty' } 
         ];
-
+        
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
@@ -775,6 +737,16 @@
             } catch(e) {}
         }
 
+        // --- NEW: SECURE ACTION LOGGER FOR ADMIN PANEL ---
+        async function logAction(actionName, detailsObj = {}) {
+            if (!_supabase || !userId) return;
+            try {
+                await _supabase.functions.invoke('game_api', {
+                    body: { action: 'log_event', userId: userId, payload: { type: actionName, details: detailsObj } }
+                });
+            } catch (e) { console.error("Log error", e); }
+        }
+
         async function initApp() {
             if (window.supabase) {
                 _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -794,26 +766,14 @@
                 if (tgUser?.username) usernameDisplay.innerText = "@" + tgUser.username;
                 else usernameDisplay.innerText = "ID: " + userId;
             }
-
             if (tgUser?.photo_url) {
                 if(document.getElementById('profile-pic')) { document.getElementById('profile-pic').src = tgUser.photo_url; document.getElementById('profile-pic').style.display = 'block'; }
                 if(document.getElementById('default-pic')) document.getElementById('default-pic').style.display = 'none';
                 if(document.getElementById('menu-profile-pic')) { document.getElementById('menu-profile-pic').src = tgUser.photo_url; document.getElementById('menu-profile-pic').style.display = 'block'; }
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
-
+            
             setInterval(updateTimeBonusTimer, 1000);
-
-            // Admin Panel Clicks Tracker
-            document.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if(btn && _supabase && userId) {
-                    let actionName = btn.innerText.trim() || btn.id || 'unknown_button';
-                    _supabase.functions.invoke('game_api', { 
-                        body: { action: 'log_click', userId: userId, payload: { type: 'button_click', details: { button: actionName } } } 
-                    }).catch(()=>{});
-                }
-            });
 
             // Progress bar strictly linked to Data Load
             let prog = 0;
@@ -833,6 +793,7 @@
                 if(_supabase) { 
                     await fetchUserData(); 
                     await fetchHistory(true); 
+                    logAction('app_opened'); // Log app open
                 } else { 
                     showNotify("Database connection failed.", "warning"); 
                 }
@@ -848,6 +809,15 @@
                     }
                 }, 300);
             }
+
+            // Track all button clicks globally for Admin Panel
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && _supabase && userId) {
+                    const btnName = btn.innerText.trim() || btn.id || 'Icon Button';
+                    logAction('button_click', { button_name: btnName });
+                }
+            });
         }
 
         // --- WATCH VIDEO LOGIC ---
@@ -857,7 +827,6 @@
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             
             if (videoCount >= 3) return showNotify("Daily limit of 3 video tasks reached!", "warning");
-
             showNotify("Processing video task...", "success");
 
             setTimeout(async () => {
@@ -870,6 +839,7 @@
                         videoCount++;
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
+                        logAction('video_watched_reward');
                         showNotify(`Earned 2 🎟️ from Video Task!`, "success");
                         updateUI();
                         fetchHistory(true);
@@ -885,22 +855,18 @@
             
             const btn = document.getElementById('daily-claim-btn');
             if (!btn) return;
-
             if (claimCount >= 10) {
                 btn.disabled = true;
                 btn.innerText = "LIMIT REACHED"; 
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
                 return;
             }
-
             const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
             const cooldown = 90 * 60 * 1000; // 90 mins
-
             if (lastClaim) {
                 const now = new Date().getTime();
                 const claimTime = parseInt(lastClaim, 10);
                 const diff = now - claimTime;
-
                 if (diff < cooldown) {
                     const remaining = cooldown - diff;
                     const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -928,16 +894,12 @@
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
             
             if (claimCount >= 10) return showNotify("Daily limit reached!", "warning");
-
             const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
             const now = new Date().getTime();
             const cooldown = 90 * 60 * 1000;
-
             if (lastClaim && (now - parseInt(lastClaim, 10)) < cooldown) return showNotify("Please wait for the timer!", "warning");
-
             const btn = document.getElementById('daily-claim-btn');
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
-
             try {
                 const energyReward = 1; // 1 Ticket per claim
                 const currentIsoDate = new Date().toISOString();
@@ -950,6 +912,7 @@
                     localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
                     
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' }]);
+                    logAction('time_bonus_claimed');
                     showNotify(`Successfully claimed 1 🎟️!`, "success");
                     updateUI();
                     fetchHistory(true);
@@ -963,7 +926,6 @@
             try {
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 if (error) throw error;
-
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
@@ -976,6 +938,7 @@
                     
                     if (!ins.error) {
                         data = ins.data || newUser; 
+                        logAction('new_user_registered');
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             if (referrerData) {
@@ -997,7 +960,6 @@
                         }
                     }
                 }
-
                 const isActive = checkIsActive(data?.last_active, data?.created_at);
                 const statusBadge = document.getElementById('menu-status-badge');
                 const statusDot = document.getElementById('menu-status-dot');
@@ -1009,7 +971,6 @@
                     if(statusBadge) { statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive'; }
                     if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
                 }
-
                 if (data && data.created_at) {
                     window.userCreatedAt = data.created_at; 
                     const joinedDate = new Date(data.created_at);
@@ -1023,11 +984,10 @@
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
-
                 updateUI(); updateWheelUI(); updateTimeBonusTimer();
             } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
         }
-        
+
         async function fetchHistory(limit = false) {
             if (!_supabase) return;
             try {
@@ -1048,11 +1008,9 @@
                         let label = item.type.replace(/_/g, ' ');
                         label = label.replace(/REWARD/g, 'WINNING POINTS');
                         label = label.replace(/BONUS/g, 'WINNING POINTS');
-
                         if (item.type === 'CLICK_AD_REWARD' || item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
                         if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'TIME WINNING POINTS'; 
                         if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
-
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
                         let iconClass = 'ph-check-circle';
@@ -1066,7 +1024,6 @@
                         } else {
                             iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
                         }
-
                         let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
                         const dateObj = new Date(item.created_at);
                         
@@ -1085,7 +1042,6 @@
                             }
                             let fee = wMethod === 'BANK' ? 15 : 0;
                             let total = item.amount + fee;
-
                             amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${total.toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px]">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}</div>`;
                         } else {
                             let pts = Math.round(item.amount * 100);
@@ -1134,7 +1090,6 @@
                     
                     let fee = wMethod === 'BANK' ? 15 : 0;
                     let totalDeducted = item.amount + fee;
-
                     let amountsHtml = '';
                     if (item.status === 'approved') {
                         amountsHtml = `
@@ -1152,12 +1107,11 @@
                             <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span>
                         </div>`;
                     }
-
                     return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div>${amountsHtml}</div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
             } catch(e) { console.error(e); }
         }
-        
+
         function copyTxId(txId) {
             const textArea = document.createElement("textarea"); textArea.value = txId; document.body.appendChild(textArea); textArea.select();
             try { document.execCommand('copy'); showNotify("Transaction ID Copied!", "success"); triggerVibration('light'); } catch (err) { showNotify("Failed to copy ID"); }
@@ -1175,10 +1129,9 @@
             const stdGroup = document.getElementById('standard-input-group');
             const bankGroup = document.getElementById('bank-input-group');
             const addrInput = document.getElementById('w-address');
-
             const feeNoteEl = document.getElementById('withdraw-fee-note');
             const feeNoteContainer = document.getElementById('fee-note-container');
-
+            
             if (name === 'BANK') {
                 if(stdGroup) stdGroup.classList.add('hidden'); 
                 if(bankGroup) bankGroup.classList.remove('hidden');
@@ -1187,7 +1140,6 @@
                     feeNoteEl.innerText = "Note: A fixed processing fee of Rs. 15.00 applies to Bank Transfers.";
                     feeNoteContainer.classList.remove('hidden');
                 }
-
             } else {
                 if(bankGroup) bankGroup.classList.add('hidden'); 
                 if(stdGroup) stdGroup.classList.remove('hidden');
@@ -1195,7 +1147,6 @@
                 if (feeNoteContainer) {
                     feeNoteContainer.classList.add('hidden');
                 }
-
                 if(addrInput) {
                     addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
                     addrInput.setAttribute('inputmode', 'numeric'); 
@@ -1236,7 +1187,6 @@
                 if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
                 if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
             }
-
             if (isNaN(amt) || amt <= 0) return showNotify("Enter a valid amount!");
             if (selectedMethodName === 'BINANCE' && amt < 5) return showNotify("Min Rs 5 for Binance");
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
@@ -1244,20 +1194,16 @@
             
             const fee = selectedMethodName === 'BANK' ? 15 : 0; 
             const totalDeduction = amt + fee;
-
             if (totalDeduction > currentBalance) {
                 let feeMsg = fee > 0 ? ` including Rs. ${fee} fee` : ``;
                 return showNotify(`Need Rs ${totalDeduction}${feeMsg} to proceed.`, "warning");
             }
-
             const btn = document.getElementById('withdraw-btn'); 
             if(btn) { btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`; }
             triggerVibration('medium');
-
             setTimeout(async () => {
                 const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
                 let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
-
                 try {
                     const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - totalDeduction }).eq('user_id', userId);
                     if (!balError) {
@@ -1271,9 +1217,9 @@
                         } else {
                             text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
                         }
-
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
                         
+                        logAction('withdrawal_requested', { amount: amt, method: selectedMethodName });
                         currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); triggerVibration('success'); closeAllSheets();
                     } else showNotify("Error processing request.");
                 } catch(e) { showNotify("Error processing request."); }
@@ -1327,7 +1273,6 @@
                     const topIds = sortedRanks.map(r => r[0]);
                     const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
                     const profileMap = {}; if (profilesData) profilesData.forEach(p => profileMap[p.user_id] = p);
-
                     if(rlc) rlc.innerHTML = sortedRanks.map((rank, index) => {
                         const refProfile = profileMap[rank[0]] || {};
                         let badgeColor = index === 0 ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : (index === 1 ? "bg-slate-300/20 text-slate-300 border-slate-300/30" : (index === 2 ? "bg-amber-700/20 text-amber-600 border-amber-700/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"));
@@ -1338,6 +1283,7 @@
             } catch(e) { console.error(e); }
         }
 
+        // Update Balance and UI
         function updateUI() {
             const balValDisplay = document.getElementById('bal-val-display');
             if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
@@ -1347,27 +1293,34 @@
                 let pts = Math.round(currentBalance * 100);
                 ptsValDisplay.innerText = `${pts} Pts`;
             }
-
             const wBalanceVal = document.getElementById('w-balance-val');
             if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
             
             const energyDisplay = document.getElementById('energy-display');
             if (energyDisplay) energyDisplay.innerText = `${currentEnergy}`;
-
             const gameEnergy = document.getElementById('game-inner-tickets');
             if (gameEnergy) gameEnergy.innerText = currentEnergy;
-
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
             if (vcd) {
                 vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
             }
-
             let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
             const tbd = document.getElementById('time-bonus-display');
             if (tbd) {
                 tbd.innerText = `Earn 🎟️ 1 Ticket (${timeClaimCount}/10)`;
+            }
+        }
+
+        function showNotify(msg, type = 'warning') {
+            const box = document.getElementById('custom-notify'); 
+            if(box) {
+                const nMsg = document.getElementById('notify-msg');
+                if(nMsg) nMsg.innerText = msg;
+                box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
+                box.classList.add('active'); 
+                setTimeout(() => box.classList.remove('active'), 3000);
             }
         }
         
@@ -1389,7 +1342,6 @@
                     const el = document.getElementById(fid);
                     if(el) el.value = '';
                 });
-
                 const feeNoteContainer = document.getElementById('fee-note-container');
                 if (feeNoteContainer) feeNoteContainer.classList.add('hidden');
             }
@@ -1401,8 +1353,9 @@
             const so = document.getElementById('sheet-overlay'); 
             if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); }
         }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); closeSheet('wheel-rules-sheet'); }
 
+        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); closeSheet('wheel-rules-sheet'); }
+        
         function openWheelScreen() {
             const gfs = document.getElementById('wheel-full-screen');
             if(gfs) gfs.classList.add('active');
@@ -1410,7 +1363,6 @@
         }
         
         function closeWheelScreen() {
-            if(isSpinning) return;
             const gfs = document.getElementById('wheel-full-screen');
             if(gfs) gfs.classList.remove('active');
         }
@@ -1418,21 +1370,28 @@
         function updateWheelUI() {
             const scd = document.getElementById('wheel-inner-tickets');
             if(scd) scd.innerText = spinChances; 
-
             const currentCycleInvites = myReferralCount % 5;
             const refCountEl = document.getElementById('wheel-ref-count');
             const refProgEl = document.getElementById('wheel-ref-progress');
-
             if (refCountEl) refCountEl.innerText = `${currentCycleInvites}/5`;
             if (refProgEl) refProgEl.style.width = `${(currentCycleInvites / 5) * 100}%`;
         }
 
         // ==========================================
-        // SECURE EDGE FUNCTION INTEGRATION FOR GAMES
+        // CRYPTO SLOT MACHINE GAME LOGIC
         // ==========================================
-
-        let isSpinning = false;
+        const cryptoLogos = [
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/2.png',      // 1: LTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png',   // 2: TRX
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',    // 3: USDT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png',  // 4: TON
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png',  // 5: NOT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png',     // 6: DOGE
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'    // 7: BNB
+        ];
         let slotPoints = 0; 
+        let isSpinning = false;
 
         function showSlotMessage(msg, type) {
             const box = document.getElementById('slot-message-box');
@@ -1502,8 +1461,8 @@
             }
         }
 
-        // ---- SECURE SPIN SLOT (BACKEND) ----
-        async function spinSlot() {
+        // --- NEW: SECURE SPIN SLOT (BACKEND) ---
+        async function spinSlotSecure() {
             if(isSpinning) return;
             if(currentEnergy < 1) {
                 showNotify("Not enough Tickets! Watch an ad or invite friends.", "warning");
@@ -1516,15 +1475,9 @@
             
             const msgBox = document.getElementById('slot-message-box');
             if(msgBox) msgBox.classList.remove('active');
-
             triggerVibration('medium');
 
-            const slots = [
-                document.getElementById('slot-img-1'),
-                document.getElementById('slot-img-2'),
-                document.getElementById('slot-img-3')
-            ];
-
+            const slots = [document.getElementById('slot-img-1'), document.getElementById('slot-img-2'), document.getElementById('slot-img-3')];
             slots.forEach(s => s.classList.add('spinning-blur'));
 
             let spinInterval = setInterval(() => {
@@ -1532,14 +1485,9 @@
             }, 80);
 
             try {
-                // Fetch random calculation from backend
-                const { data, error } = await _supabase.functions.invoke('game_api', {
-                    body: { action: 'spin_slot', userId: userId }
-                });
-
-                if (error || !data || !data.success) {
-                    throw new Error(error?.message || "Server Communication Error");
-                }
+                const { data, error } = await _supabase.functions.invoke('game_api', { body: { action: 'spin_slot', userId: userId } });
+                
+                if (error || !data || !data.success) throw new Error("Server Error");
 
                 setTimeout(() => {
                     clearInterval(spinInterval);
@@ -1551,7 +1499,7 @@
 
                     currentBalance = data.newBalance;
                     currentEnergy = data.newEnergy;
-
+                    
                     if (data.pointsWon > 0) {
                         slotPoints += data.pointsWon;
                         updateSlotScoreUI(slotPoints);
@@ -1577,17 +1525,17 @@
                             showSlotMessage("✨ SMALL WIN! +10 PTS", "success");
                         }
                     } else {
-                        triggerVibration('error');
+                        triggerVibration('error'); 
                     }
 
                     updateUI();
                     fetchHistory(true);
-                    
                     isSpinning = false;
                     if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
+
                 }, 2000);
 
-            } catch (err) {
+            } catch(e) {
                 clearInterval(spinInterval);
                 slots.forEach(s => s.classList.remove('spinning-blur'));
                 showNotify("Server Error. Please try again.", "error");
@@ -1596,26 +1544,20 @@
             }
         }
 
-        // ---- SECURE SPIN WHEEL (BACKEND) ----
-        async function spinWheel() {
+        // --- NEW: SECURE SPIN WHEEL (BACKEND) ---
+        async function spinWheelSecure() {
             if(isSpinning) return;
             if (spinChances <= 0) return showNotify("No spins left! Invite friends.", "warning");
             
             const btn = document.getElementById('wheel-spin-btn'); 
             if(btn) btn.disabled = true;
             isSpinning = true;
-            
             triggerVibration('medium'); 
 
             try {
-                // Fetch random calculation from backend
-                const { data, error } = await _supabase.functions.invoke('game_api', {
-                    body: { action: 'spin_wheel', userId: userId }
-                });
-
-                if (error || !data || !data.success) {
-                    throw new Error(error?.message || "Server Communication Error");
-                }
+                const { data, error } = await _supabase.functions.invoke('game_api', { body: { action: 'spin_wheel', userId: userId } });
+                
+                if (error || !data || !data.success) throw new Error("Server Error");
 
                 const targetRotationMap = [352.5, 320, 270, 220, 170, 120, 70, 22.5]; 
                 const baseRot = currentWheelRotation % 360;
@@ -1646,14 +1588,16 @@
                     
                     isSpinning = false;
                     if(btn) btn.disabled = false;
+
                 }, 2000);
 
-            } catch (err) {
+            } catch(e) {
                 showNotify("Server Error. Please try again.", "error");
                 isSpinning = false;
                 if(btn) btn.disabled = false;
             }
         }
+
     </script>
 </body>
 </html>
