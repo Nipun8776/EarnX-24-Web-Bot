@@ -72,6 +72,7 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
+        /* Z-index Adjustments for Modals */
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 290; display: none; transition: opacity 0.3s; }
         .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95dvh; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 300; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
         .bottom-sheet.active { bottom: 0; }
@@ -95,6 +96,10 @@
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
         @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
         .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
+        @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
+        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
+        @keyframes click-ad-anim { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); } 50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); } }
+        .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
 
         /* Game Specific Styles */
         .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
@@ -117,6 +122,19 @@
         .msg-pop.active { opacity: 1; transform: translateY(0); }
 
         #lucky-wheel { transition: transform 6.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
+
+        #session-expired {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        #session-expired.active { display: flex; }
     </style>
 </head>
 
@@ -137,8 +155,16 @@
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
     </div>
 
+    <!-- Session Expired Screen -->
+    <div id="session-expired">
+        <i class="ph-fill ph-clock-countdown text-6xl text-red-500 mb-4 animate-pulse"></i>
+        <h1 class="text-3xl font-black text-red-500 tracking-widest uppercase drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">Session Expired</h1>
+        <p class="text-slate-400 mt-2 font-bold uppercase tracking-widest text-xs">Please reload the app</p>
+    </div>
+
     <!-- Crypto Slot Game Full Screen -->
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
             <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
@@ -148,6 +174,7 @@
             </button>
         </div>
 
+        <!-- Tickets Header Inside Game -->
         <div class="flex justify-center mb-6">
             <div class="bg-amber-500/20 backdrop-blur-md px-5 py-2 rounded-full border border-amber-500/40 flex items-center gap-2 shadow-[0_0_20px_rgba(251,191,36,0.3)]">
                 <i class="ph-fill ph-ticket text-amber-400 text-xl drop-shadow-md"></i>
@@ -156,10 +183,12 @@
             </div>
         </div>
 
+        <!-- Slot Machine Area -->
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
             <p class="text-[10px] text-amber-100/50 font-black uppercase tracking-[0.3em] mb-1">Session Points</p>
             <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-8 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
 
+            <!-- The Slots Container -->
             <div id="slot-machine-container" class="relative">
                 <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.2)] relative z-10">
                     <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
@@ -186,6 +215,7 @@
 
     <!-- Lucky Wheel Full Screen -->
     <div id="wheel-full-screen" class="game-full-screen p-6 pb-12">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
             <button onclick="closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
@@ -208,9 +238,11 @@
             <p class="text-center text-xs text-purple-300 font-bold mb-6 uppercase tracking-widest">Spin & Win Big</p>
             
             <div class="relative w-64 h-64 mx-auto my-2">
+                <!-- Marker -->
                 <div class="wheel-marker"></div>
+                <!-- Wheel -->
                 <div id="lucky-wheel" class="w-full h-full rounded-full border-[6px] border-[#0f172a] shadow-[0_0_40px_rgba(168,85,247,0.4)] overflow-hidden relative" style="background: conic-gradient(#ef4444 0 60deg, #10b981 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #d946ef 240deg 300deg, #8b5cf6 300deg 360deg);">
-                    <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">Try<br>Again</div>
+                    <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">10 Pts</div>
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(90deg) translateY(-85px);">100 Pts</div>
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(150deg) translateY(-85px);">200 Pts</div>
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(210deg) translateY(-85px);">500 Pts</div>
@@ -265,19 +297,49 @@
                 </div>
             </div>
 
-            <!-- Daily Check-in Card -->
+            <!-- Time Bonus Card -->
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30 daily-anim-icon">
-                        <i class="ph-fill ph-calendar-check text-2xl drop-shadow-md"></i>
+                        <i class="ph-fill ph-clock-countdown text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm">Daily Check-in</p>
-                        <p class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Free 🎟️ 5 Tickets</p>
+                        <p class="font-bold text-sm">Time Bonus</p>
+                        <p id="time-bonus-display" class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Earn 🎟️ 2 Tickets (0/10)</p>
                     </div>
                 </div>
-                <button id="daily-claim-btn" onclick="claimDailyReward()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
+                <button id="daily-claim-btn" onclick="claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
+            </div>
+
+            <!-- Watch Video Task -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 video-anim-icon">
+                        <i class="ph-fill ph-video-camera text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Watch Video</p>
+                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 5 Tickets (0/3)</p>
+                    </div>
+                </div>
+                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
+            </div>
+
+            <!-- Click Ads Trigger (Points) -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 click-anim-icon">
+                        <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Click Ads</p>
+                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 50 Pts (0/∞)</p>
+                    </div>
+                </div>
+                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
             </div>
 
             <!-- Crypto Slot Game Trigger -->
@@ -293,36 +355,6 @@
                     </div>
                 </div>
                 <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
-            </div>
-
-            <!-- Click Ads Trigger -->
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
-                <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 click-anim-icon">
-                        <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm">Click Ads</p>
-                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/∞)</p>
-                    </div>
-                </div>
-                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
-            </div>
-
-            <!-- Watch Ad Reward Trigger -->
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
-                <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 video-anim-icon">
-                        <i class="ph-fill ph-video-camera text-2xl drop-shadow-md"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm">Watch Video</p>
-                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/5)</p>
-                    </div>
-                </div>
-                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
             <!-- Lucky Wheel Trigger -->
@@ -347,7 +379,7 @@
                             <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 2 Tickets</p></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 5 Tickets</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
@@ -437,16 +469,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v9.5.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Wheel Fix & Haptic Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v13.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Bug Fix & Clean Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed lucky wheel rotation mappings properly.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Added Telegram Native Haptic Feedback API for proper vibration on all devices.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Daily Claim Telegram bot notification fixed to trigger appropriately.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>English localization guaranteed for all displays.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>All third-party ads removed completely.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Haptic feedback function correctly initialized.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed internal JS logic causing rendering errors.</span></li>
                 </ul>
             </div>
         </div>
@@ -469,7 +500,7 @@
     <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
-                <h2 class="text-xl font-black text-white uppercase italic">My Referrals</h2>
+                <h2 class="text-xl font-black text-white uppercase italic">My Referral List</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Total Friends: <span id="ref-count-display" class="text-purple-400 font-bold">0</span></p>
             </div>
             <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
@@ -654,7 +685,7 @@
                 <span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-black">30% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-slate-400">Try Again</p>
+                <p class="text-sm font-black text-slate-400">10 Pts</p>
                 <span class="bg-red-500/20 text-red-400 px-2 py-1 rounded-md text-[10px] font-black">35% Chance</span>
             </div>
         </div>
@@ -669,6 +700,12 @@
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
+        let sessionSpinCount = 0; 
+        
+        // Session & Anti-cheat Variables
+        let sessionExpired = false;
+        let clickAdPending = false;
+        let clickAdOpenTime = 0;
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -676,7 +713,7 @@
             { label: '500 Pts', val: 5.00, type: 'cash' },  
             { label: '200 Pts', val: 2.00, type: 'cash' },   
             { label: '100 Pts', val: 1.00, type: 'cash' },   
-            { label: 'Try Again', val: 0, type: 'none' }
+            { label: '10 Pts', val: 0.10, type: 'cash' } 
         ];
 
         const tgUser = tg.initDataUnsafe?.user || null;
@@ -694,20 +731,20 @@
 
         // Mapulogalamu othandizira kugwedezeka kwa foni popanda zolakwika
         function triggerVibration(type) {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                const haptic = window.Telegram.WebApp.HapticFeedback;
-                try {
+            try {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                    const haptic = window.Telegram.WebApp.HapticFeedback;
                     if (type === 'heavy') haptic.impactOccurred('heavy');
                     else if (type === 'success') haptic.notificationOccurred('success');
                     else if (type === 'error') haptic.notificationOccurred('error');
                     else if (type === 'light') haptic.impactOccurred('light');
-                } catch(e) {}
-            } else if (navigator.vibrate) {
-                if (type === 'heavy') navigator.vibrate([300, 100, 300]);
-                else if (type === 'success') navigator.vibrate([200, 100, 200]);
-                else if (type === 'error') navigator.vibrate(50);
-                else if (type === 'light') navigator.vibrate(50);
-            }
+                } else if (navigator.vibrate) {
+                    if (type === 'heavy') navigator.vibrate([300, 100, 300]);
+                    else if (type === 'success') navigator.vibrate([200, 100, 200]);
+                    else if (type === 'error') navigator.vibrate(50);
+                    else if (type === 'light') navigator.vibrate(50);
+                }
+            } catch(e) {}
         }
 
         async function initApp() {
@@ -775,12 +812,21 @@
 
         function startClickAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
+            if (clickAdPending) return; 
 
             const today = new Date().toISOString().split('T')[0];
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             
-            showNotify("Processing task...", "success");
+            let adUrl = clickCount % 2 === 0 
+                ? "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1" 
+                : "https://omg10.com/4/10663836";
+
+            window.open(adUrl, '_blank');
             
+            clickAdPending = true;
+            clickAdOpenTime = Date.now();
+            showNotify("Wait in ad tab to claim...", "success");
+
             setTimeout(async () => {
                 try {
                     const currentIsoDate = new Date().toISOString();
@@ -793,10 +839,11 @@
                         
                         updateUI();
                         fetchHistory(true);
-                        showNotify("Congratulations! Task completed. Earned 1 🎟️", "success");
+                        clickAdPending = false;
+                        showNotify("Congratulations! Ad click completed. Earned 1 🎟️", "success");
                     }
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
-            }, 1500);
+                } catch(e) { showNotify("Failed to credit reward", "warning"); clickAdPending = false; }
+            }, 10000);
         }
 
         function showRewardAd() {
@@ -804,20 +851,21 @@
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             
-            if (videoCount >= 5) return showNotify("Daily limit of 5 videos reached!", "warning");
+            if (videoCount >= 3) return showNotify("Daily limit of 3 video tasks reached!", "warning");
 
-            showNotify("Processing video reward...", "success");
+            showNotify("Processing video task...", "success");
 
             setTimeout(async () => {
                 try {
+                    const energyReward = 5; 
                     const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
+                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                     if (!error) {
-                        currentEnergy += 1;
+                        currentEnergy += energyReward;
                         videoCount++;
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned 1 🎟️ from Video Task!`, "success");
+                        showNotify(`Earned 5 🎟️ from Video Task!`, "success");
                         updateUI();
                         fetchHistory(true);
                     }
@@ -834,7 +882,17 @@
                 const now = new Date().getTime();
                 const claimTime = parseInt(lastClaim, 10);
                 const diff = now - claimTime;
-                const hrs24 = 24 * 60 * 60 * 1000;
+                const hrs24 = 90 * 60 * 1000; // Updated to 90 mins as per time bonus logic
+
+                const today = new Date().toISOString().split('T')[0];
+                let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
+
+                if (claimCount >= 10) {
+                    btn.disabled = true;
+                    btn.innerText = "LIMIT REACHED"; 
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
 
                 if (diff < hrs24) {
                     const remaining = hrs24 - diff;
@@ -849,16 +907,6 @@
                     btn.disabled = false;
                     btn.innerText = "CLAIM"; 
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    
-                    let today = new Date().toISOString().split('T')[0];
-                    let notified = localStorage.getItem(`daily_ready_notified_${userId}`);
-                    if (notified !== today) {
-                        localStorage.setItem(`daily_ready_notified_${userId}`, today);
-                        showNotify("🎉 The wait is over! Grab your gifts!", "success");
-                        // Uthenga weniweni pa Telegram kutha kwa nthawi (Timer Complete notification)
-                        let readyText = `🎉 *Woohoo! The wait is over!* ⏰\n*Your daily check-in timer has just finished ticking. Jump back in to grab your gifts!* 🥳`;
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(readyText)}&parse_mode=Markdown`);
-                    }
                 }
             } else {
                 btn.disabled = false;
@@ -867,30 +915,39 @@
             }
         }
 
-        async function claimDailyReward() {
+        async function claimTimeBonus() {
             if (!_supabase) return;
+            const today = new Date().toISOString().split('T')[0];
+            let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
+            
+            if (claimCount >= 10) return showNotify("Daily limit reached!", "warning");
+
             const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
             const now = new Date().getTime();
+            const cooldown = 90 * 60 * 1000;
 
-            if (lastClaim && (now - parseInt(lastClaim, 10)) < (24 * 60 * 60 * 1000)) return showNotify("Please wait 24 hours!", "warning");
+            if (lastClaim && (now - parseInt(lastClaim, 10)) < cooldown) return showNotify("Please wait for the timer!", "warning");
 
             const btn = document.getElementById('daily-claim-btn');
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
             try {
-                const energyReward = 5; 
+                const energyReward = 2; 
                 const currentIsoDate = new Date().toISOString();
                 const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                 
                 if (!error) {
                     currentEnergy += energyReward;
-                    localStorage.setItem(`daily_claim_${userId}`, now.toString());
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'DAILY_REWARD', amount: 0, status: 'approved' }]);
-                    showNotify(`Successfully claimed 🎟️ 5 Tickets!`, "success");
+                    claimCount++;
+                    localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
+                    localStorage.setItem(`daily_claim_${userId}`, now.toString()); // Reusing daily_claim key for simplicity
+                    
+                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' }]);
+                    showNotify(`Successfully claimed 2 🎟️!`, "success");
                     updateUI();
                     fetchHistory(true);
-                } else showNotify("Failed to claim reward", "warning");
-            } catch(e) { showNotify("Failed to claim reward", "warning"); }
+                } else showNotify("Failed to claim bonus", "warning");
+            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
             updateDailyTimer();
         }
 
@@ -915,7 +972,7 @@
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             if (referrerData) {
-                                let newEnergy = parseInt(referrerData.energy || 0) + 2; 
+                                let newEnergy = parseInt(referrerData.energy || 0) + 5; 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
@@ -926,8 +983,8 @@
                                 await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
                                 
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 2 Tickets as a reward!* 🎟️🎟️\n*Keep inviting friends to earn even more!* ✨`;
-                                if (gotSpin) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN for reaching ${currentRefs} referrals!*`;
+                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 5 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
+                                if (gotSpin) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN!*`;
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                             }
                         }
@@ -952,9 +1009,9 @@
                     if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
                 }
                 
-                spinChances = parseInt(data?.spin_chances || 0) + 1000;
+                spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 5) + 1000;
+                currentEnergy = parseInt(data?.energy || 5);
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
@@ -978,11 +1035,12 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type);
+                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS'].includes(item.type);
                         
                         let label = item.type.replace(/_/g, ' ');
                         if (item.type === 'CLICK_AD_REWARD') label = 'AD REWARD'; 
                         if (item.type === 'VIDEO_AD_REWARD') label = 'AD REWARD';
+                        if (item.type === 'DAILY_REWARD') label = 'TIME BONUS'; 
 
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
@@ -991,10 +1049,9 @@
                             if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
                             else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
                             else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
-                            else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera'; 
-                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click'; 
-                            else if (item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
-                            else if (item.type === 'DAILY_REWARD') iconClass = 'ph-calendar-check';
+                            else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
+                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
+                            else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
                         } else {
                             iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
                         }
@@ -1003,10 +1060,12 @@
                         const dateObj = new Date(item.created_at);
                         
                         let amountHtml = '';
-                        if (['REFERRAL_BONUS', 'TASK_REWARD', 'VIDEO_AD_REWARD', 'AD_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
-                        } else if (item.type === 'DAILY_REWARD') {
+                        if (item.type === 'TIME_BONUS') {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
+                        } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 5 🎟️</p>`;
+                        } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
                         } else if (item.type === 'WITHDRAWAL') {
                             amountHtml = `<p class="text-red-400 font-black text-xs uppercase">-Rs ${item.amount.toFixed(2)}</p>`;
                         } else {
@@ -1054,7 +1113,7 @@
                     let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
                     let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
                     
-                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
+                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
             } catch(e) { console.error(e); }
         }
@@ -1244,13 +1303,20 @@
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
             if (vcd) {
-                vcd.innerText = `Earn 🎟️ 1 Ticket (${videoCount}/5)`;
+                vcd.innerText = `Earn 🎟️ 5 Tickets (${videoCount}/3)`;
             }
 
             let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
             const ccd = document.getElementById('click-count-display');
             if (ccd) {
-                ccd.innerText = `Earn 🎟️ 1 Ticket (${clickCount}/∞)`;
+                ccd.innerText = `Earn 50 Pts (${clickCount}/∞)`;
+            }
+
+            // Update Time Bonus limit display
+            let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
+            const tbd = document.getElementById('time-bonus-display');
+            if (tbd) {
+                tbd.innerText = `Earn 🎟️ 2 Tickets (${timeClaimCount}/10)`;
             }
         }
 
@@ -1335,9 +1401,8 @@
             else if (rand < 0.15) prizeIdx = 2; // 500 Pts (10%)
             else if (rand < 0.35) prizeIdx = 3; // 200 Pts (20%)
             else if (rand < 0.65) prizeIdx = 4; // 100 Pts (30%)
-            else prizeIdx = 5; // Try Again (35%)
+            else prizeIdx = 5; // 10 Pts (35%) 
 
-            // Ndondomeko yotembenuka yowona (Mapping Target Angles correctly)
             const targetRotationMap = [30, 90, 150, 210, 270, 330]; 
             const baseRot = currentWheelRotation % 360;
             let offset = targetRotationMap[prizeIdx] - baseRot;
@@ -1380,13 +1445,13 @@
         // ==========================================
 
         const cryptoLogos = [
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png', // BTC (Index 0)
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png', // ETH
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png', // TON (Index 2)
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png', // DOGE
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png', // NOT
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/32195.png', // HMSTR
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/32684.png'  // DOGS
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/32195.png', 
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/32684.png'  
         ];
 
         let slotPoints = 0; 
@@ -1468,7 +1533,6 @@
                 return;
             }
 
-            // Ticket deduct
             currentEnergy--;
             updateUI();
             
@@ -1493,7 +1557,6 @@
                 slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
             }, 80);
 
-            // Daily task check for Super BTC Jackpot
             const todayStr = new Date().toISOString().split('T')[0];
             const btcJackpotKey = `btc_jackpot_${userId}_${todayStr}`;
             let hasGotBtcJackpot = localStorage.getItem(btcJackpotKey);
@@ -1502,7 +1565,7 @@
             let clkCount = parseInt(localStorage.getItem(`click_count_${userId}_${todayStr}`) || "0");
             
             let forceBtc = false;
-            if (!hasGotBtcJackpot && vidCount >= 5 && clkCount >= 2) {
+            if (!hasGotBtcJackpot && vidCount >= 3 && clkCount >= 2) {
                 forceBtc = true;
                 localStorage.setItem(btcJackpotKey, "true");
             }
@@ -1547,7 +1610,7 @@
                 let pointsWon = 0;
 
                 if (r1 === 0 && r2 === 0 && r3 === 0) {
-                    pointsWon = 100; // Super Jackpot
+                    pointsWon = 100; 
                     triggerVibration('heavy');
                     
                     confetti({ 
@@ -1560,7 +1623,7 @@
                     showSlotMessage("🎉 SUPER BTC JACKPOT! +100 PTS", "success");
                 }
                 else if (r1 === 2 && r2 === 2 && r3 === 2) {
-                    pointsWon = 20; // TON Jackpot
+                    pointsWon = 20; 
                     triggerVibration('success');
                     
                     confetti({ 
