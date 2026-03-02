@@ -203,6 +203,13 @@
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10 pb-8">
             <h2 class="text-3xl font-black text-white mb-1 text-center uppercase italic drop-shadow-md">Lucky Wheel</h2>
             <p class="text-center text-xs text-purple-300 font-bold mb-4 uppercase tracking-widest">Spin & Win Big</p>
+
+            <button id="wheel-spin-btn" onclick="spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
+                <span>SPIN</span>
+                <div class="bg-black/50 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-purple-400/50 shadow-inner font-bold tracking-widest">
+                    <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
+                </div>
+            </button>
             
             <div class="w-full max-w-[280px] mx-auto mb-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-lg">
                 <div class="flex justify-between items-end mb-2">
@@ -215,7 +222,7 @@
                 <p class="text-[8px] text-slate-400 mt-2 text-center uppercase font-bold">5 Invites = 1 Free Spin</p>
             </div>
 
-            <div class="relative w-[280px] h-[280px] mx-auto my-4">
+            <div class="relative w-[280px] h-[280px] mx-auto my-2">
                 
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-10 z-30 flex justify-center">
                     <div class="w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-400 drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative">
@@ -240,13 +247,13 @@
 
                 <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);">
                     
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(-82.5deg) translateX(35px);">Rs 100</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(-50deg) translateX(40px);">Rs 50</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(0deg) translateX(40px);">Rs 20</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(50deg) translateX(40px);">Rs 10</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(100deg) translateX(40px);">Rs 5</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(150deg) translateX(40px);">Rs 2</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[13px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(200deg) translateX(40px);">Rs 1</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-82.5deg) translateX(35px);">Win Rs 100</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-50deg) translateX(35px);">Win Rs 50</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(0deg) translateX(35px);">Win Rs 20</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(50deg) translateX(35px);">Win Rs 10</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(100deg) translateX(35px);">Win Rs 5</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(150deg) translateX(35px);">Win Rs 2</div>
+                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(200deg) translateX(35px);">Win Rs 1</div>
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[10px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(247.5deg) translateX(25px);">TRY AGAIN</div>
                     
                     <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(-90deg);"></div>
@@ -263,13 +270,6 @@
                     <div class="w-full h-full rounded-full border border-yellow-600/50"></div>
                 </div>
             </div>
-
-            <button id="wheel-spin-btn" onclick="spinWheel()" class="mt-8 mb-10 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
-                <span>SPIN</span>
-                <div class="bg-black/50 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-purple-400/50 shadow-inner font-bold tracking-widest">
-                    <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
-                </div>
-            </button>
         </div>
     </div>
 
@@ -387,7 +387,7 @@
                             <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
-                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 5 Tickets</p></div>
+                    <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 2 Tickets</p></div>
                 </div>
                 <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
@@ -473,16 +473,16 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v15.0.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Casino Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v1.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Last Updated: March 2, 2026, 3:59 PM</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Haptic Vibration System optimized for all phones.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>2-Second Fast Spin results for quick gameplay.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New Casino Style Lucky Wheel design.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>New Crypto Icons: BTC, LTC, TRX, USDT, HMSTR, NOT, DOGE, BNB.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Crypto Spin and Lucky Wheel.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete tasks to earn tickets from scratch.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Invite friends to earn 2 tickets each.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Seamless and fast withdrawal system.</span></li>
                 </ul>
             </div>
         </div>
@@ -800,38 +800,39 @@
 
             setInterval(updateTimeBonusTimer, 1000);
 
-            let prog = 0, isDataReady = false;
-            const timer = setInterval(() => {
-                if (!isDataReady) {
-                    prog += 3;
-                    if(prog >= 85) prog = 85; 
-                } else {
-                    prog += 5;
-                    if (prog >= 100) prog = 100;
-                }
-
-                if(document.getElementById('progress-bar')) document.getElementById('progress-bar').style.width = prog + '%';
-                if(document.getElementById('percentage')) document.getElementById('percentage').innerText = prog + '%';
-                
-                if(prog === 100) { 
-                    clearInterval(timer); 
-                    setTimeout(() => { 
-                        const ls = document.getElementById('loading-screen');
-                        if(ls) { 
-                            ls.style.opacity = '0'; 
-                            setTimeout(() => { 
-                                ls.style.display = 'none'; 
-                            }, 400); 
-                        }
-                    }, 200); 
-                }
-            }, 30);
+            // Progress bar strictly linked to Data Load
+            let prog = 0;
+            const progBar = document.getElementById('progress-bar');
+            const progTxt = document.getElementById('percentage');
+            
+            function updateProg(val) {
+                if(progBar) progBar.style.width = val + '%';
+                if(progTxt) progTxt.innerText = val + '%';
+            }
+            
+            let fakeLoader = setInterval(() => {
+                if (prog < 90) { prog += 5; updateProg(prog); }
+            }, 50);
 
             try {
-                if(_supabase) { await fetchUserData(); await fetchHistory(true); } 
-                else { showNotify("Database connection failed.", "warning"); }
+                if(_supabase) { 
+                    await fetchUserData(); 
+                    await fetchHistory(true); 
+                } else { 
+                    showNotify("Database connection failed.", "warning"); 
+                }
             } catch(e) { console.error(e); } 
-            finally { isDataReady = true; }
+            finally {
+                clearInterval(fakeLoader);
+                updateProg(100);
+                setTimeout(() => {
+                    const ls = document.getElementById('loading-screen');
+                    if(ls) { 
+                        ls.style.opacity = '0'; 
+                        setTimeout(() => ls.style.display = 'none', 400); 
+                    }
+                }, 300);
+            }
         }
 
         // --- WATCH VIDEO LOGIC ---
@@ -846,7 +847,7 @@
 
             setTimeout(async () => {
                 try {
-                    const energyReward = 5; 
+                    const energyReward = 2; 
                     const currentIsoDate = new Date().toISOString();
                     const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                     if (!error) {
@@ -854,7 +855,7 @@
                         videoCount++;
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
                         await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned 5 🎟️ from Video Task!`, "success");
+                        showNotify(`Earned 2 🎟️ from Video Task!`, "success");
                         updateUI();
                         fetchHistory(true);
                     }
@@ -951,7 +952,7 @@
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
-                        user_id: userId, balance: 0, energy: 5, username: tgUser?.username || '',
+                        user_id: userId, balance: 0, energy: 0, username: tgUser?.username || '',
                         first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || ''
                     };
                     
@@ -963,7 +964,7 @@
                         if (startParam && startParam !== userId && startParam !== "99999") {
                             let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
                             if (referrerData) {
-                                let newEnergy = parseInt(referrerData.energy || 0) + 5; 
+                                let newEnergy = parseInt(referrerData.energy || 0) + 2; 
                                 let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
                                 let currentRefs = refData ? refData.length : 0;
                                 let newSpinChances = parseInt(referrerData.spin_chances || 0);
@@ -974,7 +975,7 @@
                                 await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
                                 
                                 const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 5 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
+                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 2 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
                                 if (gotSpin) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN!*`;
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
                             }
@@ -1003,7 +1004,7 @@
                 
                 spinChances = parseInt(data?.spin_chances || 0);
                 currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 5);
+                currentEnergy = parseInt(data?.energy || 0);
                 
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
@@ -1035,6 +1036,7 @@
 
                         if (item.type === 'CLICK_AD_REWARD' || item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
                         if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'TIME WINNING POINTS'; 
+                        if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
 
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
@@ -1057,7 +1059,7 @@
                         if (item.type === 'TIME_BONUS') {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
                         } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 5 🎟️</p>`;
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
                         } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
                         } else if (item.type === 'WITHDRAWAL') {
@@ -1345,7 +1347,7 @@
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
             if (vcd) {
-                vcd.innerText = `Earn 🎟️ 5 Tickets (${videoCount}/3)`;
+                vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
             }
 
             let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
@@ -1429,7 +1431,7 @@
             spinChances--; 
             updateUI();
             updateWheelUI();
-            triggerVibration('medium'); // Button click vibration
+            triggerVibration('medium'); 
             
             try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
             
@@ -1450,13 +1452,11 @@
             let offset = targetRotationMap[prizeIdx] - baseRot;
             if (offset < 0) offset += 360;
             
-            // 2 Seconds Fast Spin logic (4 full rotations + offset)
             currentWheelRotation += (4 * 360) + offset + (Math.floor(Math.random() * 8) - 4);
             
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
 
-            // Exactly 2 Seconds timeout for result
             setTimeout(async () => {
                 const currentIsoDate = new Date().toISOString();
                 const prize = prizes[prizeIdx];
@@ -1467,7 +1467,7 @@
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
                             confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 1000 });
-                            triggerVibration('heavy'); // Winning vibration
+                            triggerVibration('heavy'); 
                         } else { 
                             showNotify("Failed to save prize.", "warning"); 
                             triggerVibration('error');
@@ -1478,10 +1478,10 @@
                     }
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
-                    triggerVibration('error'); // Try again vibration
+                    triggerVibration('error'); 
                 }
                 if(btn) btn.disabled = false;
-            }, 2000); // 2 Seconds
+            }, 2000); 
         }
 
         // ==========================================
@@ -1489,14 +1489,14 @@
         // ==========================================
 
         const cryptoLogos = [
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // BTC
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/2.png',      // LTC
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png',   // TRX
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',    // USDT
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/31095.png',  // HMSTR
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png',  // NOT
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png',     // DOGE
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'    // BNB
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/2.png',      // 1: LTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png',   // 2: TRX
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',    // 3: USDT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png',  // 4: TON
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png',  // 5: NOT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png',     // 6: DOGE
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'    // 7: BNB
         ];
 
         let slotPoints = 0; 
@@ -1588,7 +1588,7 @@
             const msgBox = document.getElementById('slot-message-box');
             if(msgBox) msgBox.classList.remove('active');
 
-            triggerVibration('medium'); // Initial spin start vibration
+            triggerVibration('medium');
 
             const slots = [
                 document.getElementById('slot-img-1'),
@@ -1598,12 +1598,10 @@
 
             slots.forEach(s => s.classList.add('spinning-blur'));
 
-            // Optimized fast spinning for 2 seconds
             let spinInterval = setInterval(() => {
                 slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
             }, 80);
 
-            // Exactly 2 seconds timeout
             setTimeout(() => {
                 clearInterval(spinInterval);
                 slots.forEach(s => s.classList.remove('spinning-blur'));
@@ -1612,6 +1610,7 @@
 
                 const todayStr = new Date().toISOString().split('T')[0];
                 const videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${todayStr}`) || "0");
+                
                 const hasDoneAllTasks = (videoCount >= 3); 
 
                 let daysActive = 0;
@@ -1653,7 +1652,7 @@
                     r1 = 7; r2 = 7; r3 = 7; 
                 }
                 else if (winType === '3_MATCH') {
-                    const allowed = [1, 2, 3, 4, 5, 6]; // All except BTC and BNB directly
+                    const allowed = [1, 2, 3, 4, 5, 6]; 
                     r1 = allowed[Math.floor(Math.random() * allowed.length)];
                     r2 = r1; r3 = r1;
                 }
@@ -1734,7 +1733,7 @@
                 isSpinning = false;
                 if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
 
-            }, 2000); // Exactly 2 Seconds
+            }, 2000); 
         }
     </script>
 </body>
