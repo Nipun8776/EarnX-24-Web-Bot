@@ -3,38 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EarnX24 | Blue Glass</title> 
+    <title>EarnX24 | Casino Edition</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    
-    <script>
-        const originalConsoleError = console.error;
-        console.error = function(...args) {
-            let msg = args[0];
-            if (typeof msg === 'string' && (msg.includes('CloudStorage is not supported') || msg.includes('adex timeout'))) return; 
-            if (msg instanceof Error && msg.message && msg.message.includes('adex timeout')) return;
-            originalConsoleError.apply(console, args);
-        };
-        window.addEventListener('error', function(event) { if (event.message && event.message.includes('adex timeout')) event.preventDefault(); });
-        window.addEventListener('unhandledrejection', function(event) {
-            let msg = event.reason ? (event.reason.message || event.reason.toString()) : '';
-            if (typeof msg === 'string' && msg.includes('adex timeout')) { event.preventDefault(); return false; }
-        });
-
-        if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.isVersionAtLeast('6.9')) {
-            const cloudPolyfill = {
-                setItem: function(k, v, cb) { try { localStorage.setItem('tg_cloud_' + k, v); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                getItem: function(k, cb) { try { let val = localStorage.getItem('tg_cloud_' + k); if(cb) cb(null, val); } catch(e) { if(cb) cb(e); } return this; },
-                getItems: function(ks, cb) { try { let res = {}; ks.forEach(k => { res[k] = localStorage.getItem('tg_cloud_' + k); }); if(cb) cb(null, res); } catch(e) { if(cb) cb(e); } return this; },
-                removeItem: function(k, cb) { try { localStorage.removeItem('tg_cloud_' + k); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                removeItems: function(ks, cb) { try { ks.forEach(k => { localStorage.removeItem('tg_cloud_' + k); }); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                getKeys: function(cb) { try { let keys = []; for(let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); if(k.startsWith('tg_cloud_')) keys.push(k.replace('tg_cloud_', '')); } if(cb) cb(null, keys); } catch(e) { if(cb) cb(e); } return this; }
-            };
-            if (window.Telegram.WebApp.CloudStorage) Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
-            else window.Telegram.WebApp.CloudStorage = cloudPolyfill;
-        }
-    </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -54,28 +25,16 @@
             flex-direction: column; 
             position: relative; 
             overscroll-behavior: none; 
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
+            -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
         }
 
-        .app-container {
-            background-color: #020617;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-            transform: translateZ(0); 
-            display: flex;
-            flex-direction: column;
-        }
-
+        .app-container { background-color: #020617; width: 100%; height: 100%; position: relative; overflow: hidden; transform: translateZ(0); display: flex; flex-direction: column; }
         input, textarea, select { user-select: auto; }
         
         #loading-screen { position: fixed; inset: 0; background: #020617; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; }
         .loader-ring { width: 50px; height: 50px; border: 3px solid rgba(56, 189, 248, 0.1); border-top: 3px solid #38bdf8; border-radius: 50%; animation: spin 1s infinite; margin-bottom: 20px; }
         .progress-container { width: 200px; height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-top: 20px; overflow: hidden; }
-        #progress-bar { width: 0%; height: 100%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8; transition: width 0.1s linear; }
+        #progress-bar { width: 0%; height: 100%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8; transition: width 0.2s linear; }
         
         #custom-notify { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; z-index: 1000; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
         #custom-notify.active { top: 30px; opacity: 1; }
@@ -98,8 +57,6 @@
         @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
 
-        .wheel-marker { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 28px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-
         @keyframes play-pulse { 0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } 50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } }
         .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
         @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
@@ -107,7 +64,6 @@
         @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
         .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
 
-        /* Game Specific Styles */
         .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -123,11 +79,9 @@
             100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
         }
         .float-points-anim { animation: floatPoints 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; position: absolute; z-index: 50; font-weight: 900; font-size: 2.5rem; pointer-events: none; }
-        
         .msg-pop { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
         .msg-pop.active { opacity: 1; transform: translateY(0); }
 
-        /* 2 Seconds Fast Spin Animation */
         #lucky-wheel { transition: transform 2s cubic-bezier(0.1, 0.9, 0.2, 1); }
     </style>
 </head>
@@ -166,7 +120,6 @@
             <div id="slot-machine-container" class="relative">
                 <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.2)] relative z-10">
                     <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
-                    
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
                         <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
@@ -210,8 +163,21 @@
                     <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
                 </div>
             </button>
+
+            <div class="relative w-[280px] h-[280px] mx-auto my-2">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-10 z-30 flex justify-center">
+                    <div class="w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-400 drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative">
+                        <div class="absolute -top-[28px] -left-[14px] w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-200 scale-[0.6]"></div>
+                    </div>
+                </div>
+                <div id="wheel-rim" class="absolute inset-0 bg-[#111827] rounded-full border-[4px] border-[#1f2937] shadow-[0_10px_30px_rgba(0,0,0,0.8),inset_0_0_15px_rgba(0,0,0,0.9)] z-0"></div>
+                <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] rounded-full bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 border-[3px] border-yellow-100 shadow-[0_4px_15px_rgba(0,0,0,0.8)] z-20">
+                    <div class="w-full h-full rounded-full border border-yellow-600/50"></div>
+                </div>
+            </div>
             
-            <div class="w-full max-w-[280px] mx-auto mb-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-lg">
+            <div class="w-full max-w-[280px] mx-auto mt-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-lg">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-users text-purple-400"></i> Invite Progress</p>
                     <span id="wheel-ref-count" class="text-xs font-black text-white">0/5</span>
@@ -220,55 +186,6 @@
                     <div id="wheel-ref-progress" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]" style="width: 0%;"></div>
                 </div>
                 <p class="text-[8px] text-slate-400 mt-2 text-center uppercase font-bold">5 Invites = 1 Free Spin</p>
-            </div>
-
-            <div class="relative w-[280px] h-[280px] mx-auto my-2">
-                
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-10 z-30 flex justify-center">
-                    <div class="w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-400 drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative">
-                        <div class="absolute -top-[28px] -left-[14px] w-0 h-0 border-l-[14px] border-r-[14px] border-l-transparent border-r-transparent border-t-[28px] border-t-yellow-200 scale-[0.6]"></div>
-                    </div>
-                </div>
-
-                <div class="absolute inset-0 bg-[#111827] rounded-full border-[4px] border-[#1f2937] shadow-[0_10px_30px_rgba(0,0,0,0.8),inset_0_0_15px_rgba(0,0,0,0.9)] z-0">
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(0deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(30deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(60deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(90deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(120deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(150deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(180deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(210deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(240deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(270deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(300deg) translate(130px);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(330deg) translate(130px);"></div>
-                </div>
-
-                <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);">
-                    
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-82.5deg) translateX(35px);">Win Rs 100</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-50deg) translateX(35px);">Win Rs 50</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(0deg) translateX(35px);">Win Rs 20</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(50deg) translateX(35px);">Win Rs 10</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(100deg) translateX(35px);">Win Rs 5</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(150deg) translateX(35px);">Win Rs 2</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(200deg) translateX(35px);">Win Rs 1</div>
-                    <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[10px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.1em]" style="transform: translateY(-50%) rotate(247.5deg) translateX(25px);">TRY AGAIN</div>
-                    
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(-90deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(-75deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(-25deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(25deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(75deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(125deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(175deg);"></div>
-                    <div class="absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left" style="transform: translateY(-50%) rotate(225deg);"></div>
-                </div>
-
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[44px] h-[44px] rounded-full bg-gradient-to-br from-yellow-200 via-yellow-500 to-yellow-800 border-[3px] border-yellow-100 shadow-[0_4px_15px_rgba(0,0,0,0.8)] z-20">
-                    <div class="w-full h-full rounded-full border border-yellow-600/50"></div>
-                </div>
             </div>
         </div>
     </div>
@@ -480,15 +397,15 @@
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Crypto Spin and Lucky Wheel.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete tasks to earn tickets from scratch.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete tasks to earn tickets.</span></li>
                     <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Invite friends to earn 2 tickets each.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Seamless and fast withdrawal system.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Seamless and secure withdrawal system.</span></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+    <div id="withdraw-history-sheet" class="bottom-sheet flex flex-col h-[85%]">
         <div class="flex items-center gap-4 mb-6 shrink-0 border-b border-white/10 pb-4 relative">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg"><i class="ph-fill ph-cube text-2xl"></i></div>
             <div>
@@ -500,7 +417,7 @@
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
-    <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+    <div id="referral-sheet" class="bottom-sheet flex flex-col h-[85%]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
                 <h2 class="text-xl font-black text-white uppercase italic">My Referral List</h2>
@@ -511,7 +428,7 @@
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
-    <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85dvh]">
+    <div id="rank-sheet" class="bottom-sheet flex flex-col h-[85%]">
         <div class="flex justify-between items-center mb-6 shrink-0 border-b border-white/10 pb-4">
             <div>
                 <h2 class="text-xl font-black text-white uppercase italic">Top Referrers</h2>
@@ -607,7 +524,6 @@
                         <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 200 Points</p>
                     </div>
                 </div>
-                <button onclick="showNotify('Available only if you are active for 3 days and complete all daily tasks.', 'success')" class="bg-amber-500/20 text-amber-400 w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"><i class="ph-bold ph-info text-lg"></i></button>
             </div>
 
             <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between">
@@ -622,7 +538,6 @@
                         <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 100 Points</p>
                     </div>
                 </div>
-                <button onclick="showNotify('Available once a day if all daily tasks are completed today.', 'success')" class="bg-blue-500/20 text-blue-400 w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition-transform"><i class="ph-bold ph-info text-lg"></i></button>
             </div>
 
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
@@ -679,31 +594,31 @@
         </div>
         <div class="flex-1 space-y-3 pb-4">
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 100 (Jackpot)</p>
+                <p class="text-sm font-black text-white">Win Rs 100 (Jackpot)</p>
                 <span class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md text-[10px] font-black">1% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 50</p>
+                <p class="text-sm font-black text-white">Win Rs 50</p>
                 <span class="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-md text-[10px] font-black">3% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 20</p>
+                <p class="text-sm font-black text-white">Win Rs 20</p>
                 <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">5% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 10</p>
+                <p class="text-sm font-black text-white">Win Rs 10</p>
                 <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">10% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 5</p>
+                <p class="text-sm font-black text-white">Win Rs 5</p>
                 <span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-black">15% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 2</p>
+                <p class="text-sm font-black text-white">Win Rs 2</p>
                 <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded-md text-[10px] font-black">20% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                <p class="text-sm font-black text-white">Rs 1</p>
+                <p class="text-sm font-black text-white">Win Rs 1</p>
                 <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md text-[10px] font-black">25% Chance</span>
             </div>
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
@@ -713,33 +628,57 @@
         </div>
     </div>
 
-  </div> <script>
+  </div> 
+
+    <script>
         const tg = window.Telegram?.WebApp || {};
-        const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
-        let _supabase;
         
+        const SUPABASE_URL = 'https://mljnhvkbvrtpgytoxvqf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sam5odmtidnJ0cGd5dG94dnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI0NTEwMzEsImV4cCI6MjA4ODAyNzAzMX0.dCDfu2uHAXal6en4DAG7pt7kV14pusC3BQtk3FTSX9g';
+        
+        let _supabase;
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
-        let sessionSpinCount = 0; 
-        
-        let sessionExpired = false;
 
         const prizes = [
-            { label: 'Rs 100', val: 100.00, type: 'cash' }, 
-            { label: 'Rs 50', val: 50.00, type: 'cash' }, 
-            { label: 'Rs 20', val: 20.00, type: 'cash' },  
-            { label: 'Rs 10', val: 10.00, type: 'cash' },   
-            { label: 'Rs 5', val: 5.00, type: 'cash' },
-            { label: 'Rs 2', val: 2.00, type: 'cash' },
-            { label: 'Rs 1', val: 1.00, type: 'cash' },
-            { label: 'Try Again', val: 0.00, type: 'empty' } 
+            { label: 'Rs 100', val: 100.00 }, { label: 'Rs 50', val: 50.00 }, { label: 'Rs 20', val: 20.00 },  
+            { label: 'Rs 10', val: 10.00 }, { label: 'Rs 5', val: 5.00 }, { label: 'Rs 2', val: 2.00 },
+            { label: 'Rs 1', val: 1.00 }, { label: 'Try Again', val: 0.00 } 
         ];
 
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
-        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+        
+        // Securely handled Bot Token for direct frontend notifications
+        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE"; 
+
+        const rim = document.getElementById('wheel-rim');
+        if(rim) {
+            for(let i=0; i<360; i+=30) {
+                let s = document.createElement('div');
+                s.className = "absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5";
+                s.style.transform = `rotate(${i}deg) translate(130px)`;
+                rim.appendChild(s);
+            }
+        }
+        const wheel = document.getElementById('lucky-wheel');
+        if(wheel) {
+            const texts = ['Win Rs 100', 'Win Rs 50', 'Win Rs 20', 'Win Rs 10', 'Win Rs 5', 'Win Rs 2', 'Win Rs 1', 'TRY AGAIN'];
+            const angles = [-82.5, -50, 0, 50, 100, 150, 200, 247.5];
+            texts.forEach((t, idx) => {
+                let el = document.createElement('div');
+                el.className = `absolute top-1/2 left-1/2 flex items-center text-white font-black drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em] ${idx===7?'text-[10px] tracking-[0.1em]':'text-[12px]'}`;
+                el.style.transform = `translateY(-50%) rotate(${angles[idx]}deg) translateX(${idx===7?'25px':'35px'})`;
+                el.innerText = t;
+                wheel.appendChild(el);
+                
+                let line = document.createElement('div');
+                line.className = "absolute top-1/2 left-1/2 w-[120px] h-[2px] bg-white/30 origin-left";
+                line.style.transform = `translateY(-50%) rotate(${angles[idx]-7.5}deg)`;
+                wheel.appendChild(line);
+            });
+        }
 
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
@@ -750,7 +689,6 @@
             return diffDays <= 3;
         }
 
-        // UNIVERSAL VIBRATION SYSTEM 
         function triggerVibration(type) {
             try {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -762,24 +700,30 @@
                     else if (type === 'error') haptic.notificationOccurred('error');
                     else if (type === 'warning') haptic.notificationOccurred('warning');
                 } else if (navigator.vibrate) {
-                    if (type === 'heavy') navigator.vibrate(100);
+                    if (type === 'heavy') navigator.vibrate([100, 50, 100]);
                     else if (type === 'medium') navigator.vibrate(50);
                     else if (type === 'light') navigator.vibrate(20);
-                    else if (type === 'success') navigator.vibrate([30, 50, 30]);
+                    else if (type === 'success') navigator.vibrate([30, 50, 30, 50, 30]);
                     else if (type === 'error') navigator.vibrate([50, 50, 50]);
                 }
             } catch(e) {}
         }
 
-        async function initApp() {
-            if (window.supabase) {
-                _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        function logActivity(action, details) {
+            if(_supabase) {
+                _supabase.rpc('log_activity', { p_user_id: userId, p_action_name: action, p_details: details }).then();
             }
+        }
+
+        async function initApp() {
+            if (window.supabase) { _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
             
             userId = tgUser ? String(tgUser.id) : "99999"; 
             const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
+            const userName = tgUser?.username || '';
+            const userPhoto = tgUser?.photo_url || '';
             
             if(document.getElementById('user-display-name')) document.getElementById('user-display-name').innerText = fullName || "Guest User";
             if(document.getElementById('menu-user-name')) document.getElementById('menu-user-name').innerText = fullName || "Guest User";
@@ -787,99 +731,107 @@
 
             const usernameDisplay = document.getElementById('user-username-display');
             if (usernameDisplay) {
-                if (tgUser?.username) usernameDisplay.innerText = "@" + tgUser.username;
+                if (userName) usernameDisplay.innerText = "@" + userName;
                 else usernameDisplay.innerText = "ID: " + userId;
             }
 
-            if (tgUser?.photo_url) {
-                if(document.getElementById('profile-pic')) { document.getElementById('profile-pic').src = tgUser.photo_url; document.getElementById('profile-pic').style.display = 'block'; }
+            if (userPhoto) {
+                if(document.getElementById('profile-pic')) { document.getElementById('profile-pic').src = userPhoto; document.getElementById('profile-pic').style.display = 'block'; }
                 if(document.getElementById('default-pic')) document.getElementById('default-pic').style.display = 'none';
-                if(document.getElementById('menu-profile-pic')) { document.getElementById('menu-profile-pic').src = tgUser.photo_url; document.getElementById('menu-profile-pic').style.display = 'block'; }
+                if(document.getElementById('menu-profile-pic')) { document.getElementById('menu-profile-pic').src = userPhoto; document.getElementById('menu-profile-pic').style.display = 'block'; }
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
             setInterval(updateTimeBonusTimer, 1000);
 
-            // Progress bar strictly linked to Data Load
             let prog = 0;
             const progBar = document.getElementById('progress-bar');
             const progTxt = document.getElementById('percentage');
+            function updateProg(val) { if(progBar) progBar.style.width = val + '%'; if(progTxt) progTxt.innerText = val + '%'; }
             
-            function updateProg(val) {
-                if(progBar) progBar.style.width = val + '%';
-                if(progTxt) progTxt.innerText = val + '%';
-            }
-            
-            let fakeLoader = setInterval(() => {
-                if (prog < 90) { prog += 5; updateProg(prog); }
-            }, 50);
+            let fakeLoader = setInterval(() => { if (prog < 90) { prog += 5; updateProg(prog); } }, 50);
 
             try {
                 if(_supabase) { 
-                    await fetchUserData(); 
-                    await fetchHistory(true); 
-                } else { 
-                    showNotify("Database connection failed.", "warning"); 
+                    const { data, error } = await _supabase.rpc('sync_user', { p_user_id: userId, p_username: userName, p_first_name: fullName, p_photo_url: userPhoto, p_start_param: startParam || '' });
+                    if(data) {
+                        const isActive = checkIsActive(data?.last_active, data?.created_at);
+                        const statusBadge = document.getElementById('menu-status-badge');
+                        const statusDot = document.getElementById('menu-status-dot');
+                        
+                        if (isActive) {
+                            if(statusBadge) { statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active'; }
+                            if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
+                        } else {
+                            if(statusBadge) { statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive'; }
+                            if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
+                        }
+
+                        if (data.created_at) {
+                            window.userCreatedAt = data.created_at; 
+                            const joinedDate = new Date(data.created_at);
+                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                            if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
+                        }
+                        
+                        spinChances = parseInt(data.spin_chances || 0);
+                        currentBalance = parseFloat(data.balance || 0);
+                        currentEnergy = parseInt(data.energy || 0);
+
+                        let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
+                        myReferralCount = myRefs ? myRefs.length : 0;
+
+                        updateUI(); updateWheelUI(); updateTimeBonusTimer();
+                        await fetchHistory(true);
+                        
+                        // Send referral notification securely
+                        if (startParam && startParam !== userId && startParam !== "99999" && data.energy === 0) {
+                            let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${fullName}* just joined using your referral link. 🤝\n*You’ve earned 2 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
+                            if (myRefs && myRefs.length > 0 && myRefs.length % 5 === 0) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN!*`;
+                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
+                        }
+                    }
                 }
             } catch(e) { console.error(e); } 
             finally {
-                clearInterval(fakeLoader);
-                updateProg(100);
+                clearInterval(fakeLoader); updateProg(100);
                 setTimeout(() => {
                     const ls = document.getElementById('loading-screen');
-                    if(ls) { 
-                        ls.style.opacity = '0'; 
-                        setTimeout(() => ls.style.display = 'none', 400); 
-                    }
+                    if(ls) { ls.style.opacity = '0'; setTimeout(() => ls.style.display = 'none', 400); }
                 }, 300);
             }
         }
 
-        // --- WATCH VIDEO LOGIC ---
-        function showRewardAd() {
+        async function showRewardAd() {
+            logActivity('WATCH_VIDEO_TRY', 'Attempted to watch video');
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
-            
             if (videoCount >= 3) return showNotify("Daily limit of 3 video tasks reached!", "warning");
 
             showNotify("Processing video task...", "success");
 
             setTimeout(async () => {
-                try {
-                    const energyReward = 2; 
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentEnergy += energyReward;
-                        videoCount++;
-                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned 2 🎟️ from Video Task!`, "success");
-                        updateUI();
-                        fetchHistory(true);
-                    }
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+                const { data, error } = await _supabase.rpc('watch_video', { p_user_id: userId });
+                if (data && data.success) {
+                    currentEnergy = data.energy;
+                    videoCount++;
+                    localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+                    showNotify(`Earned 2 🎟️ from Video Task!`, "success");
+                    updateUI(); fetchHistory(true);
+                } else { showNotify("Failed to credit reward", "error"); }
             }, 1500);
         }
 
-        // --- TIME BONUS LOGIC ---
         function updateTimeBonusTimer() {
             const today = new Date().toISOString().split('T')[0];
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            
             const btn = document.getElementById('daily-claim-btn');
             if (!btn) return;
-
-            if (claimCount >= 10) {
-                btn.disabled = true;
-                btn.innerText = "LIMIT REACHED"; 
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                return;
-            }
+            if (claimCount >= 10) { btn.disabled = true; btn.innerText = "LIMIT REACHED"; btn.classList.add('opacity-50', 'cursor-not-allowed'); return; }
 
             const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
-            const cooldown = 90 * 60 * 1000; // 90 mins
+            const cooldown = 90 * 60 * 1000; 
 
             if (lastClaim) {
                 const now = new Date().getTime();
@@ -891,199 +843,104 @@
                     const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                     const s = Math.floor((remaining % (1000 * 60)) / 1000);
-                    
-                    btn.disabled = true;
-                    btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = true; btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; btn.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
-                    btn.disabled = false;
-                    btn.innerText = "CLAIM"; 
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = false; btn.innerText = "CLAIM"; btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
             } else {
-                btn.disabled = false;
-                btn.innerText = "CLAIM"; 
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.disabled = false; btn.innerText = "CLAIM"; btn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
         async function claimTimeBonus() {
-            if (!_supabase) return;
+            logActivity('TIME_BONUS_TRY', 'Attempted to claim time bonus');
             const today = new Date().toISOString().split('T')[0];
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            
             if (claimCount >= 10) return showNotify("Daily limit reached!", "warning");
-
-            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
-            const now = new Date().getTime();
-            const cooldown = 90 * 60 * 1000;
-
-            if (lastClaim && (now - parseInt(lastClaim, 10)) < cooldown) return showNotify("Please wait for the timer!", "warning");
-
+            
             const btn = document.getElementById('daily-claim-btn');
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
-            try {
-                const energyReward = 1; // 1 Ticket per claim
-                const currentIsoDate = new Date().toISOString();
-                const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
-                
-                if (!error) {
-                    currentEnergy += energyReward;
-                    claimCount++;
-                    localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
-                    localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
-                    
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' }]);
-                    showNotify(`Successfully claimed 1 🎟️!`, "success");
-                    updateUI();
-                    fetchHistory(true);
-                } else showNotify("Failed to claim bonus", "warning");
-            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
+            const { data, error } = await _supabase.rpc('claim_time_bonus', { p_user_id: userId });
+            if (data && data.success) {
+                currentEnergy = data.energy;
+                claimCount++;
+                localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
+                localStorage.setItem(`time_bonus_last_${userId}`, new Date().getTime().toString()); 
+                showNotify(`Successfully claimed 1 🎟️!`, "success");
+                updateUI(); fetchHistory(true);
+            } else { showNotify("Failed to claim bonus", "error"); }
             updateTimeBonusTimer();
         }
 
-        async function fetchUserData() {
-            if (!_supabase) return;
-            try {
-                let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
-                if (error) throw error;
-
-                if (!data) { 
-                    const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
-                    const newUser = { 
-                        user_id: userId, balance: 0, energy: 0, username: tgUser?.username || '',
-                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || ''
-                    };
-                    
-                    if (startParam && startParam !== userId && startParam !== "99999") newUser.referrer_id = startParam;
-                    let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
-                    
-                    if (!ins.error) {
-                        data = ins.data || newUser; 
-                        if (startParam && startParam !== userId && startParam !== "99999") {
-                            let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
-                            if (referrerData) {
-                                let newEnergy = parseInt(referrerData.energy || 0) + 2; 
-                                let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
-                                let currentRefs = refData ? refData.length : 0;
-                                let newSpinChances = parseInt(referrerData.spin_chances || 0);
-                                let gotSpin = false;
-                                
-                                if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; gotSpin = true; }
-                                await _supabase.from('profiles').update({ spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
-                                await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
-                                
-                                const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 2 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
-                                if (gotSpin) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN!*`;
-                                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
-                            }
-                        }
-                    }
-                }
-
-                const isActive = checkIsActive(data?.last_active, data?.created_at);
-                const statusBadge = document.getElementById('menu-status-badge');
-                const statusDot = document.getElementById('menu-status-dot');
-                
-                if (isActive) {
-                    if(statusBadge) { statusBadge.className = "bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-star"></i> Active'; }
-                    if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]";
-                } else {
-                    if(statusBadge) { statusBadge.className = "bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex items-center gap-1"; statusBadge.innerHTML = '<i class="ph-regular ph-warning-circle"></i> Inactive'; }
-                    if(statusDot) statusDot.className = "absolute bottom-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#0f172a]";
-                }
-
-                if (data && data.created_at) {
-                    window.userCreatedAt = data.created_at; 
-                    const joinedDate = new Date(data.created_at);
-                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                    if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
-                }
-                
-                spinChances = parseInt(data?.spin_chances || 0);
-                currentBalance = parseFloat(data?.balance || 0);
-                currentEnergy = parseInt(data?.energy || 0);
-                
-                let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
-                myReferralCount = myRefs ? myRefs.length : 0;
-
-                updateUI(); updateWheelUI(); updateTimeBonusTimer();
-            } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
-        }
-        
         async function fetchHistory(limit = false) {
             if (!_supabase) return;
-            try {
-                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-                if (error) throw error;
-                if (data) {
-                    const items = limit ? data.slice(0, 5) : data;
-                    const hList = document.getElementById('history-list');
-                    if(!hList) return;
-                    
-                    if (items.length === 0) {
-                        hList.innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`;
-                        return;
-                    }
-                    hList.innerHTML = items.map(item => {
-                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS'].includes(item.type);
-                        
-                        let label = item.type.replace(/_/g, ' ');
-                        label = label.replace(/REWARD/g, 'WINNING POINTS');
-                        label = label.replace(/BONUS/g, 'WINNING POINTS');
+            const { data } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            renderHistory(data || [], limit);
+        }
 
-                        if (item.type === 'CLICK_AD_REWARD' || item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
-                        if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'TIME WINNING POINTS'; 
-                        if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
+        function renderHistory(data, limit) {
+            const items = limit ? data.slice(0, 5) : data;
+            const hList = document.getElementById('history-list');
+            if(!hList) return;
+            
+            if (items.length === 0) { hList.innerHTML = `<div class="glass p-6 rounded-2xl text-center border border-white/5"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No recent activity</p></div>`; return; }
+            hList.innerHTML = items.map(item => {
+                const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS'].includes(item.type);
+                
+                let label = item.type.replace(/_/g, ' ');
+                label = label.replace(/REWARD/g, 'WINNING POINTS');
+                label = label.replace(/BONUS/g, 'WINNING POINTS');
 
-                        let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
-                        
-                        let iconClass = 'ph-check-circle';
-                        if (isEarn) {
-                            if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
-                            else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
-                            else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
-                            else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
-                            else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
-                            else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
-                        } else {
-                            iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
-                        }
+                if (item.type === 'CLICK_AD_REWARD' || item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
+                if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'TIME WINNING POINTS'; 
+                if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
 
-                        let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
-                        const dateObj = new Date(item.created_at);
-                        
-                        let amountHtml = '';
-                        if (item.type === 'TIME_BONUS') {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
-                        } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
-                        } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
-                        } else if (item.type === 'WITHDRAWAL') {
-                            let wMethod = "Unknown";
-                            if(item.address) {
-                                let parts = item.address.split('::');
-                                if(parts.length > 1) wMethod = parts[1];
-                            }
-                            let fee = wMethod === 'BANK' ? 15 : 0;
-                            let total = item.amount + fee;
-
-                            amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${total.toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px]">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}</div>`;
-                        } else {
-                            let pts = Math.round(item.amount * 100);
-                            amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
-                        }
-                        
-                        return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass} text-xl"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
-                    }).join('');
+                let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
+                
+                let iconClass = 'ph-check-circle';
+                if (isEarn) {
+                    if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
+                    else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
+                    else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
+                    else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
+                    else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
+                    else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
+                } else {
+                    iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
                 }
-            } catch(e) { console.error(e); }
+
+                let iconBg = isEarn || item.status === 'approved' ? 'bg-green-500/10 text-green-500' : (item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500');
+                const dateObj = new Date(item.created_at);
+                
+                let amountHtml = '';
+                if (item.type === 'TIME_BONUS') {
+                    amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
+                } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
+                    amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
+                } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
+                    amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
+                } else if (item.type === 'WITHDRAWAL') {
+                    let wMethod = "Unknown";
+                    if(item.address) {
+                        let parts = item.address.split('::');
+                        if(parts.length > 1) wMethod = parts[1];
+                    }
+                    let fee = wMethod === 'BANK' ? 15 : 0;
+                    let total = item.amount + fee;
+
+                    amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${total.toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px]">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}</div>`;
+                } else {
+                    let pts = Math.round(item.amount * 100);
+                    amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
+                }
+                
+                return `<div class="glass p-4 rounded-2xl flex justify-between items-center history-item border border-white/5 transition-all hover:bg-white/5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center"><i class="ph-fill ${iconClass} text-xl"></i></div><div><p class="text-[11px] font-black uppercase tracking-tight">${label}</p><p class="text-[8px] font-bold ${statusColor}">${isEarn ? 'COMPLETED' : item.status.toUpperCase()}</p><p class="text-[7px] text-slate-500 mt-0.5">${dateObj.toLocaleDateString()} | ${dateObj.toLocaleTimeString()}</p></div></div>${amountHtml}</div>`;
+            }).join('');
         }
 
         function toggleHistory() {
+            logActivity('TOGGLE_HISTORY', isAllHistoryVisible ? 'Hide' : 'View All');
             isAllHistoryVisible = !isAllHistoryVisible;
             fetchHistory(!isAllHistoryVisible);
             const btn = document.getElementById('toggle-history-btn');
@@ -1091,132 +948,86 @@
         }
 
         async function openWithdrawHistory() {
+            logActivity('OPEN_WITHDRAW_HISTORY', '');
             closeSidePanel(); openSheet('withdraw-history-sheet');
             const listCont = document.getElementById('w-history-list-container');
             if(listCont) listCont.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
-                if (error) throw error;
+                const { data } = await _supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
                 const hc = document.getElementById('w-history-count');
                 if(hc) hc.innerText = data.length;
-                if (data.length === 0) {
-                    if(listCont) listCont.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
-                    return;
-                }
+                if (data.length === 0) { if(listCont) listCont.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>'; return; }
                 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 if(listCont) listCont.innerHTML = data.map(item => {
                     const dateObj = new Date(item.created_at);
                     const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                     let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
                     let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
-                    
                     let parts = (item.address || "N/A").split('::');
                     let destAddress = parts[0], wMethod = parts[1] || "Unknown", txId = parts[2] || (item.id ? item.id.substring(0, 8).toUpperCase() : "N/A");
-                    
                     let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
                     let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
                     let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
-                    
-                    let fee = wMethod === 'BANK' ? 15 : 0;
-                    let totalDeducted = item.amount + fee;
-
-                    let amountsHtml = '';
-                    if (item.status === 'approved') {
-                        amountsHtml = `
+                    let fee = wMethod === 'BANK' ? 15 : 0; let totalDeducted = item.amount + fee;
+                    let amountsHtml = `
                         <div class="text-right">
                             <p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p>
                             ${fee > 0 ? `<p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}
-                            <p class="text-slate-400 font-bold text-[9px] uppercase mt-0.5">Total: Rs. ${totalDeducted.toFixed(2)}</p>
+                            ${item.status==='approved' ? `<p class="text-slate-400 font-bold text-[9px] uppercase mt-0.5">Total: Rs. ${totalDeducted.toFixed(2)}</p>` : ''}
                             <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span>
                         </div>`;
-                    } else {
-                        amountsHtml = `
-                        <div class="text-right">
-                            <p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p>
-                            ${fee > 0 ? `<p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}
-                            <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span>
-                        </div>`;
-                    }
 
                     return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div>${amountsHtml}</div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
         
         function copyTxId(txId) {
+            logActivity('COPY_TX_ID', txId);
             const textArea = document.createElement("textarea"); textArea.value = txId; document.body.appendChild(textArea); textArea.select();
             try { document.execCommand('copy'); showNotify("Transaction ID Copied!", "success"); triggerVibration('light'); } catch (err) { showNotify("Failed to copy ID"); }
             document.body.removeChild(textArea);
         }
 
         function selectMethod(btn, name) {
+            logActivity('SELECT_WITHDRAW_METHOD', name);
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); 
-            btn.classList.add('selected'); selectedMethodName = name;
-            triggerVibration('light');
+            btn.classList.add('selected'); selectedMethodName = name; triggerVibration('light');
             
-            const wi = document.getElementById('withdraw-inputs');
-            if(wi) wi.classList.remove('hidden');
-            
-            const stdGroup = document.getElementById('standard-input-group');
-            const bankGroup = document.getElementById('bank-input-group');
-            const addrInput = document.getElementById('w-address');
-
-            const feeNoteEl = document.getElementById('withdraw-fee-note');
-            const feeNoteContainer = document.getElementById('fee-note-container');
+            const wi = document.getElementById('withdraw-inputs'); if(wi) wi.classList.remove('hidden');
+            const stdGroup = document.getElementById('standard-input-group'); const bankGroup = document.getElementById('bank-input-group');
+            const addrInput = document.getElementById('w-address'); const feeNoteEl = document.getElementById('withdraw-fee-note'); const feeNoteContainer = document.getElementById('fee-note-container');
 
             if (name === 'BANK') {
-                if(stdGroup) stdGroup.classList.add('hidden'); 
-                if(bankGroup) bankGroup.classList.remove('hidden');
-                
-                if (feeNoteEl && feeNoteContainer) {
-                    feeNoteEl.innerText = "Note: A fixed processing fee of Rs. 15.00 applies to Bank Transfers.";
-                    feeNoteContainer.classList.remove('hidden');
-                }
-
+                if(stdGroup) stdGroup.classList.add('hidden'); if(bankGroup) bankGroup.classList.remove('hidden');
+                if (feeNoteEl && feeNoteContainer) { feeNoteEl.innerText = "Note: A fixed processing fee of Rs. 15.00 applies to Bank Transfers."; feeNoteContainer.classList.remove('hidden'); }
             } else {
-                if(bankGroup) bankGroup.classList.add('hidden'); 
-                if(stdGroup) stdGroup.classList.remove('hidden');
-                
-                if (feeNoteContainer) {
-                    feeNoteContainer.classList.add('hidden');
-                }
-
+                if(bankGroup) bankGroup.classList.add('hidden'); if(stdGroup) stdGroup.classList.remove('hidden');
+                if (feeNoteContainer) feeNoteContainer.classList.add('hidden');
                 if(addrInput) {
                     addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
-                    addrInput.setAttribute('inputmode', 'numeric'); 
-                    addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
-                    addrInput.value = ""; 
-                    setTimeout(() => { addrInput.focus(); }, 100);
+                    addrInput.setAttribute('inputmode', 'numeric'); addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
+                    addrInput.value = ""; setTimeout(() => { addrInput.focus(); }, 100);
                 }
             }
         }
 
         async function processWithdraw() {
-            if (!_supabase) return showNotify("Database connecting...", "warning");
+            logActivity('SUBMIT_WITHDRAW', 'Method: ' + selectedMethodName);
             let addr = "", bankName = "", bankBranch = "", accName = "";
-            let amtElement = document.getElementById('w-amount');
-            const amt = amtElement ? parseFloat(amtElement.value) : 0;
+            let amtElement = document.getElementById('w-amount'); const amt = amtElement ? parseFloat(amtElement.value) : 0;
             
             if (!selectedMethodName) return showNotify("Please select a method first!");
-            
             if (selectedMethodName === 'BANK') {
-                const bn = document.getElementById('w-bank-name');
-                const bb = document.getElementById('w-bank-branch');
-                const ban = document.getElementById('w-bank-acc-name');
-                const bno = document.getElementById('w-bank-acc-no');
-                
-                bankName = bn ? bn.value : "";
-                bankBranch = bb ? bb.value.trim() : "";
-                accName = ban ? ban.value.trim() : "";
-                addr = bno ? bno.value.trim() : "";
+                const bn = document.getElementById('w-bank-name'); const bb = document.getElementById('w-bank-branch'); const ban = document.getElementById('w-bank-acc-name'); const bno = document.getElementById('w-bank-acc-no');
+                bankName = bn ? bn.value : ""; bankBranch = bb ? bb.value.trim() : ""; accName = ban ? ban.value.trim() : ""; addr = bno ? bno.value.trim() : "";
                 
                 if (!bankName) return showNotify("Please select a Bank!");
                 if (!bankBranch) return showNotify("Enter Branch Name!");
                 if (!accName) return showNotify("Enter Account Holder Name!");
                 if (!addr || addr.length < 5) return showNotify("Enter a valid Account Number!");
             } else {
-                const adrEl = document.getElementById('w-address');
-                addr = adrEl ? adrEl.value.trim() : "";
+                const adrEl = document.getElementById('w-address'); addr = adrEl ? adrEl.value.trim() : "";
                 if (!addr) return showNotify("Please enter details!");
                 if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
                 if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
@@ -1227,46 +1038,30 @@
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
             if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             
-            const fee = selectedMethodName === 'BANK' ? 15 : 0; 
-            const totalDeduction = amt + fee;
-
-            if (totalDeduction > currentBalance) {
-                let feeMsg = fee > 0 ? ` including Rs. ${fee} fee` : ``;
-                return showNotify(`Need Rs ${totalDeduction}${feeMsg} to proceed.`, "warning");
-            }
+            const fee = selectedMethodName === 'BANK' ? 15 : 0; const totalDeduction = amt + fee;
+            if (totalDeduction > currentBalance) { let feeMsg = fee > 0 ? ` including Rs. ${fee} fee` : ``; return showNotify(`Need Rs ${totalDeduction}${feeMsg} to proceed.`, "warning"); }
 
             const btn = document.getElementById('withdraw-btn'); 
             if(btn) { btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`; }
             triggerVibration('medium');
 
-            setTimeout(async () => {
-                const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
-                let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
+            const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
+            let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
 
-                try {
-                    const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - totalDeduction }).eq('user_id', userId);
-                    if (!balError) {
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
-                        
-                        let label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                        let text = "";
-                        
-                        if (selectedMethodName === 'BANK') {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* BANK\n📍 *Bank Name:* ${bankName}\n📍 *Branch:* ${bankBranch}\n📍 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
-                        } else {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
-                        }
-
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
-                        
-                        currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); triggerVibration('success'); closeAllSheets();
-                    } else showNotify("Error processing request.");
-                } catch(e) { showNotify("Error processing request."); }
-                if(btn) { btn.disabled = false; btn.innerText = "SUBMIT REQUEST"; }
-            }, 3000);
+            const { data, error } = await _supabase.rpc('request_withdraw', { p_user_id: userId, p_amount: amt, p_fee: fee, p_method: selectedMethodName, p_address: saveAddress, p_tx_id: txId });
+            
+            if(data && data.success) {
+                currentBalance = data.balance; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); triggerVibration('success'); closeAllSheets();
+                let text = `✅ *Withdrawal Request Received*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n⏳ *Status:* Processing`;
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
+            } else {
+                showNotify(data?.error || "Error processing request", "error"); triggerVibration('error');
+            }
+            if(btn) { btn.disabled = false; btn.innerText = "SUBMIT REQUEST"; }
         }
 
         function copyRefLink() {
+            logActivity('COPY_REF_LINK', '');
             const refLink = `https://t.me/Earnx24webbot/App?startapp=${userId}`;
             const textArea = document.createElement("textarea"); textArea.value = refLink; document.body.appendChild(textArea); textArea.select();
             try { document.execCommand('copy'); showNotify("Referral Link Copied!", "success"); triggerVibration('light'); } catch (err) { showNotify("Failed to copy link"); }
@@ -1274,40 +1069,35 @@
         }
 
         async function openReferralList() {
+            logActivity('OPEN_REF_LIST', '');
             closeSidePanel(); openSheet('referral-sheet'); 
             const rlc = document.getElementById('referral-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
-                if (error) throw error;
-                const rcd = document.getElementById('ref-count-display');
-                if(rcd) rcd.innerText = data.length;
-                if (data.length === 0) { 
-                    if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; 
-                }
+                const { data } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
+                const rcd = document.getElementById('ref-count-display'); if(rcd) rcd.innerText = data.length;
+                if (data.length === 0) { if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; }
                 if(rlc) rlc.innerHTML = data.map(user => {
                     const statusClass = checkIsActive(user.last_active, user.created_at) ? "text-green-400" : "text-red-400";
                     const statusBg = checkIsActive(user.last_active, user.created_at) ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
                     const statusText = checkIsActive(user.last_active, user.created_at) ? "Active" : "Inactive";
                     return `<div class="glass p-4 rounded-2xl flex items-center justify-between border border-white/5 hover:bg-white/5"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-user text-xl"></i></div><div><p class="font-bold text-sm text-white">${user.first_name || 'Unknown'}</p><p class="text-[10px] text-slate-400 font-mono mt-0.5">ID: ${String(user.user_id).substring(0, 8)}...</p></div></div><div class="${statusBg} border px-2.5 py-1 rounded-md"><p class="text-[9px] font-black ${statusClass} uppercase">${statusText}</p></div></div>`;
                 }).join('');
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
         async function openRankList() {
+            logActivity('OPEN_RANK_LIST', '');
             closeSidePanel(); openSheet('rank-sheet'); 
             const rlc = document.getElementById('rank-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
-                if (error) throw error;
+                const { data } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
                 if (data && data.length > 0) {
                     let counts = {};
                     data.forEach(item => { if(item.referrer_id && item.referrer_id !== "99999") counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1; });
                     let sortedRanks = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                    if(sortedRanks.length === 0) { 
-                        if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; 
-                    }
+                    if(sortedRanks.length === 0) { if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; }
                     
                     const topIds = sortedRanks.map(r => r[0]);
                     const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
@@ -1320,162 +1110,86 @@
                         return `<div class="glass p-4 rounded-3xl flex items-center justify-between border border-white/5 hover:bg-white/5 relative overflow-hidden mb-2">${index === 0 ? '<div class="absolute -right-2 -top-2 text-yellow-500/10"><i class="ph-fill ph-crown text-5xl"></i></div>' : ''}<div class="flex items-center gap-4 relative z-10 w-full"><div class="w-8 h-8 rounded-full ${badgeColor} border flex items-center justify-center font-black text-xs shadow-inner shrink-0">#${index + 1}</div><div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-md pointer-events-none">${photoHtml}</div><div class="flex-1 overflow-hidden"><p class="font-bold text-sm text-white truncate">${refProfile.first_name || 'Unknown User'}</p><p class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1"><i class="ph-fill ph-users text-purple-400"></i> <span class="text-white font-bold">${rank[1]}</span> Invites</p></div></div></div>`;
                     }).join('');
                 } else if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>';
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
-        // Update Balance and UI
         function updateUI() {
-            const balValDisplay = document.getElementById('bal-val-display');
-            if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
-            
-            const ptsValDisplay = document.getElementById('pts-val-display');
-            if (ptsValDisplay) {
-                let pts = Math.round(currentBalance * 100);
-                ptsValDisplay.innerText = `${pts} Pts`;
-            }
-
-            const wBalanceVal = document.getElementById('w-balance-val');
-            if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
-            
-            const energyDisplay = document.getElementById('energy-display');
-            if (energyDisplay) energyDisplay.innerText = `${currentEnergy}`;
-
-            const gameEnergy = document.getElementById('game-inner-tickets');
-            if (gameEnergy) gameEnergy.innerText = currentEnergy;
+            const balValDisplay = document.getElementById('bal-val-display'); if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
+            const ptsValDisplay = document.getElementById('pts-val-display'); if (ptsValDisplay) ptsValDisplay.innerText = `${Math.round(currentBalance * 100)} Pts`;
+            const wBalanceVal = document.getElementById('w-balance-val'); if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
+            const energyDisplay = document.getElementById('energy-display'); if (energyDisplay) energyDisplay.innerText = `${currentEnergy}`;
+            const gameEnergy = document.getElementById('game-inner-tickets'); if (gameEnergy) gameEnergy.innerText = currentEnergy;
 
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
-            const vcd = document.getElementById('video-count-display');
-            if (vcd) {
-                vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
-            }
-
+            const vcd = document.getElementById('video-count-display'); if (vcd) vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
             let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            const tbd = document.getElementById('time-bonus-display');
-            if (tbd) {
-                tbd.innerText = `Earn 🎟️ 1 Ticket (${timeClaimCount}/10)`;
-            }
+            const tbd = document.getElementById('time-bonus-display'); if (tbd) tbd.innerText = `Earn 🎟️ 1 Ticket (${timeClaimCount}/10)`;
         }
 
         function showNotify(msg, type = 'warning') {
             const box = document.getElementById('custom-notify'); 
             if(box) {
-                const nMsg = document.getElementById('notify-msg');
-                if(nMsg) nMsg.innerText = msg;
+                const nMsg = document.getElementById('notify-msg'); if(nMsg) nMsg.innerText = msg;
                 box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
-                box.classList.add('active'); 
-                setTimeout(() => box.classList.remove('active'), 3000);
+                box.classList.add('active'); setTimeout(() => box.classList.remove('active'), 3000);
             }
         }
         
-        function openSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.add('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'block'; }
+        function openSidePanel() { logActivity('OPEN_SIDE_PANEL', ''); const sp = document.getElementById('side-panel'); if(sp) sp.classList.add('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'block'; }
         function closeSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
         function openSheet(id) { 
-            const sh = document.getElementById(id);
-            if(sh) sh.classList.add('active'); 
-            const so = document.getElementById('sheet-overlay');
-            if(so) { so.style.display = 'block'; setTimeout(() => so.style.opacity = '1', 10); }
-            
+            logActivity('OPEN_SHEET', id);
+            const sh = document.getElementById(id); if(sh) sh.classList.add('active'); 
+            const so = document.getElementById('sheet-overlay'); if(so) { so.style.display = 'block'; setTimeout(() => so.style.opacity = '1', 10); }
             if (id === 'withdraw-sheet') {
-                selectedMethodName = null; 
-                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-                const wi = document.getElementById('withdraw-inputs');
-                if(wi) wi.classList.add('hidden');
-                
-                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(fid => {
-                    const el = document.getElementById(fid);
-                    if(el) el.value = '';
-                });
-
-                const feeNoteContainer = document.getElementById('fee-note-container');
-                if (feeNoteContainer) feeNoteContainer.classList.add('hidden');
+                selectedMethodName = null; document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+                const wi = document.getElementById('withdraw-inputs'); if(wi) wi.classList.add('hidden');
+                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(fid => { const el = document.getElementById(fid); if(el) el.value = ''; });
+                const feeNoteContainer = document.getElementById('fee-note-container'); if (feeNoteContainer) feeNoteContainer.classList.add('hidden');
             }
         }
-        
-        function closeSheet(id) { 
-            const sh = document.getElementById(id); 
-            if(sh) sh.classList.remove('active'); 
-            const so = document.getElementById('sheet-overlay'); 
-            if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); }
-        }
+        function closeSheet(id) { const sh = document.getElementById(id); if(sh) sh.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); } }
         function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); closeSheet('wheel-rules-sheet'); }
 
-        function openWheelScreen() {
-            const gfs = document.getElementById('wheel-full-screen');
-            if(gfs) gfs.classList.add('active');
-            updateWheelUI();
-        }
-        
-        function closeWheelScreen() {
-            const gfs = document.getElementById('wheel-full-screen');
-            if(gfs) gfs.classList.remove('active');
-        }
+        function openWheelScreen() { logActivity('OPEN_WHEEL_SCREEN', ''); const gfs = document.getElementById('wheel-full-screen'); if(gfs) gfs.classList.add('active'); updateWheelUI(); }
+        function closeWheelScreen() { const gfs = document.getElementById('wheel-full-screen'); if(gfs) gfs.classList.remove('active'); }
 
         function updateWheelUI() {
-            const scd = document.getElementById('wheel-inner-tickets');
-            if(scd) scd.innerText = spinChances; 
-
+            const scd = document.getElementById('wheel-inner-tickets'); if(scd) scd.innerText = spinChances; 
             const currentCycleInvites = myReferralCount % 5;
-            const refCountEl = document.getElementById('wheel-ref-count');
-            const refProgEl = document.getElementById('wheel-ref-progress');
-
+            const refCountEl = document.getElementById('wheel-ref-count'); const refProgEl = document.getElementById('wheel-ref-progress');
             if (refCountEl) refCountEl.innerText = `${currentCycleInvites}/5`;
             if (refProgEl) refProgEl.style.width = `${(currentCycleInvites / 5) * 100}%`;
         }
 
-        function spinWheel() {
+        // DATABASE GENERATED LUCKY WHEEL
+        async function spinWheel() {
             if (spinChances <= 0) return showNotify("No spins left! Invite friends.", "warning");
-            const btn = document.getElementById('wheel-spin-btn'); 
-            if(btn) btn.disabled = true;
-            
-            spinChances--; 
-            updateUI();
-            updateWheelUI();
+            const btn = document.getElementById('wheel-spin-btn'); if(btn) btn.disabled = true;
             triggerVibration('medium'); 
             
-            try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
-            
-            const rand = Math.random(); 
-            let prizeIdx = 7; 
-            
-            if (rand < 0.01) prizeIdx = 0;      // Rs 100 (1%)
-            else if (rand < 0.04) prizeIdx = 1; // Rs 50 (3%)
-            else if (rand < 0.09) prizeIdx = 2; // Rs 20 (5%)
-            else if (rand < 0.19) prizeIdx = 3; // Rs 10 (10%)
-            else if (rand < 0.34) prizeIdx = 4; // Rs 5 (15%)
-            else if (rand < 0.54) prizeIdx = 5; // Rs 2 (20%)
-            else if (rand < 0.79) prizeIdx = 6; // Rs 1 (25%)
-            else prizeIdx = 7;                  // Try Again (21%)
+            const { data, error } = await _supabase.rpc('spin_wheel', { p_user_id: userId });
+            if (!data || !data.success) { showNotify(data?.error || "Error spinning", "error"); if(btn) btn.disabled = false; return; }
 
+            spinChances = data.spin_chances; updateUI(); updateWheelUI(); 
+            
+            let prizeIdx = data.prizeIdx; 
             const targetRotationMap = [352.5, 320, 270, 220, 170, 120, 70, 22.5]; 
             const baseRot = currentWheelRotation % 360;
             let offset = targetRotationMap[prizeIdx] - baseRot;
             if (offset < 0) offset += 360;
             
             currentWheelRotation += (4 * 360) + offset + (Math.floor(Math.random() * 8) - 4);
-            
             const lw = document.getElementById('lucky-wheel');
             if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
 
-            setTimeout(async () => {
-                const currentIsoDate = new Date().toISOString();
-                const prize = prizes[prizeIdx];
-                if (prize.type === 'cash' || prize.type === 'coin') {
-                    try {
-                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
-                        if(!error) {
-                            currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
-                            showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                            confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 1000 });
-                            triggerVibration('heavy'); 
-                        } else { 
-                            showNotify("Failed to save prize.", "warning"); 
-                            triggerVibration('error');
-                        }
-                    } catch(e) { 
-                        showNotify("Error updating balance.", "warning"); 
-                        triggerVibration('error');
-                    }
+            setTimeout(() => {
+                currentBalance = data.balance; updateUI(); fetchHistory(true);
+                if (data.amount > 0) {
+                    showNotify(`Congratulations! You won Rs ${data.amount}!`, "success");
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 1000 });
+                    triggerVibration('heavy'); 
                 } else {
                     showNotify("Oops! Try again next time.", "warning");
                     triggerVibration('error'); 
@@ -1483,10 +1197,6 @@
                 if(btn) btn.disabled = false;
             }, 2000); 
         }
-
-        // ==========================================
-        // CRYPTO SLOT MACHINE GAME LOGIC
-        // ==========================================
 
         const cryptoLogos = [
             'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
@@ -1503,236 +1213,66 @@
         let isSpinning = false;
 
         function showSlotMessage(msg, type) {
-            const box = document.getElementById('slot-message-box');
-            if(!box) return;
-            box.innerText = msg;
-            if(type === 'success') {
-                box.style.color = '#fbbf24';
-                box.style.textShadow = '0 0 10px rgba(251,191,36,0.8)';
-            } else {
-                box.style.color = '#ef4444';
-                box.style.textShadow = '0 0 10px rgba(239,68,68,0.8)';
-            }
-            
-            box.classList.remove('active');
-            void box.offsetWidth; 
-            box.classList.add('active');
+            const box = document.getElementById('slot-message-box'); if(!box) return;
+            box.innerText = msg; box.style.color = type === 'success' ? '#fbbf24' : '#ef4444'; box.style.textShadow = type === 'success' ? '0 0 10px rgba(251,191,36,0.8)' : '0 0 10px rgba(239,68,68,0.8)';
+            box.classList.remove('active'); void box.offsetWidth; box.classList.add('active');
         }
 
         function showFloatingText(text, x, y, isRed=false) {
-            let el = document.createElement('div');
-            el.className = 'float-points-anim';
-            el.innerText = text;
-            
-            if(isRed) {
-                el.style.color = '#ef4444';
-                el.style.textShadow = '0 0 15px rgba(239,68,68,0.9)';
-            }
-            
+            let el = document.createElement('div'); el.className = 'float-points-anim'; el.innerText = text;
+            if(isRed) { el.style.color = '#ef4444'; el.style.textShadow = '0 0 15px rgba(239,68,68,0.9)'; }
             const container = document.getElementById('slot-machine-container');
-            if(container) {
-                el.style.top = `50%`;
-                el.style.left = `50%`;
-                el.style.transform = `translate(-50%, -50%)`;
-                container.appendChild(el);
-            } else {
-                el.style.left = `${x}px`;
-                el.style.top = `${y}px`;
-                document.body.appendChild(el);
-            }
-            
+            if(container) { el.style.top = `50%`; el.style.left = `50%`; el.style.transform = `translate(-50%, -50%)`; container.appendChild(el); } 
+            else { el.style.left = `${x}px`; el.style.top = `${y}px`; document.body.appendChild(el); }
             setTimeout(() => el.remove(), 1500);
         }
 
-        function openGameScreen() {
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.add('active');
-            slotPoints = 0;
-            updateSlotScoreUI(slotPoints);
-            const box = document.getElementById('slot-message-box');
-            if(box) box.classList.remove('active');
-        }
-
-        function closeGame() {
-            if(isSpinning) return;
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.remove('active');
-        }
+        function openGameScreen() { logActivity('OPEN_GAME_SCREEN', ''); const gfs = document.getElementById('game-full-screen'); if(gfs) gfs.classList.add('active'); slotPoints = 0; updateSlotScoreUI(slotPoints); const box = document.getElementById('slot-message-box'); if(box) box.classList.remove('active'); }
+        function closeGame() { if(isSpinning) return; const gfs = document.getElementById('game-full-screen'); if(gfs) gfs.classList.remove('active'); }
 
         function updateSlotScoreUI(score) {
             const display = document.getElementById('slot-points-display');
-            if(display) {
-                display.innerText = `${score} PTS`;
-                display.classList.remove('scale-110');
-                void display.offsetWidth; 
-                display.classList.add('scale-110');
-                setTimeout(() => display.classList.remove('scale-110'), 200);
-            }
+            if(display) { display.innerText = `${score} PTS`; display.classList.remove('scale-110'); void display.offsetWidth; display.classList.add('scale-110'); setTimeout(() => display.classList.remove('scale-110'), 200); }
         }
 
-        function spinSlot() {
+        // DATABASE GENERATED SLOT MACHINE
+        async function spinSlot() {
             if(isSpinning) return;
-
-            if(currentEnergy < 1) {
-                showNotify("Not enough Tickets! Watch an ad or invite friends.", "warning");
-                return;
-            }
-
-            currentEnergy--;
-            updateUI();
+            if(currentEnergy < 1) return showNotify("Not enough Tickets! Watch an ad or invite friends.", "warning");
             
-            isSpinning = true;
-            const btn = document.getElementById('spin-btn');
-            if(btn) { btn.disabled = true; btn.classList.add('opacity-50'); }
-            
-            const msgBox = document.getElementById('slot-message-box');
-            if(msgBox) msgBox.classList.remove('active');
+            const btn = document.getElementById('spin-btn'); if(btn) { btn.disabled = true; btn.classList.add('opacity-50'); }
+            const msgBox = document.getElementById('slot-message-box'); if(msgBox) msgBox.classList.remove('active');
 
-            triggerVibration('medium');
+            const { data, error } = await _supabase.rpc('spin_slot', { p_user_id: userId });
+            if (!data || !data.success) { showNotify(data?.error || "Error spinning", "error"); if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); } return; }
 
-            const slots = [
-                document.getElementById('slot-img-1'),
-                document.getElementById('slot-img-2'),
-                document.getElementById('slot-img-3')
-            ];
+            currentEnergy = data.energy; updateUI();
+            isSpinning = true; triggerVibration('medium');
 
+            const slots = [ document.getElementById('slot-img-1'), document.getElementById('slot-img-2'), document.getElementById('slot-img-3') ];
             slots.forEach(s => s.classList.add('spinning-blur'));
 
-            let spinInterval = setInterval(() => {
-                slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
-            }, 80);
+            let spinInterval = setInterval(() => { slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]); }, 80);
 
             setTimeout(() => {
                 clearInterval(spinInterval);
                 slots.forEach(s => s.classList.remove('spinning-blur'));
 
-                let r1, r2, r3;
+                slots[0].src = cryptoLogos[data.r1]; slots[1].src = cryptoLogos[data.r2]; slots[2].src = cryptoLogos[data.r3];
 
-                const todayStr = new Date().toISOString().split('T')[0];
-                const videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${todayStr}`) || "0");
-                
-                const hasDoneAllTasks = (videoCount >= 3); 
+                if (data.pointsWon === 200) { triggerVibration('heavy'); confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] }); showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success"); }
+                else if (data.pointsWon === 100) { triggerVibration('success'); confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#3b82f6', '#60a5fa', '#ffffff'] }); showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("💎 BNB JACKPOT! +100 PTS", "success"); }
+                else if (data.pointsWon === 50) { triggerVibration('success'); confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] }); showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success"); } 
+                else if (data.pointsWon === 10) { triggerVibration('light'); showFloatingText("+10 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("✨ SMALL WIN! +10 PTS", "success"); } 
+                else { triggerVibration('error'); }
 
-                let daysActive = 0;
-                if (window.userCreatedAt) {
-                    const createdDate = new Date(window.userCreatedAt);
-                    const diffTime = Math.abs(new Date() - createdDate);
-                    daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                }
-
-                const lastBtcWin = parseInt(localStorage.getItem(`last_btc_win_${userId}`) || "0");
-                const nowMs = new Date().getTime();
-                const daysSinceBtc = (nowMs - lastBtcWin) / (1000 * 60 * 60 * 24);
-                
-                const hasWonBnbToday = localStorage.getItem(`bnb_win_${userId}_${todayStr}`) === "true";
-
-                const canWinBtc = hasDoneAllTasks && (daysActive >= 3) && (daysSinceBtc >= 3);
-                const canWinBnb = hasDoneAllTasks && !hasWonBnbToday;
-
-                const luck = Math.random();
-                let winType = 'NO_MATCH';
-
-                if (canWinBtc && luck < 0.05) {
-                    winType = 'BTC';
-                    localStorage.setItem(`last_btc_win_${userId}`, nowMs.toString());
-                } else if (canWinBnb && luck < 0.15) {
-                    winType = 'BNB';
-                    localStorage.setItem(`bnb_win_${userId}_${todayStr}`, "true");
-                } else {
-                    let nr = Math.random();
-                    if (nr < 0.30) winType = '3_MATCH';       
-                    else if (nr < 0.80) winType = '2_MATCH';  
-                    else winType = 'NO_MATCH';                
-                }
-
-                if (winType === 'BTC') { 
-                    r1 = 0; r2 = 0; r3 = 0; 
-                }
-                else if (winType === 'BNB') { 
-                    r1 = 7; r2 = 7; r3 = 7; 
-                }
-                else if (winType === '3_MATCH') {
-                    const allowed = [1, 2, 3, 4, 5, 6]; 
-                    r1 = allowed[Math.floor(Math.random() * allowed.length)];
-                    r2 = r1; r3 = r1;
-                }
-                else if (winType === '2_MATCH') {
-                    r1 = Math.floor(Math.random() * cryptoLogos.length);
-                    r2 = r1;
-                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1);
-                    
-                    const pos = Math.floor(Math.random() * 3);
-                    if (pos === 0) { let temp = r1; r1 = r3; r3 = temp; }
-                    else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
-                }
-                else {
-                    r1 = Math.floor(Math.random() * cryptoLogos.length);
-                    do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
-                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
-                }
-
-                slots[0].src = cryptoLogos[r1];
-                slots[1].src = cryptoLogos[r2];
-                slots[2].src = cryptoLogos[r3];
-
-                let pointsWon = 0;
-
-                if (r1 === 0 && r2 === 0 && r3 === 0) {
-                    pointsWon = 200; 
-                    triggerVibration('heavy');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
-                    showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success");
-                }
-                else if (r1 === 7 && r2 === 7 && r3 === 7) {
-                    pointsWon = 100; 
-                    triggerVibration('success');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#eab308', '#facc15', '#ffffff'] });
-                    showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("💎 BNB JACKPOT! +100 PTS", "success");
-                }
-                else if (r1 === r2 && r2 === r3) {
-                    pointsWon = 50; 
-                    triggerVibration('success');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
-                    showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
-                } 
-                else if (r1 === r2 || r2 === r3 || r1 === r3) {
-                    pointsWon = 10; 
-                    triggerVibration('light');
-                    showFloatingText("+10 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("✨ SMALL WIN! +10 PTS", "success");
-                } 
-                else {
-                    triggerVibration('error'); 
-                }
-
-                if(pointsWon > 0) {
-                    slotPoints += pointsWon;
-                    updateSlotScoreUI(slotPoints);
-                    
-                    let earnedLkr = pointsWon / 100;
-                    if (_supabase) {
-                        _supabase.from('profiles').update({ balance: currentBalance + earnedLkr, last_active: new Date().toISOString() }).eq('user_id', userId).then(({error}) => {
-                            if(!error) {
-                                currentBalance += earnedLkr;
-                                _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: earnedLkr, status: 'approved' }]).then();
-                                updateUI();
-                                fetchHistory(true);
-                            }
-                        });
-                    } else {
-                        currentBalance += earnedLkr;
-                        updateUI();
-                    }
-                } else {
-                    if (_supabase) { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); }
+                if(data.pointsWon > 0) {
+                    slotPoints += data.pointsWon; updateSlotScoreUI(slotPoints);
+                    currentBalance = data.balance; updateUI(); fetchHistory(true);
                 }
 
                 isSpinning = false;
                 if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
-
             }, 2000); 
         }
     </script>
