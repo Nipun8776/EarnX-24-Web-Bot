@@ -98,16 +98,15 @@
         .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
         @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
         .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
-        @keyframes click-ad-anim { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); } 50% { transform: scale(1.1) translateY(-3px); filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.8)); } }
-        .click-anim-icon { animation: click-ad-anim 2s infinite ease-in-out; }
 
         /* Game Specific Styles */
         .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
         .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .slot-col { transition: filter 0.15s ease, transform 0.1s ease; }
-        .spinning-blur { filter: blur(4px) contrast(1.3); transform: scaleY(1.15); }
+        /* Optimized for 1GB RAM - removed heavy transforms */
+        .slot-col { transition: filter 0.1s ease; }
+        .spinning-blur { filter: blur(2px) contrast(1.1); } 
         .glow-text { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
 
         @keyframes floatPoints {
@@ -122,19 +121,6 @@
         .msg-pop.active { opacity: 1; transform: translateY(0); }
 
         #lucky-wheel { transition: transform 6.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
-
-        #session-expired {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #020617;
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        #session-expired.active { display: flex; }
     </style>
 </head>
 
@@ -153,13 +139,6 @@
         <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
-    </div>
-
-    <!-- Session Expired Screen -->
-    <div id="session-expired">
-        <i class="ph-fill ph-clock-countdown text-6xl text-red-500 mb-4 animate-pulse"></i>
-        <h1 class="text-3xl font-black text-red-500 tracking-widest uppercase drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">Session Expired</h1>
-        <p class="text-slate-400 mt-2 font-bold uppercase tracking-widest text-xs">Please reload the app</p>
     </div>
 
     <!-- Crypto Slot Game Full Screen -->
@@ -194,13 +173,13 @@
                     <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
                     
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-2" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-2" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-3" src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-3" src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                     </div>
                 </div>
             </div>
@@ -215,7 +194,6 @@
 
     <!-- Lucky Wheel Full Screen -->
     <div id="wheel-full-screen" class="game-full-screen p-6 pb-12">
-        <!-- Header -->
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
             <button onclick="closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
@@ -238,9 +216,7 @@
             <p class="text-center text-xs text-purple-300 font-bold mb-6 uppercase tracking-widest">Spin & Win Big</p>
             
             <div class="relative w-64 h-64 mx-auto my-2">
-                <!-- Marker -->
                 <div class="wheel-marker"></div>
-                <!-- Wheel -->
                 <div id="lucky-wheel" class="w-full h-full rounded-full border-[6px] border-[#0f172a] shadow-[0_0_40px_rgba(168,85,247,0.4)] overflow-hidden relative" style="background: conic-gradient(#ef4444 0 60deg, #10b981 60deg 120deg, #3b82f6 120deg 180deg, #f59e0b 180deg 240deg, #d946ef 240deg 300deg, #8b5cf6 300deg 360deg);">
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(30deg) translateY(-85px);">10 Pts</div>
                     <div class="absolute inset-0 flex items-center justify-center text-white font-black text-[14px] drop-shadow-md" style="transform: rotate(90deg) translateY(-85px);">100 Pts</div>
@@ -306,7 +282,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Time Bonus</p>
-                        <p id="time-bonus-display" class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Earn 🎟️ 2 Tickets (0/10)</p>
+                        <p id="time-bonus-display" class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/10)</p>
                     </div>
                 </div>
                 <button id="daily-claim-btn" onclick="claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
@@ -321,25 +297,25 @@
                     </div>
                     <div>
                         <p class="font-bold text-sm">Watch Video</p>
-                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 5 Tickets (0/3)</p>
+                        <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 2 Tickets (0/3)</p>
                     </div>
                 </div>
                 <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
-            <!-- Click Ads Trigger (Points) -->
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-orange-900/40 to-amber-900/40 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/20 rounded-full blur-xl"></div>
+            <!-- Click Ads Trigger (Coming Soon) -->
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-slate-800/40 to-slate-900/40 relative overflow-hidden opacity-75">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-slate-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 click-anim-icon">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white shadow-lg shadow-slate-500/30">
                         <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm">Click Ads</p>
-                        <p id="click-count-display" class="text-[9px] text-orange-300 font-bold uppercase tracking-widest">Earn 50 Pts (0/∞)</p>
+                        <p class="font-bold text-sm text-slate-300">Click Ads</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Coming Soon</p>
                     </div>
                 </div>
-                <button onclick="startClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">OPEN</button>
+                <button onclick="showNotify('Coming Soon!', 'warning')" class="bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-slate-300 tracking-widest">SOON</button>
             </div>
 
             <!-- Crypto Slot Game Trigger -->
@@ -469,15 +445,17 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v13.0.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Bug Fix & Clean Update</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v14.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Lightweight & Economy Update</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>All third-party ads removed completely.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Haptic feedback function correctly initialized.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Fixed internal JS logic causing rendering errors.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Optimized code and animations for 1GB RAM devices.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Withdrawal features universal Rs. 15 fee deduction display.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Telegram bot messages updated with 📄 emoji logic.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Click Ads disabled globally ("Coming Soon" mode).</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Crypto Spin rules completely redesigned for new reward limits.</span></li>
                 </ul>
             </div>
         </div>
@@ -570,13 +548,15 @@
                 <input id="w-bank-branch" type="text" placeholder="Branch Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
                 <input id="w-bank-acc-name" type="text" placeholder="Account Holder Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
                 <input id="w-bank-acc-no" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Account Number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
-                <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2">
-                    <i class="ph-fill ph-warning-circle text-amber-500 mt-0.5"></i>
-                    <p class="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight">Note: A processing fee of Rs. 15.00 applies to Bank Transfers.</p>
-                </div>
             </div>
 
             <input id="w-amount" type="text" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9.]/g, '')" placeholder="Enter Amount" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-sky-500">
+            
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2 mt-2">
+                <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
+                <p class="text-[9px] text-red-400 font-bold uppercase tracking-widest leading-tight">Note: A fixed processing fee of Rs. 15.00 applies to all withdrawals.</p>
+            </div>
+
             <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
         </div>
     </div>
@@ -596,16 +576,31 @@
             <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex gap-1">
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" class="w-6 h-6 object-contain" />
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" class="w-6 h-6 object-contain" />
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" class="w-6 h-6 object-contain" />
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" class="w-6 h-6 object-contain" />
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" class="w-6 h-6 object-contain" />
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" class="w-6 h-6 object-contain" />
                     </div>
                     <div>
                         <p class="text-sm font-black text-amber-400">Super Jackpot (3 BTC)</p>
-                        <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 100 Points</p>
+                        <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 200 Points</p>
                     </div>
                 </div>
-                <span class="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-md text-[10px] font-black shadow-sm">Special</span>
+                <span class="bg-amber-500/20 text-amber-400 px-2 py-1 rounded-md text-[10px] font-black shadow-sm">5% Chance</span>
+            </div>
+
+            <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" loading="lazy" class="w-6 h-6 object-contain" />
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" loading="lazy" class="w-6 h-6 object-contain" />
+                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" loading="lazy" class="w-6 h-6 object-contain" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-blue-400">TON Jackpot (3 TON)</p>
+                        <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 20 Points</p>
+                    </div>
+                </div>
+                <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md text-[10px] font-black shadow-sm">25% Chance</span>
             </div>
 
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
@@ -618,22 +613,7 @@
                         <p class="text-[10px] text-slate-400 uppercase tracking-widest">Win 50 Points</p>
                     </div>
                 </div>
-                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">10% Chance</span>
-            </div>
-
-            <div class="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex gap-1">
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" class="w-6 h-6 object-contain" />
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" class="w-6 h-6 object-contain" />
-                        <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png" class="w-6 h-6 object-contain" />
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-blue-400">TON Jackpot (3 TON)</p>
-                        <p class="text-[10px] text-slate-300 uppercase tracking-widest">Win 20 Points</p>
-                    </div>
-                </div>
-                <span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md text-[10px] font-black shadow-sm">Special</span>
+                <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-[10px] font-black">20% Chance</span>
             </div>
 
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
@@ -647,6 +627,19 @@
                     </div>
                 </div>
                 <span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-[10px] font-black">30% Chance</span>
+            </div>
+
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-1">
+                        <i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i><i class="ph-fill ph-x-circle text-slate-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-slate-400">No Match</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">0 Points</p>
+                    </div>
+                </div>
+                <span class="bg-slate-500/20 text-slate-400 px-2 py-1 rounded-md text-[10px] font-black">20% Chance</span>
             </div>
             
             <p class="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-widest">Cost: 1 Ticket per spin.</p>
@@ -704,8 +697,6 @@
         
         // Session & Anti-cheat Variables
         let sessionExpired = false;
-        let clickAdPending = false;
-        let clickAdOpenTime = 0;
 
         const prizes = [
             { label: '5000 Pts', val: 50.00, type: 'cash' }, 
@@ -774,7 +765,7 @@
                 if(document.getElementById('menu-default-pic')) document.getElementById('menu-default-pic').style.display = 'none';
             }
 
-            setInterval(updateDailyTimer, 1000);
+            setInterval(updateTimeBonusTimer, 1000);
 
             let prog = 0, isDataReady = false;
             const timer = setInterval(() => {
@@ -810,42 +801,7 @@
             finally { isDataReady = true; }
         }
 
-        function startClickAd() {
-            if (!_supabase) return showNotify("Database connecting...", "warning");
-            if (clickAdPending) return; 
-
-            const today = new Date().toISOString().split('T')[0];
-            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
-            
-            let adUrl = clickCount % 2 === 0 
-                ? "https://www.effectivegatecpm.com/mxv6cpv1gy?key=1fd9fb99938d4d23fee80cb2d20869d1" 
-                : "https://omg10.com/4/10663836";
-
-            window.open(adUrl, '_blank');
-            
-            clickAdPending = true;
-            clickAdOpenTime = Date.now();
-            showNotify("Wait in ad tab to claim...", "success");
-
-            setTimeout(async () => {
-                try {
-                    const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + 1, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
-                        currentEnergy += 1;
-                        clickCount++;
-                        localStorage.setItem(`click_count_${userId}_${today}`, clickCount.toString());
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' }]);
-                        
-                        updateUI();
-                        fetchHistory(true);
-                        clickAdPending = false;
-                        showNotify("Congratulations! Ad click completed. Earned 1 🎟️", "success");
-                    }
-                } catch(e) { showNotify("Failed to credit reward", "warning"); clickAdPending = false; }
-            }, 10000);
-        }
-
+        // --- WATCH VIDEO LOGIC ---
         function showRewardAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -873,29 +829,31 @@
             }, 1500);
         }
 
-        function updateDailyTimer() {
-            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+        // --- TIME BONUS LOGIC ---
+        function updateTimeBonusTimer() {
+            const today = new Date().toISOString().split('T')[0];
+            let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
+            
             const btn = document.getElementById('daily-claim-btn');
             if (!btn) return;
+
+            if (claimCount >= 10) {
+                btn.disabled = true;
+                btn.innerText = "LIMIT REACHED"; 
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
+            const cooldown = 90 * 60 * 1000; // 90 mins
 
             if (lastClaim) {
                 const now = new Date().getTime();
                 const claimTime = parseInt(lastClaim, 10);
                 const diff = now - claimTime;
-                const hrs24 = 90 * 60 * 1000; // Updated to 90 mins as per time bonus logic
 
-                const today = new Date().toISOString().split('T')[0];
-                let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-
-                if (claimCount >= 10) {
-                    btn.disabled = true;
-                    btn.innerText = "LIMIT REACHED"; 
-                    btn.classList.add('opacity-50', 'cursor-not-allowed');
-                    return;
-                }
-
-                if (diff < hrs24) {
-                    const remaining = hrs24 - diff;
+                if (diff < cooldown) {
+                    const remaining = cooldown - diff;
                     const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                     const s = Math.floor((remaining % (1000 * 60)) / 1000);
@@ -922,7 +880,7 @@
             
             if (claimCount >= 10) return showNotify("Daily limit reached!", "warning");
 
-            const lastClaim = localStorage.getItem(`daily_claim_${userId}`);
+            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
             const now = new Date().getTime();
             const cooldown = 90 * 60 * 1000;
 
@@ -932,7 +890,7 @@
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
             try {
-                const energyReward = 2; 
+                const energyReward = 1; // 1 Ticket per claim
                 const currentIsoDate = new Date().toISOString();
                 const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                 
@@ -940,15 +898,15 @@
                     currentEnergy += energyReward;
                     claimCount++;
                     localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
-                    localStorage.setItem(`daily_claim_${userId}`, now.toString()); // Reusing daily_claim key for simplicity
+                    localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
                     
                     await _supabase.from('transactions').insert([{ user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' }]);
-                    showNotify(`Successfully claimed 2 🎟️!`, "success");
+                    showNotify(`Successfully claimed 1 🎟️!`, "success");
                     updateUI();
                     fetchHistory(true);
                 } else showNotify("Failed to claim bonus", "warning");
             } catch(e) { showNotify("Failed to claim bonus", "warning"); }
-            updateDailyTimer();
+            updateTimeBonusTimer();
         }
 
         async function fetchUserData() {
@@ -1016,7 +974,7 @@
                 let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
                 myReferralCount = myRefs ? myRefs.length : 0;
 
-                updateUI(); updateWheelUI(); updateDailyTimer();
+                updateUI(); updateWheelUI(); updateTimeBonusTimer();
             } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
         }
         
@@ -1061,13 +1019,13 @@
                         
                         let amountHtml = '';
                         if (item.type === 'TIME_BONUS') {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
                         } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 5 🎟️</p>`;
                         } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
                         } else if (item.type === 'WITHDRAWAL') {
-                            amountHtml = `<p class="text-red-400 font-black text-xs uppercase">-Rs ${item.amount.toFixed(2)}</p>`;
+                            amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${(item.amount + 15).toFixed(2)}</p><p class="text-red-500 font-bold text-[8px]">Fee: Rs. 15</p></div>`;
                         } else {
                             let pts = Math.round(item.amount * 100);
                             amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
@@ -1113,7 +1071,7 @@
                     let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
                     let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
                     
-                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${item.amount.toFixed(2)}</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
+                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div><div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p><p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. 15</p><span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div></div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
                 }).join('');
             } catch(e) { console.error(e); }
         }
@@ -1187,10 +1145,10 @@
             if (selectedMethodName === 'RELOAD' && amt < 20) return showNotify("Min Rs 20 for Reload");
             if (selectedMethodName === 'BANK' && amt < 100) return showNotify("Min Rs 100 for Bank");
             
-            const fee = selectedMethodName === 'BANK' ? 15 : 0;
+            const fee = 15; // Universal Rs. 15 fee
             const totalDeduction = amt + fee;
 
-            if (totalDeduction > currentBalance) return showNotify(selectedMethodName === 'BANK' ? `Need Rs ${totalDeduction} including fee.` : "Insufficient Balance!");
+            if (totalDeduction > currentBalance) return showNotify(`Need Rs ${totalDeduction} including fee.`, "warning");
 
             const btn = document.getElementById('withdraw-btn'); 
             if(btn) { btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`; }
@@ -1208,9 +1166,9 @@
                         let text = "";
                         
                         if (selectedMethodName === 'BANK') {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* BANK\n📍 *Bank Name:* ${bankName}\n📍 *Branch:* ${bankBranch}\n📍 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
+                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* BANK\n📍 *Bank Name:* ${bankName}\n📍 *Branch:* ${bankBranch}\n📍 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
                         } else {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n🔢 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
+                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
                         }
 
                         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
@@ -1306,17 +1264,11 @@
                 vcd.innerText = `Earn 🎟️ 5 Tickets (${videoCount}/3)`;
             }
 
-            let clickCount = parseInt(localStorage.getItem(`click_count_${userId}_${today}`) || "0");
-            const ccd = document.getElementById('click-count-display');
-            if (ccd) {
-                ccd.innerText = `Earn 50 Pts (${clickCount}/∞)`;
-            }
-
             // Update Time Bonus limit display
             let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
             const tbd = document.getElementById('time-bonus-display');
             if (tbd) {
-                tbd.innerText = `Earn 🎟️ 2 Tickets (${timeClaimCount}/10)`;
+                tbd.innerText = `Earn 🎟️ 1 Ticket (${timeClaimCount}/10)`;
             }
         }
 
@@ -1374,12 +1326,6 @@
         function updateWheelUI() {
             const scd = document.getElementById('wheel-inner-tickets');
             if(scd) scd.innerText = spinChances; 
-            
-            let currentStep = myReferralCount % 5;
-            const rpt = document.getElementById('ref-progress-text');
-            if(rpt) rpt.innerText = `${currentStep}/5`;
-            const rpb = document.getElementById('ref-progress-bar');
-            if(rpb) rpb.style.width = `${(currentStep / 5) * 100}%`;
         }
 
         function spinWheel() {
@@ -1422,7 +1368,7 @@
                         if(!error) {
                             currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
                             showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 1000 });
+                            confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 1000 });
                             triggerVibration('success');
                         } else { 
                             showNotify("Failed to save prize.", "warning"); 
@@ -1553,22 +1499,10 @@
 
             slots.forEach(s => s.classList.add('spinning-blur'));
 
+            // Optimized spinning
             let spinInterval = setInterval(() => {
                 slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
-            }, 80);
-
-            const todayStr = new Date().toISOString().split('T')[0];
-            const btcJackpotKey = `btc_jackpot_${userId}_${todayStr}`;
-            let hasGotBtcJackpot = localStorage.getItem(btcJackpotKey);
-            
-            let vidCount = parseInt(localStorage.getItem(`video_count_${userId}_${todayStr}`) || "0");
-            let clkCount = parseInt(localStorage.getItem(`click_count_${userId}_${todayStr}`) || "0");
-            
-            let forceBtc = false;
-            if (!hasGotBtcJackpot && vidCount >= 3 && clkCount >= 2) {
-                forceBtc = true;
-                localStorage.setItem(btcJackpotKey, "true");
-            }
+            }, 120);
 
             setTimeout(() => {
                 clearInterval(spinInterval);
@@ -1576,31 +1510,31 @@
 
                 let r1, r2, r3;
 
-                if (forceBtc) {
-                    r1 = 0; r2 = 0; r3 = 0; // BTC index is 0
-                } else {
-                    const luck = Math.random();
-                    if (luck < 0.10) { 
-                        r1 = Math.floor(Math.random() * 6) + 1; 
-                        r2 = r1;
-                        r3 = r1;
-                    } 
-                    else if (luck < 0.40) { 
-                        r1 = Math.floor(Math.random() * cryptoLogos.length);
-                        r2 = r1;
-                        do {
-                            r3 = Math.floor(Math.random() * cryptoLogos.length);
-                        } while (r3 === r1);
-                        
-                        const pos = Math.floor(Math.random() * 3);
-                        if (pos === 0) { let temp = r1; r1 = r3; r3 = temp; }
-                        else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
-                    } 
-                    else {
-                        r1 = Math.floor(Math.random() * cryptoLogos.length);
-                        do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
-                        do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
-                    }
+                const luck = Math.random();
+                if (luck < 0.05) { 
+                    r1 = 0; r2 = 0; r3 = 0; 
+                } 
+                else if (luck < 0.30) { 
+                    r1 = 2; r2 = 2; r3 = 2; 
+                } 
+                else if (luck < 0.50) { 
+                    const allowed = [1, 3, 4, 5, 6];
+                    r1 = allowed[Math.floor(Math.random() * allowed.length)];
+                    r2 = r1; r3 = r1;
+                }
+                else if (luck < 0.80) { 
+                    r1 = Math.floor(Math.random() * cryptoLogos.length);
+                    r2 = r1;
+                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1);
+                    
+                    const pos = Math.floor(Math.random() * 3);
+                    if (pos === 0) { let temp = r1; r1 = r3; r3 = temp; }
+                    else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
+                }
+                else {
+                    r1 = Math.floor(Math.random() * cryptoLogos.length);
+                    do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
+                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
                 }
 
                 slots[0].src = cryptoLogos[r1];
@@ -1610,41 +1544,23 @@
                 let pointsWon = 0;
 
                 if (r1 === 0 && r2 === 0 && r3 === 0) {
-                    pointsWon = 100; 
+                    pointsWon = 200; 
                     triggerVibration('heavy');
-                    
-                    confetti({ 
-                        particleCount: 200, spread: 150, origin: { y: 0.5 }, 
-                        zIndex: 1000, ticks: 100, gravity: 1.5, 
-                        colors: ['#f59e0b', '#fbbf24', '#ffffff'] 
-                    });
-                    
-                    showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("🎉 SUPER BTC JACKPOT! +100 PTS", "success");
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
+                    showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2);
+                    showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success");
                 }
                 else if (r1 === 2 && r2 === 2 && r3 === 2) {
                     pointsWon = 20; 
                     triggerVibration('success');
-                    
-                    confetti({ 
-                        particleCount: 100, spread: 100, origin: { y: 0.5 }, 
-                        zIndex: 1000, ticks: 80, gravity: 1.6,
-                        colors: ['#3b82f6', '#60a5fa', '#ffffff'] 
-                    });
-                    
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#3b82f6', '#60a5fa', '#ffffff'] });
                     showFloatingText("+20 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("💎 TON JACKPOT! +20 PTS", "success");
                 }
                 else if (r1 === r2 && r2 === r3) {
                     pointsWon = 50; 
                     triggerVibration('success');
-                    
-                    confetti({ 
-                        particleCount: 150, spread: 120, origin: { y: 0.5 }, 
-                        zIndex: 1000, ticks: 80, gravity: 1.8,
-                        colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308', '#d946ef', '#06b6d4'] 
-                    });
-                    
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
                     showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
                 } 
