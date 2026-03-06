@@ -151,10 +151,10 @@
 
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-10 shrink-0 relative z-20">
-            <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
+            <button onclick="trackAction('Crypto Spin', 'Back Button'); closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            <button onclick="openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+            <button onclick="trackAction('Crypto Spin', 'Info Button'); openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
@@ -181,7 +181,7 @@
 
             <div id="slot-message-box" class="h-8 mt-4 text-center text-lg font-black uppercase tracking-widest msg-pop"></div>
 
-            <button id="spin-btn" onclick="spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
+            <button id="spin-btn" onclick="trackAction('Crypto Spin', 'Spin Button'); spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
                 <span>SPIN</span>
                 <div class="bg-black/80 text-amber-400 px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-amber-500/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-ticket text-lg"></i> <span id="game-inner-tickets">0</span>
@@ -192,10 +192,10 @@
 
     <div id="wheel-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
-            <button onclick="closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
+            <button onclick="trackAction('Lucky Wheel', 'Back Button'); closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            <button onclick="openSheet('wheel-rules-sheet')" class="w-10 h-10 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center text-purple-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <button onclick="trackAction('Lucky Wheel', 'Info Button'); openSheet('wheel-rules-sheet')" class="w-10 h-10 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center text-purple-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
@@ -204,7 +204,7 @@
             <h2 class="text-3xl font-black text-white mb-1 text-center uppercase italic drop-shadow-md">Lucky Wheel</h2>
             <p class="text-center text-xs text-purple-300 font-bold mb-4 uppercase tracking-widest">Spin & Win Big</p>
 
-            <button id="wheel-spin-btn" onclick="spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
+            <button id="wheel-spin-btn" onclick="trackAction('Lucky Wheel', 'Spin Button'); spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
                 <span>SPIN</span>
                 <div class="bg-black/50 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-purple-400/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
@@ -285,7 +285,7 @@
                     <p id="user-username-display" class="text-[10px] text-slate-400 font-mono mt-0.5">@username</p>
                 </div>
             </div>
-            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
+            <button onclick="trackAction('Dashboard', 'Menu Button'); openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
@@ -307,7 +307,7 @@
                 </div>
                 
                 <div class="flex gap-2">
-                    <button onclick="openSheet('withdraw-sheet')" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white btn-animate shadow-lg shadow-sky-500/30">Withdraw</button>
+                    <button onclick="trackAction('Dashboard', 'Withdraw Main Button'); openSheet('withdraw-sheet')" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white btn-animate shadow-lg shadow-sky-500/30">Withdraw</button>
                 </div>
             </div>
 
@@ -322,7 +322,7 @@
                         <p id="time-bonus-display" class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/10)</p>
                     </div>
                 </div>
-                <button id="daily-claim-btn" onclick="claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
+                <button id="daily-claim-btn" onclick="trackAction('Dashboard', 'Time Bonus Claim'); claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
@@ -336,7 +336,7 @@
                         <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 2 Tickets (0/3)</p>
                     </div>
                 </div>
-                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
+                <button onclick="trackAction('Dashboard', 'Watch Video Ad'); showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-slate-800/40 to-slate-900/40 relative overflow-hidden opacity-75">
@@ -350,7 +350,7 @@
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Coming Soon</p>
                     </div>
                 </div>
-                <button onclick="showNotify('Coming Soon!', 'warning')" class="bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-slate-300 tracking-widest">SOON</button>
+                <button onclick="trackAction('Dashboard', 'Click Ads Soon'); showNotify('Coming Soon!', 'warning')" class="bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-slate-300 tracking-widest">SOON</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
@@ -364,7 +364,7 @@
                         <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Ticket</p>
                     </div>
                 </div>
-                <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+                <button onclick="trackAction('Dashboard', 'Open Crypto Spin'); openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
@@ -375,7 +375,7 @@
                     </div>
                     <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to Rs 100</p></div>
                 </div>
-                <button onclick="openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
+                <button onclick="trackAction('Dashboard', 'Open Lucky Wheel'); openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
@@ -389,20 +389,20 @@
                     </div>
                     <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 2 Tickets</p></div>
                 </div>
-                <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
+                <button onclick="trackAction('Dashboard', 'Copy Invite Link'); copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
             <div class="space-y-3 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
-                    <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
+                    <button onclick="trackAction('Dashboard', 'Toggle History'); toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
                 </div>
                 <div id="history-list" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
-    <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
+    <div id="sheet-overlay" class="sheet-overlay" onclick="trackAction('Overlay', 'Close All Sheets'); closeAllSheets()"></div>
 
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
@@ -422,32 +422,32 @@
                 </div>
                 <p id="menu-member-since" class="text-[9px] text-slate-500 mt-2 flex items-center gap-1"><i class="ph-regular ph-calendar-blank"></i> Member since ---</p>
             </div>
-            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Menu', 'Close Menu'); closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
 
         <div class="flex flex-col space-y-2 flex-1">
-            <button onclick="openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="trackAction('Menu', 'Open Withdraw History'); openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner"><i class="ph-fill ph-receipt text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">Transaction History</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">View all your requests</p>
                 </div>
             </button>
-            <button onclick="openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="trackAction('Menu', 'Open Referral List'); openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-users text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">My Referral List</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">View your invited friends</p>
                 </div>
             </button>
-            <button onclick="openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="trackAction('Menu', 'Open Rank List'); openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shadow-inner"><i class="ph-fill ph-trophy text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">Rank List</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">Top performing referrers</p>
                 </div>
             </button>
-            <button onclick="closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="trackAction('Menu', 'Open App Version'); closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner"><i class="ph-fill ph-info text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">App Version</p>
@@ -467,7 +467,7 @@
                 <h2 class="text-lg font-black text-white">App Version</h2>
                 <p class="text-[11px] text-slate-400 mt-0.5">Current Release Details</p>
             </div>
-            <button onclick="closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Version Sheet', 'Close'); closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-4 pb-4 overflow-y-auto">
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
@@ -495,7 +495,7 @@
                 <h2 class="text-lg font-black text-white">Transaction History</h2>
                 <p class="text-[11px] text-slate-400 mt-0.5">Total Records: <span id="w-history-count" class="font-bold text-white">0</span></p>
             </div>
-            <button onclick="closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Tx History Sheet', 'Close'); closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
@@ -506,7 +506,7 @@
                 <h2 class="text-xl font-black text-white uppercase italic">My Referral List</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Total Friends: <span id="ref-count-display" class="text-purple-400 font-bold">0</span></p>
             </div>
-            <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Referral Sheet', 'Close'); closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
@@ -517,26 +517,26 @@
                 <h2 class="text-xl font-black text-white uppercase italic">Top Referrers</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Leaderboard Rankings</p>
             </div>
-            <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Rank Sheet', 'Close'); closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
     <div id="withdraw-sheet" class="bottom-sheet">
-        <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <button onclick="trackAction('Withdraw Sheet', 'Close'); closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
         <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw Funds</h2>
         <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs 0.00</span></p>
         
         <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-3">Select Method</h3>
         <div class="grid grid-cols-3 gap-3 mb-8">
-            <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="trackAction('Withdraw Sheet', 'Select Binance'); selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Binance</span>
             </button>
-            <button onclick="selectMethod(this, 'RELOAD')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="trackAction('Withdraw Sheet', 'Select Reload'); selectMethod(this, 'RELOAD')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-device-mobile-camera text-purple-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Reload</span>
             </button>
-            <button onclick="selectMethod(this, 'BANK')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="trackAction('Withdraw Sheet', 'Select Bank'); selectMethod(this, 'BANK')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
@@ -580,7 +580,7 @@
                 <p id="withdraw-fee-note" class="text-[9px] text-red-400 font-bold uppercase tracking-widest leading-tight"></p>
             </div>
 
-            <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
+            <button id="withdraw-btn" onclick="trackAction('Withdraw Sheet', 'Submit Request'); processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
         </div>
     </div>
 
@@ -591,7 +591,7 @@
                 <h2 class="text-lg font-black text-white uppercase tracking-widest">Game Rules</h2>
                 <p class="text-[11px] text-amber-400 font-bold">Winning Probabilities</p>
             </div>
-            <button onclick="closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Crypto Spin Rules', 'Close'); closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-4 pb-4">
             
@@ -675,7 +675,7 @@
                 <h2 class="text-lg font-black text-white uppercase tracking-widest">Wheel Rules</h2>
                 <p class="text-[11px] text-pink-400 font-bold">Winning Probabilities</p>
             </div>
-            <button onclick="closeSheet('wheel-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="trackAction('Lucky Wheel Rules', 'Close'); closeSheet('wheel-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-3 pb-4">
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
@@ -715,15 +715,16 @@
 
   </div> <script>
         const tg = window.Telegram?.WebApp || {};
-        const SUPABASE_URL = 'https://sroxihpxrfzlnbigfqlc.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_ITUc20jLzo9Oi6ePmhMErA_1XnajBxf';
+        
+        const SUPABASE_URL = 'https://veumqlicudrknoestekg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZldW1xbGljdWRya25vZXN0ZWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTQzNDIsImV4cCI6MjA4ODM3MDM0Mn0.SILaj21J66nxSdecmzYDL_2TGqdw_Hka3lKmoizVtJ0';
+        
         let _supabase;
         
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
         let sessionSpinCount = 0; 
-        
         let sessionExpired = false;
 
         const prizes = [
@@ -741,6 +742,20 @@
         const startParam = tg.initDataUnsafe?.start_param || null;
         const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
 
+        // ==========================================
+        // NEW: ACTION TRACKER FUNCTION
+        // ==========================================
+        async function trackAction(sectionName, buttonName) {
+            if (!_supabase || !userId) return;
+            try {
+                await _supabase.from('user_clicks').insert([{
+                    user_id: userId,
+                    section_name: sectionName,
+                    button_name: buttonName
+                }]);
+            } catch (err) { console.error("Tracking Error:", err); }
+        }
+
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
             if (!targetDateStr) return true; 
@@ -750,7 +765,6 @@
             return diffDays <= 3;
         }
 
-        // UNIVERSAL VIBRATION SYSTEM 
         function triggerVibration(type) {
             try {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -800,7 +814,6 @@
 
             setInterval(updateTimeBonusTimer, 1000);
 
-            // Progress bar strictly linked to Data Load
             let prog = 0;
             const progBar = document.getElementById('progress-bar');
             const progTxt = document.getElementById('percentage');
@@ -835,7 +848,7 @@
             }
         }
 
-        // --- WATCH VIDEO LOGIC ---
+        // --- WATCH VIDEO LOGIC (FIXED UPDATES) ---
         function showRewardAd() {
             if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
@@ -849,8 +862,14 @@
                 try {
                     const energyReward = 2; 
                     const currentIsoDate = new Date().toISOString();
-                    const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
-                    if (!error) {
+                    
+                    // Supabase UPDATE with .select() to ensure it worked
+                    const { data, error } = await _supabase.from('profiles')
+                        .update({ energy: currentEnergy + energyReward, last_active: currentIsoDate })
+                        .eq('user_id', userId)
+                        .select();
+                        
+                    if (!error && data && data.length > 0) {
                         currentEnergy += energyReward;
                         videoCount++;
                         localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
@@ -858,12 +877,18 @@
                         showNotify(`Earned 2 🎟️ from Video Task!`, "success");
                         updateUI();
                         fetchHistory(true);
+                    } else {
+                        console.error("Video Reward DB Error:", error);
+                        showNotify("Failed to verify reward in database.", "warning");
                     }
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+                } catch(e) { 
+                    console.error(e);
+                    showNotify("Failed to credit reward", "warning"); 
+                }
             }, 1500);
         }
 
-        // --- TIME BONUS LOGIC ---
+        // --- TIME BONUS LOGIC (FIXED UPDATES) ---
         function updateTimeBonusTimer() {
             const today = new Date().toISOString().split('T')[0];
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
@@ -879,7 +904,7 @@
             }
 
             const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
-            const cooldown = 90 * 60 * 1000; // 90 mins
+            const cooldown = 90 * 60 * 1000; 
 
             if (lastClaim) {
                 const now = new Date().getTime();
@@ -924,11 +949,16 @@
             if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
             try {
-                const energyReward = 1; // 1 Ticket per claim
+                const energyReward = 1; 
                 const currentIsoDate = new Date().toISOString();
-                const { error } = await _supabase.from('profiles').update({ energy: currentEnergy + energyReward, last_active: currentIsoDate }).eq('user_id', userId);
                 
-                if (!error) {
+                // Using .select() to verify the row was actually updated
+                const { data, error } = await _supabase.from('profiles')
+                    .update({ energy: currentEnergy + energyReward, last_active: currentIsoDate })
+                    .eq('user_id', userId)
+                    .select();
+                
+                if (!error && data && data.length > 0) {
                     currentEnergy += energyReward;
                     claimCount++;
                     localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
@@ -938,8 +968,14 @@
                     showNotify(`Successfully claimed 1 🎟️!`, "success");
                     updateUI();
                     fetchHistory(true);
-                } else showNotify("Failed to claim bonus", "warning");
-            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
+                } else {
+                    console.error("Time Bonus DB Error:", error);
+                    showNotify("Failed to verify claim in database.", "warning");
+                }
+            } catch(e) { 
+                console.error(e);
+                showNotify("Failed to claim bonus", "warning"); 
+            }
             updateTimeBonusTimer();
         }
 
@@ -949,6 +985,7 @@
                 let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
                 if (error) throw error;
 
+                // Ensure user exists using Upsert logic if missing
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
