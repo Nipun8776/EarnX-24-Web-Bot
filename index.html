@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>                         
     
     <script>
         const originalConsoleError = console.error;
@@ -37,7 +37,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@400;600;700;900&display=swap');
@@ -79,14 +78,16 @@
         
         #custom-notify { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; z-index: 1000; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; }
         #custom-notify.active { top: 30px; opacity: 1; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        
+        /* Optimization: Reduced blur intensity for performance */
+        .glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .btn-animate:active { transform: scale(0.95); opacity: 0.8; }
         
-        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 290; display: none; transition: opacity 0.3s; }
-        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95%; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 300; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; }
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 290; display: none; transition: opacity 0.3s; }
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 95%; overflow-y: auto; background: #0f172a; border-top: 1px solid rgba(255,255,255,0.1); border-radius: 2.5rem 2.5rem 0 0; z-index: 300; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; padding-bottom: 2rem; will-change: bottom; }
         .bottom-sheet.active { bottom: 0; }
         
-        .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100%; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 310; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; }
+        .side-panel { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100%; background: #0f172a; border-left: 1px solid rgba(255,255,255,0.1); z-index: 310; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; will-change: right; }
         .side-panel.active { right: 0; }
         
         .method-btn.selected { border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
@@ -94,41 +95,45 @@
         
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes spin-slow { to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+        
+        /* Optimization: will-change applied for GPU rendering */
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; will-change: transform; }
         @keyframes spin-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
-        .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; }
+        .ref-img-spin-reverse { animation: spin-reverse 8s linear infinite; will-change: transform; }
 
-        .wheel-marker { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 28px solid white; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+        .wheel-marker { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 28px solid white; z-index: 20; }
 
-        @keyframes play-pulse { 0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } 50% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 0 20px rgba(236,72,153,0.8)); } 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(236,72,153,0.3)); } }
-        .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; }
-        @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); } 50% { transform: translateY(-5px) scale(1.1); filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.8)); } }
-        .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; }
-        @keyframes video-pulse-rot { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } 25% { transform: scale(1.1) rotate(-5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 75% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 15px rgba(14, 165, 233, 0.8)); } 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(14, 165, 233, 0.3)); } }
-        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; }
+        /* Optimization: Removed drop-shadow from animations to fix lag */
+        @keyframes play-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08) rotate(3deg); } }
+        .play-anim-icon { animation: play-pulse 2.5s infinite ease-in-out; will-change: transform; }
+        
+        @keyframes daily-bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.05); } }
+        .daily-anim-icon { animation: daily-bounce 2.5s infinite ease-in-out; will-change: transform; }
+        
+        @keyframes video-pulse-rot { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.05) rotate(-4deg); } }
+        .video-anim-icon { animation: video-pulse-rot 3s infinite ease-in-out; will-change: transform; }
 
         /* Game Specific Styles */
-        .game-full-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #0f172a, #020617); z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
-        .game-full-screen.active { display: flex; animation: slideUp 0.4s ease-out; }
+        .game-full-screen { position: fixed; inset: 0; background: #0f172a; z-index: 200; display: none; flex-direction: column; font-family: 'Poppins', sans-serif; }
+        .game-full-screen.active { display: flex; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .slot-col { transition: filter 0.1s ease; }
-        .spinning-blur { filter: blur(2px) contrast(1.1); } 
-        .glow-text { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
+        .slot-col { transition: all 0.1s ease; }
+        .spinning-blur { opacity: 0.7; transform: scale(0.95); } 
+        .glow-text { text-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
 
         @keyframes floatPoints {
             0% { transform: translateY(0) scale(0.8); opacity: 0; }
-            20% { transform: translateY(-20px) scale(1.2); opacity: 1; filter: drop-shadow(0 0 15px rgba(251,191,36,1)); }
-            80% { transform: translateY(-50px) scale(1); opacity: 1; filter: drop-shadow(0 0 5px rgba(251,191,36,0.6)); }
-            100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
+            20% { transform: translateY(-20px) scale(1.1); opacity: 1; }
+            80% { transform: translateY(-40px) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(0.8); opacity: 0; }
         }
-        .float-points-anim { animation: floatPoints 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; position: absolute; z-index: 50; font-weight: 900; font-size: 2.5rem; pointer-events: none; }
+        .float-points-anim { animation: floatPoints 1.2s ease-out forwards; position: absolute; z-index: 50; font-weight: 900; font-size: 2rem; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); will-change: transform, opacity; }
         
-        .msg-pop { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; }
+        .msg-pop { opacity: 0; transform: translateY(10px); transition: all 0.3s ease; will-change: transform, opacity; }
         .msg-pop.active { opacity: 1; transform: translateY(0); }
 
-        /* 2 Seconds Fast Spin Animation */
-        #lucky-wheel { transition: transform 2s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        #lucky-wheel { transition: transform 2s cubic-bezier(0.1, 0.9, 0.2, 1); will-change: transform; }
     </style>
 </head>
 
@@ -151,37 +156,37 @@
 
     <div id="game-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-10 shrink-0 relative z-20">
-            <button onclick="trackAction('Crypto Spin', 'Back Button'); closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
+            <button onclick="closeGame()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            <button onclick="trackAction('Crypto Spin', 'Info Button'); openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+            <button onclick="openSheet('game-rules-sheet')" class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center w-full relative z-10">
             <p class="text-[10px] text-amber-100/50 font-black uppercase tracking-[0.3em] mb-1">Session Points</p>
-            <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-8 glow-text transition-all duration-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">0</div>
+            <div id="slot-points-display" class="text-6xl font-black text-amber-400 mb-8 glow-text transition-all duration-300">0</div>
 
             <div id="slot-machine-container" class="relative">
-                <div class="bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-[0_0_60px_rgba(251,191,36,0.2)] relative z-10">
-                    <div class="absolute top-1/2 left-0 w-full h-1.5 bg-amber-400/30 -translate-y-1/2 z-0 shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
+                <div class="bg-[#1e293b] p-6 rounded-[2.5rem] border-2 border-amber-400/40 flex gap-4 shadow-lg relative z-10">
+                    <div class="absolute top-1/2 left-0 w-full h-1 bg-amber-400/20 -translate-y-1/2 z-0"></div>
                     
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-1" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain" />
                     </div>
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-2" src="https://s2.coinmarketcap.com/static/img/coins/64x64/2.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-2" src="https://s2.coinmarketcap.com/static/img/coins/64x64/2.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain" />
                     </div>
                     <div class="slot-col w-20 h-28 bg-black/80 rounded-2xl border-t-4 border-b-4 border-black shadow-inner flex items-center justify-center overflow-hidden relative z-10">
-                        <img id="slot-img-3" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img id="slot-img-3" src="https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png" loading="lazy" decoding="async" class="w-16 h-16 object-contain" />
                     </div>
                 </div>
             </div>
 
             <div id="slot-message-box" class="h-8 mt-4 text-center text-lg font-black uppercase tracking-widest msg-pop"></div>
 
-            <button id="spin-btn" onclick="trackAction('Crypto Spin', 'Spin Button'); spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(251,191,36,0.5)] active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
+            <button id="spin-btn" onclick="spinSlot()" class="mt-4 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 pl-8 pr-3 py-3 rounded-[2rem] text-black font-black text-xl uppercase tracking-[0.15em] shadow-lg active:scale-95 transition-all border-b-4 border-amber-700 w-[85%] max-w-[320px] flex justify-between items-center gap-2">
                 <span>SPIN</span>
                 <div class="bg-black/80 text-amber-400 px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-amber-500/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-ticket text-lg"></i> <span id="game-inner-tickets">0</span>
@@ -192,10 +197,10 @@
 
     <div id="wheel-full-screen" class="game-full-screen p-6 pb-12">
         <div class="flex justify-between items-center mb-6 shrink-0 relative z-20">
-            <button onclick="trackAction('Lucky Wheel', 'Back Button'); closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
+            <button onclick="closeWheelScreen()" class="bg-white/10 border border-white/20 px-5 py-2.5 rounded-2xl font-black text-white text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center gap-2">
                 <i class="ph-bold ph-arrow-left text-sm"></i> Back
             </button>
-            <button onclick="trackAction('Lucky Wheel', 'Info Button'); openSheet('wheel-rules-sheet')" class="w-10 h-10 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center text-purple-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <button onclick="openSheet('wheel-rules-sheet')" class="w-10 h-10 bg-purple-500/20 border border-purple-500/40 rounded-full flex items-center justify-center text-purple-400 active:scale-95 transition-transform shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <i class="ph-bold ph-question text-lg"></i>
             </button>
         </div>
@@ -204,20 +209,20 @@
             <h2 class="text-3xl font-black text-white mb-1 text-center uppercase italic drop-shadow-md">Lucky Wheel</h2>
             <p class="text-center text-xs text-purple-300 font-bold mb-4 uppercase tracking-widest">Spin & Win Big</p>
 
-            <button id="wheel-spin-btn" onclick="trackAction('Lucky Wheel', 'Spin Button'); spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_10px_40px_rgba(168,85,247,0.5)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
+            <button id="wheel-spin-btn" onclick="spinWheel()" class="mb-6 bg-gradient-to-b from-purple-400 via-purple-500 to-purple-700 pl-8 pr-3 py-3 rounded-[2rem] text-white font-black text-xl uppercase tracking-[0.15em] shadow-[0_5px_15px_rgba(168,85,247,0.4)] active:scale-95 transition-all border-b-4 border-purple-900 w-[85%] max-w-[320px] flex justify-between items-center gap-2 mx-auto">
                 <span>SPIN</span>
                 <div class="bg-black/50 text-white px-4 py-2 rounded-2xl text-sm flex items-center gap-1.5 border border-purple-400/50 shadow-inner font-bold tracking-widest">
                     <i class="ph-fill ph-arrows-clockwise text-lg"></i> <span id="wheel-inner-tickets">0</span>
                 </div>
             </button>
             
-            <div class="w-full max-w-[280px] mx-auto mb-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-lg">
+            <div class="w-full max-w-[280px] mx-auto mb-6 bg-white/5 border border-white/10 p-3 rounded-2xl relative overflow-hidden shadow-sm">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-users text-purple-400"></i> Invite Progress</p>
                     <span id="wheel-ref-count" class="text-xs font-black text-white">0/5</span>
                 </div>
                 <div class="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
-                    <div id="wheel-ref-progress" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]" style="width: 0%;"></div>
+                    <div id="wheel-ref-progress" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500" style="width: 0%;"></div>
                 </div>
                 <p class="text-[8px] text-slate-400 mt-2 text-center uppercase font-bold">5 Invites = 1 Free Spin</p>
             </div>
@@ -245,7 +250,7 @@
                     <div class="absolute top-1/2 left-1/2 w-3 h-3 bg-gradient-to-tr from-yellow-300 to-yellow-600 rounded-full shadow-[0_0_8px_#facc15] -mt-1.5 -ml-1.5" style="transform: rotate(330deg) translate(130px);"></div>
                 </div>
 
-                <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);">
+                <div id="lucky-wheel" class="absolute inset-[16px] rounded-full border-[3px] border-[#000000] shadow-lg overflow-hidden z-10" style="background: conic-gradient(#ef4444 0 15deg, #10b981 15deg 65deg, #3b82f6 65deg 115deg, #f59e0b 115deg 165deg, #d946ef 165deg 215deg, #8b5cf6 215deg 265deg, #ec4899 265deg 315deg, #334155 315deg 360deg);">
                     
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-82.5deg) translateX(35px);">Win Rs 100</div>
                     <div class="absolute top-1/2 left-1/2 flex items-center text-white font-black text-[12px] drop-shadow-md origin-left whitespace-nowrap tracking-[0.05em]" style="transform: translateY(-50%) rotate(-50deg) translateX(35px);">Win Rs 50</div>
@@ -285,13 +290,13 @@
                     <p id="user-username-display" class="text-[10px] text-slate-400 font-mono mt-0.5">@username</p>
                 </div>
             </div>
-            <button onclick="trackAction('Dashboard', 'Menu Button'); openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
+            <button onclick="openSidePanel()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center btn-animate shrink-0"><i class="ph-bold ph-list text-slate-400 text-lg"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-5 pb-24">
             <div class="glass p-6 rounded-[3rem] border-t border-white/10 relative overflow-hidden bg-gradient-to-b from-[#0f172a] to-[#020617]">
                 <div class="absolute top-6 right-6">
-                    <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-[0_0_15px_rgba(251,191,36,0.15)]">
+                    <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
                         <i class="ph-fill ph-ticket text-amber-400 text-sm"></i>
                         <span id="energy-display" class="text-amber-400 text-xs font-black">0</span>
                     </div>
@@ -307,102 +312,102 @@
                 </div>
                 
                 <div class="flex gap-2">
-                    <button onclick="trackAction('Dashboard', 'Withdraw Main Button'); openSheet('withdraw-sheet')" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white btn-animate shadow-lg shadow-sky-500/30">Withdraw</button>
+                    <button onclick="openSheet('withdraw-sheet')" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white btn-animate shadow-md">Withdraw</button>
                 </div>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30 daily-anim-icon">
-                        <i class="ph-fill ph-clock-countdown text-2xl drop-shadow-md"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center text-white shadow-md daily-anim-icon">
+                        <i class="ph-fill ph-clock-countdown text-2xl"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm">Time Bonus</p>
+                        <p class="font-bold text-sm">Hourly Reward</p>
                         <p id="time-bonus-display" class="text-[9px] text-green-300 font-bold uppercase tracking-widest">Earn 🎟️ 1 Ticket (0/10)</p>
                     </div>
                 </div>
-                <button id="daily-claim-btn" onclick="trackAction('Dashboard', 'Time Bonus Claim'); claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest w-24">CLAIM</button>
+                <button id="daily-claim-btn" onclick="claimTimeBonus()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-sm text-white tracking-widest w-24">CLAIM</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-blue-900/40 to-sky-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 video-anim-icon">
-                        <i class="ph-fill ph-video-camera text-2xl drop-shadow-md"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white shadow-md video-anim-icon">
+                        <i class="ph-fill ph-video-camera text-2xl"></i>
                     </div>
                     <div>
                         <p class="font-bold text-sm">Watch Video</p>
                         <p id="video-count-display" class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 🎟️ 2 Tickets (0/3)</p>
                     </div>
                 </div>
-                <button onclick="trackAction('Dashboard', 'Watch Video Ad'); showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">WATCH</button>
+                <button onclick="showRewardAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-sm text-white tracking-widest">WATCH</button>
             </div>
 
-            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-slate-800/40 to-slate-900/40 relative overflow-hidden opacity-75">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-slate-500/20 rounded-full blur-xl"></div>
+            <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-blue-900/40 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white shadow-lg shadow-slate-500/30">
-                        <i class="ph-fill ph-cursor-click text-2xl drop-shadow-md"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md">
+                        <i class="ph-fill ph-cursor-click text-2xl"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-sm text-slate-300">Click Ads</p>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Coming Soon</p>
+                        <p class="font-bold text-sm">Click Ads</p>
+                        <p id="click-ad-count-display" class="text-[9px] text-indigo-300 font-bold uppercase tracking-widest">Earn 🎟️ 3 Tickets (0/5)</p>
                     </div>
                 </div>
-                <button onclick="trackAction('Dashboard', 'Click Ads Soon'); showNotify('Coming Soon!', 'warning')" class="bg-white/5 hover:bg-white/10 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-slate-300 tracking-widest">SOON</button>
+                <button onclick="showClickAd()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-sm text-white tracking-widest">CLICK</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-pink-900/40 to-rose-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon shadow-lg shadow-pink-500/30">
-                        <i class="ph-fill ph-game-controller text-2xl drop-shadow-md"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white play-anim-icon shadow-md">
+                        <i class="ph-fill ph-game-controller text-2xl"></i>
                     </div>
                     <div>
                         <p class="font-bold text-sm">Crypto Spin</p>
                         <p class="text-[9px] text-pink-300 font-bold uppercase tracking-widest">Cost: 1 Ticket</p>
                     </div>
                 </div>
-                <button onclick="trackAction('Dashboard', 'Open Crypto Spin'); openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">PLAY</button>
+                <button onclick="openGameScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-sm text-white tracking-widest">PLAY</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
                 <div class="flex items-center gap-4 relative z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/40 border border-white/10 play-anim-icon">
-                        <i class="ph-fill ph-aperture text-[32px] animate-spin-slow drop-shadow-md"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md border border-white/10 play-anim-icon">
+                        <i class="ph-fill ph-aperture text-[32px] animate-spin-slow"></i>
                     </div>
                     <div><p class="font-bold text-sm">Lucky Wheel</p><p class="text-[9px] text-purple-300 font-bold uppercase tracking-widest">Win up to Rs 100</p></div>
                 </div>
-                <button onclick="trackAction('Dashboard', 'Open Lucky Wheel'); openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-lg shadow-black/20 text-white tracking-widest">SPIN</button>
+                <button onclick="openWheelScreen()" class="bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[10px] font-black btn-animate border border-white/10 relative z-10 shadow-sm text-white tracking-widest">SPIN</button>
             </div>
 
             <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
                         <div class="absolute inset-0 animate-spin-slow">
-                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover ref-img-spin-reverse"></div>
-                            <div class="absolute bottom-0 left-0 w-6 h-6 bg-pink-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="w-full h-full object-cover ref-img-spin-reverse"></div>
-                            <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-lg"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-6 bg-purple-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-sm"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                            <div class="absolute bottom-0 left-0 w-6 h-6 bg-pink-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-sm"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="w-full h-full object-cover ref-img-spin-reverse"></div>
+                            <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-500 rounded-full border-2 border-[#0f172a] overflow-hidden shadow-sm"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" class="w-full h-full object-cover ref-img-spin-reverse"></div>
                         </div>
                     </div>
                     <div><p class="font-bold text-sm">Invite Friends</p><p class="text-[10px] text-purple-400 font-bold uppercase">Earn 🎟️ 2 Tickets</p></div>
                 </div>
-                <button onclick="trackAction('Dashboard', 'Copy Invite Link'); copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
+                <button onclick="copyRefLink()" class="bg-purple-500 px-6 py-2 rounded-xl text-[10px] font-black btn-animate">COPY LINK</button>
             </div>
 
             <div class="space-y-3 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest">Recent Activity</h3>
-                    <button onclick="trackAction('Dashboard', 'Toggle History'); toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
+                    <button onclick="toggleHistory()" id="toggle-history-btn" class="text-[9px] text-sky-500 font-bold uppercase bg-sky-500/10 px-3 py-1 rounded-md transition-colors hover:bg-sky-500/20">View All</button>
                 </div>
                 <div id="history-list" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
-    <div id="sheet-overlay" class="sheet-overlay" onclick="trackAction('Overlay', 'Close All Sheets'); closeAllSheets()"></div>
+    <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
 
     <div id="side-panel" class="side-panel">
         <div class="flex items-start gap-3 mb-6 pb-6 border-b border-white/10 relative">
@@ -422,32 +427,32 @@
                 </div>
                 <p id="menu-member-since" class="text-[9px] text-slate-500 mt-2 flex items-center gap-1"><i class="ph-regular ph-calendar-blank"></i> Member since ---</p>
             </div>
-            <button onclick="trackAction('Menu', 'Close Menu'); closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSidePanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 btn-animate shrink-0 transition-colors absolute top-0 right-0"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
 
         <div class="flex flex-col space-y-2 flex-1">
-            <button onclick="trackAction('Menu', 'Open Withdraw History'); openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="openWithdrawHistory()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 shadow-inner"><i class="ph-fill ph-receipt text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">Transaction History</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">View all your requests</p>
                 </div>
             </button>
-            <button onclick="trackAction('Menu', 'Open Referral List'); openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="openReferralList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner"><i class="ph-fill ph-users text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">My Referral List</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">View your invited friends</p>
                 </div>
             </button>
-            <button onclick="trackAction('Menu', 'Open Rank List'); openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="openRankList()" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shadow-inner"><i class="ph-fill ph-trophy text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">Rank List</p>
                     <p class="text-[9px] text-slate-400 mt-0.5">Top performing referrers</p>
                 </div>
             </button>
-            <button onclick="trackAction('Menu', 'Open App Version'); closeSidePanel(); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
+            <button onclick="closeSidePanel(false); openSheet('version-sheet')" class="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner"><i class="ph-fill ph-info text-lg"></i></div>
                 <div class="text-left">
                     <p class="font-bold text-xs text-white">App Version</p>
@@ -467,7 +472,7 @@
                 <h2 class="text-lg font-black text-white">App Version</h2>
                 <p class="text-[11px] text-slate-400 mt-0.5">Current Release Details</p>
             </div>
-            <button onclick="trackAction('Version Sheet', 'Close'); closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('version-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-4 pb-4 overflow-y-auto">
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
@@ -495,7 +500,7 @@
                 <h2 class="text-lg font-black text-white">Transaction History</h2>
                 <p class="text-[11px] text-slate-400 mt-0.5">Total Records: <span id="w-history-count" class="font-bold text-white">0</span></p>
             </div>
-            <button onclick="trackAction('Tx History Sheet', 'Close'); closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('withdraw-history-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="w-history-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
@@ -506,7 +511,7 @@
                 <h2 class="text-xl font-black text-white uppercase italic">My Referral List</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Total Friends: <span id="ref-count-display" class="text-purple-400 font-bold">0</span></p>
             </div>
-            <button onclick="trackAction('Referral Sheet', 'Close'); closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('referral-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="referral-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
@@ -517,26 +522,26 @@
                 <h2 class="text-xl font-black text-white uppercase italic">Top Referrers</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Leaderboard Rankings</p>
             </div>
-            <button onclick="trackAction('Rank Sheet', 'Close'); closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('rank-sheet')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div id="rank-list-container" class="flex-1 overflow-y-auto space-y-3 pb-6 pr-1"></div>
     </div>
 
     <div id="withdraw-sheet" class="bottom-sheet">
-        <button onclick="trackAction('Withdraw Sheet', 'Close'); closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
+        <button onclick="closeSheet('withdraw-sheet')" class="absolute right-5 top-5 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10"><i class="ph-bold ph-x text-slate-400"></i></button>
         <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mb-6"></div>
         <h2 class="text-xl font-black text-white mb-1 flex items-center gap-2"><i class="ph-bold ph-hand-withdraw text-sky-400"></i> Withdraw Funds</h2>
         <p class="text-[10px] text-slate-400 font-bold mb-6 uppercase tracking-wider">Available: <span id="w-balance-val" class="text-sky-400">Rs 0.00</span></p>
         
         <h3 class="text-xs font-black uppercase text-slate-500 tracking-widest mb-3">Select Method</h3>
         <div class="grid grid-cols-3 gap-3 mb-8">
-            <button onclick="trackAction('Withdraw Sheet', 'Select Binance'); selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="selectMethod(this, 'BINANCE')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-currency-btc text-yellow-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Binance</span>
             </button>
-            <button onclick="trackAction('Withdraw Sheet', 'Select Reload'); selectMethod(this, 'RELOAD')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="selectMethod(this, 'RELOAD')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-device-mobile-camera text-purple-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Reload</span>
             </button>
-            <button onclick="trackAction('Withdraw Sheet', 'Select Bank'); selectMethod(this, 'BANK')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
+            <button onclick="selectMethod(this, 'BANK')" class="method-btn p-3 rounded-[1.5rem] flex flex-col items-center gap-2 bg-white/5 border border-white/10 text-white">
                 <i class="ph-fill ph-bank text-green-500 text-2xl"></i><span class="text-[9px] font-black uppercase text-center leading-tight">Bank</span>
             </button>
         </div>
@@ -580,7 +585,7 @@
                 <p id="withdraw-fee-note" class="text-[9px] text-red-400 font-bold uppercase tracking-widest leading-tight"></p>
             </div>
 
-            <button id="withdraw-btn" onclick="trackAction('Withdraw Sheet', 'Submit Request'); processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
+            <button id="withdraw-btn" onclick="processWithdraw()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 py-4 rounded-2xl font-black text-white text-xs uppercase tracking-widest mt-2 flex items-center justify-center gap-2">SUBMIT REQUEST</button>
         </div>
     </div>
 
@@ -591,7 +596,7 @@
                 <h2 class="text-lg font-black text-white uppercase tracking-widest">Game Rules</h2>
                 <p class="text-[11px] text-amber-400 font-bold">Winning Probabilities</p>
             </div>
-            <button onclick="trackAction('Crypto Spin Rules', 'Close'); closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('game-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-4 pb-4">
             
@@ -675,7 +680,7 @@
                 <h2 class="text-lg font-black text-white uppercase tracking-widest">Wheel Rules</h2>
                 <p class="text-[11px] text-pink-400 font-bold">Winning Probabilities</p>
             </div>
-            <button onclick="trackAction('Lucky Wheel Rules', 'Close'); closeSheet('wheel-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
+            <button onclick="closeSheet('wheel-rules-sheet')" class="absolute top-0 right-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors btn-animate"><i class="ph-bold ph-x text-slate-400"></i></button>
         </div>
         <div class="flex-1 space-y-3 pb-4">
             <div class="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between">
@@ -713,18 +718,47 @@
         </div>
     </div>
 
-  </div> <script>
+  </div> 
+
+  <script>
         const tg = window.Telegram?.WebApp || {};
         
-        const SUPABASE_URL = 'https://veumqlicudrknoestekg.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZldW1xbGljdWRya25vZXN0ZWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3OTQzNDIsImV4cCI6MjA4ODM3MDM0Mn0.SILaj21J66nxSdecmzYDL_2TGqdw_Hka3lKmoizVtJ0';
-        
-        let _supabase;
-        
+        // --- Local Storage Helpers ---
+        function updateProfile(uid, updates) {
+            let dataStr = localStorage.getItem('profile_' + uid);
+            if (dataStr) {
+                let data = JSON.parse(dataStr);
+                Object.assign(data, updates);
+                localStorage.setItem('profile_' + uid, JSON.stringify(data));
+            }
+        }
+
+        function addTransaction(uid, tx) {
+            let txsStr = localStorage.getItem('transactions_' + uid);
+            let txs = txsStr ? JSON.parse(txsStr) : [];
+            tx.created_at = new Date().toISOString();
+            tx.id = Math.random().toString(36).substr(2, 9);
+            txs.unshift(tx);
+            localStorage.setItem('transactions_' + uid, JSON.stringify(txs));
+        }
+
+        function getAllProfiles() {
+            let profiles = [];
+            for(let i=0; i<localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if(key.startsWith('profile_')) {
+                    profiles.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+            return profiles;
+        }
+        // -----------------------------
+
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
         let sessionSpinCount = 0; 
+        
         let sessionExpired = false;
 
         const prizes = [
@@ -740,21 +774,6 @@
 
         const tgUser = tg.initDataUnsafe?.user || null;
         const startParam = tg.initDataUnsafe?.start_param || null;
-        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
-
-        // ==========================================
-        // NEW: ACTION TRACKER FUNCTION
-        // ==========================================
-        async function trackAction(sectionName, buttonName) {
-            if (!_supabase || !userId) return;
-            try {
-                await _supabase.from('user_clicks').insert([{
-                    user_id: userId,
-                    section_name: sectionName,
-                    button_name: buttonName
-                }]);
-            } catch (err) { console.error("Tracking Error:", err); }
-        }
 
         function checkIsActive(lastActiveDateStr, createdAtDateStr) {
             const targetDateStr = lastActiveDateStr || createdAtDateStr;
@@ -786,9 +805,6 @@
         }
 
         async function initApp() {
-            if (window.supabase) {
-                _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
             if (tg.ready) tg.ready(); 
             if (tg.expand) tg.expand();
             
@@ -828,12 +844,8 @@
             }, 50);
 
             try {
-                if(_supabase) { 
-                    await fetchUserData(); 
-                    await fetchHistory(true); 
-                } else { 
-                    showNotify("Database connection failed.", "warning"); 
-                }
+                await fetchUserData(); 
+                await fetchHistory(true); 
             } catch(e) { console.error(e); } 
             finally {
                 clearInterval(fakeLoader);
@@ -848,9 +860,7 @@
             }
         }
 
-        // --- WATCH VIDEO LOGIC (FIXED UPDATES) ---
         function showRewardAd() {
-            if (!_supabase) return showNotify("Database connecting...", "warning");
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             
@@ -863,32 +873,45 @@
                     const energyReward = 2; 
                     const currentIsoDate = new Date().toISOString();
                     
-                    // Supabase UPDATE with .select() to ensure it worked
-                    const { data, error } = await _supabase.from('profiles')
-                        .update({ energy: currentEnergy + energyReward, last_active: currentIsoDate })
-                        .eq('user_id', userId)
-                        .select();
-                        
-                    if (!error && data && data.length > 0) {
-                        currentEnergy += energyReward;
-                        videoCount++;
-                        localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' }]);
-                        showNotify(`Earned 2 🎟️ from Video Task!`, "success");
-                        updateUI();
-                        fetchHistory(true);
-                    } else {
-                        console.error("Video Reward DB Error:", error);
-                        showNotify("Failed to verify reward in database.", "warning");
-                    }
-                } catch(e) { 
-                    console.error(e);
-                    showNotify("Failed to credit reward", "warning"); 
-                }
+                    updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
+                    currentEnergy += energyReward;
+                    videoCount++;
+                    localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
+                    addTransaction(userId, { user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' });
+                    
+                    showNotify(`Earned 2 🎟️ from Video Task!`, "success");
+                    updateUI();
+                    fetchHistory(true);
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
             }, 1500);
         }
 
-        // --- TIME BONUS LOGIC (FIXED UPDATES) ---
+        function showClickAd() {
+            const today = new Date().toISOString().split('T')[0];
+            let adCount = parseInt(localStorage.getItem(`click_ad_count_${userId}_${today}`) || "0");
+            
+            if (adCount >= 5) return showNotify("Daily limit of 5 click ads reached!", "warning");
+
+            showNotify("Processing ad task...", "success");
+
+            setTimeout(async () => {
+                try {
+                    const energyReward = 3; 
+                    const currentIsoDate = new Date().toISOString();
+                    
+                    updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
+                    currentEnergy += energyReward;
+                    adCount++;
+                    localStorage.setItem(`click_ad_count_${userId}_${today}`, adCount.toString());
+                    addTransaction(userId, { user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' });
+                    
+                    showNotify(`Earned 3 🎟️ from Ad Task!`, "success");
+                    updateUI();
+                    fetchHistory(true);
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            }, 1500);
+        }
+
         function updateTimeBonusTimer() {
             const today = new Date().toISOString().split('T')[0];
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
@@ -933,7 +956,6 @@
         }
 
         async function claimTimeBonus() {
-            if (!_supabase) return;
             const today = new Date().toISOString().split('T')[0];
             let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
             
@@ -952,70 +974,52 @@
                 const energyReward = 1; 
                 const currentIsoDate = new Date().toISOString();
                 
-                // Using .select() to verify the row was actually updated
-                const { data, error } = await _supabase.from('profiles')
-                    .update({ energy: currentEnergy + energyReward, last_active: currentIsoDate })
-                    .eq('user_id', userId)
-                    .select();
+                updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
                 
-                if (!error && data && data.length > 0) {
-                    currentEnergy += energyReward;
-                    claimCount++;
-                    localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
-                    localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
-                    
-                    await _supabase.from('transactions').insert([{ user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' }]);
-                    showNotify(`Successfully claimed 1 🎟️!`, "success");
-                    updateUI();
-                    fetchHistory(true);
-                } else {
-                    console.error("Time Bonus DB Error:", error);
-                    showNotify("Failed to verify claim in database.", "warning");
-                }
-            } catch(e) { 
-                console.error(e);
-                showNotify("Failed to claim bonus", "warning"); 
-            }
+                currentEnergy += energyReward;
+                claimCount++;
+                localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
+                localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
+                
+                addTransaction(userId, { user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' });
+                showNotify(`Claimed 1 🎟️!`, "success");
+                updateUI();
+                fetchHistory(true);
+            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
             updateTimeBonusTimer();
         }
 
         async function fetchUserData() {
-            if (!_supabase) return;
             try {
-                let { data, error } = await _supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle();
-                if (error) throw error;
+                let dataStr = localStorage.getItem('profile_' + userId);
+                let data = dataStr ? JSON.parse(dataStr) : null;
 
-                // Ensure user exists using Upsert logic if missing
                 if (!data) { 
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
-                        user_id: userId, balance: 0, energy: 0, username: tgUser?.username || '',
-                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || ''
+                        user_id: userId, balance: 0, energy: 0, spin_chances: 0, username: tgUser?.username || '',
+                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || '',
+                        created_at: new Date().toISOString(), last_active: new Date().toISOString()
                     };
                     
                     if (startParam && startParam !== userId && startParam !== "99999") newUser.referrer_id = startParam;
-                    let ins = await _supabase.from('profiles').insert([newUser]).select().maybeSingle(); 
                     
-                    if (!ins.error) {
-                        data = ins.data || newUser; 
-                        if (startParam && startParam !== userId && startParam !== "99999") {
-                            let { data: referrerData } = await _supabase.from('profiles').select('balance, spin_chances, energy').eq('user_id', startParam).maybeSingle();
-                            if (referrerData) {
-                                let newEnergy = parseInt(referrerData.energy || 0) + 2; 
-                                let { data: refData } = await _supabase.from('profiles').select('user_id').eq('referrer_id', startParam);
-                                let currentRefs = refData ? refData.length : 0;
-                                let newSpinChances = parseInt(referrerData.spin_chances || 0);
-                                let gotSpin = false;
-                                
-                                if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; gotSpin = true; }
-                                await _supabase.from('profiles').update({ spin_chances: newSpinChances, energy: newEnergy }).eq('user_id', startParam);
-                                await _supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
-                                
-                                const refName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "A new user";
-                                let refText = `🎉 *New Referral Alert!* 🚀\n*Congratulations!* *${refName}* just joined using your referral link. 🤝\n*You’ve earned 2 Tickets as a reward!* 🎟️\n*Keep inviting friends to earn even more!* ✨`;
-                                if (gotSpin) refText += `\n\n🎁 *You also unlocked 1 FREE SPIN!*`;
-                                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${startParam}&text=${encodeURIComponent(refText)}&parse_mode=Markdown`);
-                            }
+                    localStorage.setItem('profile_' + userId, JSON.stringify(newUser));
+                    data = newUser; 
+                    
+                    if (startParam && startParam !== userId && startParam !== "99999") {
+                        let referrerDataStr = localStorage.getItem('profile_' + startParam);
+                        if (referrerDataStr) {
+                            let referrerData = JSON.parse(referrerDataStr);
+                            let newEnergy = parseInt(referrerData.energy || 0) + 2; 
+                            
+                            let currentRefs = getAllProfiles().filter(p => p.referrer_id === startParam).length;
+                            let newSpinChances = parseInt(referrerData.spin_chances || 0);
+                            
+                            if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; }
+                            
+                            updateProfile(startParam, { spin_chances: newSpinChances, energy: newEnergy });
+                            addTransaction(startParam, { user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' });
                         }
                     }
                 }
@@ -1043,18 +1047,18 @@
                 currentBalance = parseFloat(data?.balance || 0);
                 currentEnergy = parseInt(data?.energy || 0);
                 
-                let { data: myRefs } = await _supabase.from('profiles').select('user_id').eq('referrer_id', userId);
-                myReferralCount = myRefs ? myRefs.length : 0;
+                let myRefs = getAllProfiles().filter(p => p.referrer_id === userId);
+                myReferralCount = myRefs.length;
 
                 updateUI(); updateWheelUI(); updateTimeBonusTimer();
             } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
         }
         
         async function fetchHistory(limit = false) {
-            if (!_supabase) return;
             try {
-                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-                if (error) throw error;
+                let txsStr = localStorage.getItem('transactions_' + userId);
+                let data = txsStr ? JSON.parse(txsStr) : [];
+                
                 if (data) {
                     const items = limit ? data.slice(0, 5) : data;
                     const hList = document.getElementById('history-list');
@@ -1071,8 +1075,9 @@
                         label = label.replace(/REWARD/g, 'WINNING POINTS');
                         label = label.replace(/BONUS/g, 'WINNING POINTS');
 
-                        if (item.type === 'CLICK_AD_REWARD' || item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
-                        if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'TIME WINNING POINTS'; 
+                        if (item.type === 'CLICK_AD_REWARD') label = 'AD CLICK REWARD'; 
+                        if (item.type === 'VIDEO_AD_REWARD') label = 'AD WINNING POINTS'; 
+                        if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'HOURLY REWARD'; 
                         if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
 
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
@@ -1097,7 +1102,9 @@
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 1 🎟️</p>`;
                         } else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'REFERRAL_BONUS') {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
-                        } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD'].includes(item.type) && item.amount === 0) {
+                        } else if (item.type === 'CLICK_AD_REWARD') {
+                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 3 🎟️</p>`;
+                        } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD'].includes(item.type) && item.amount === 0) {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
                         } else if (item.type === 'WITHDRAWAL') {
                             let wMethod = "Unknown";
@@ -1128,12 +1135,14 @@
         }
 
         async function openWithdrawHistory() {
-            closeSidePanel(); openSheet('withdraw-history-sheet');
+            closeSidePanel(false); openSheet('withdraw-history-sheet');
             const listCont = document.getElementById('w-history-list-container');
             if(listCont) listCont.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
-                if (error) throw error;
+                let txsStr = localStorage.getItem('transactions_' + userId);
+                let allTxs = txsStr ? JSON.parse(txsStr) : [];
+                let data = allTxs.filter(t => t.type === 'WITHDRAWAL');
+
                 const hc = document.getElementById('w-history-count');
                 if(hc) hc.innerText = data.length;
                 if (data.length === 0) {
@@ -1229,7 +1238,6 @@
         }
 
         async function processWithdraw() {
-            if (!_supabase) return showNotify("Database connecting...", "warning");
             let addr = "", bankName = "", bankBranch = "", accName = "";
             let amtElement = document.getElementById('w-amount');
             const amt = amtElement ? parseFloat(amtElement.value) : 0;
@@ -1281,24 +1289,17 @@
                 let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
 
                 try {
-                    const { error: balError } = await _supabase.from('profiles').update({ balance: currentBalance - totalDeduction }).eq('user_id', userId);
-                    if (!balError) {
-                        await _supabase.from('transactions').insert([{ user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress }]);
-                        
-                        let label = selectedMethodName === 'BINANCE' ? "Binance ID" : "Mobile Number";
-                        let text = "";
-                        
-                        if (selectedMethodName === 'BANK') {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* BANK\n📍 *Bank Name:* ${bankName}\n📍 *Branch:* ${bankBranch}\n📍 *Name:* ${accName}\n💳 *Acc No:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
-                        } else {
-                            text = `✅ *Withdrawal Request Received*\n\n*Hello Support Center, we have received your request.*\n\n📄 *Transaction ID:* #${txId}\n💰 *Amount:* Rs ${amt.toFixed(2)}\n💸 *Fee:* Rs ${fee.toFixed(2)}\n🏦 *Method:* ${selectedMethodName}\n📍 *${label}:* ${addr}\n⏳ *Status:* Processing\n\n*Thank you for using EarnX24!*`;
-                        }
-
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${userId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`);
-                        
-                        currentBalance -= totalDeduction; updateUI(); fetchHistory(true); showNotify("Request Sent Successfully!", "success"); triggerVibration('success'); closeAllSheets();
-                    } else showNotify("Error processing request.");
+                    updateProfile(userId, { balance: currentBalance - totalDeduction });
+                    addTransaction(userId, { user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress });
+                    
+                    currentBalance -= totalDeduction; 
+                    updateUI(); 
+                    fetchHistory(true); 
+                    showNotify("Request Sent Successfully!", "success"); 
+                    triggerVibration('success'); 
+                    closeAllSheets();
                 } catch(e) { showNotify("Error processing request."); }
+                
                 if(btn) { btn.disabled = false; btn.innerText = "SUBMIT REQUEST"; }
             }, 3000);
         }
@@ -1311,14 +1312,14 @@
         }
 
         async function openReferralList() {
-            closeSidePanel(); openSheet('referral-sheet'); 
+            closeSidePanel(false); openSheet('referral-sheet'); 
             const rlc = document.getElementById('referral-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('profiles').select('*').eq('referrer_id', userId);
-                if (error) throw error;
+                let data = getAllProfiles().filter(p => p.referrer_id === userId);
                 const rcd = document.getElementById('ref-count-display');
                 if(rcd) rcd.innerText = data.length;
+                
                 if (data.length === 0) { 
                     if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; 
                 }
@@ -1332,12 +1333,11 @@
         }
 
         async function openRankList() {
-            closeSidePanel(); openSheet('rank-sheet'); 
+            closeSidePanel(false); openSheet('rank-sheet'); 
             const rlc = document.getElementById('rank-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                const { data, error } = await _supabase.from('profiles').select('referrer_id').not('referrer_id', 'is', null);
-                if (error) throw error;
+                let data = getAllProfiles().filter(p => p.referrer_id && p.referrer_id !== "99999");
                 if (data && data.length > 0) {
                     let counts = {};
                     data.forEach(item => { if(item.referrer_id && item.referrer_id !== "99999") counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1; });
@@ -1347,7 +1347,7 @@
                     }
                     
                     const topIds = sortedRanks.map(r => r[0]);
-                    const { data: profilesData } = await _supabase.from('profiles').select('user_id, first_name, photo_url').in('user_id', topIds);
+                    const profilesData = getAllProfiles().filter(p => topIds.includes(p.user_id));
                     const profileMap = {}; if (profilesData) profilesData.forEach(p => profileMap[p.user_id] = p);
 
                     if(rlc) rlc.innerHTML = sortedRanks.map((rank, index) => {
@@ -1360,7 +1360,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // Update Balance and UI
         function updateUI() {
             const balValDisplay = document.getElementById('bal-val-display');
             if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
@@ -1387,6 +1386,12 @@
                 vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
             }
 
+            let clickAdCount = parseInt(localStorage.getItem(`click_ad_count_${userId}_${today}`) || "0");
+            const cad = document.getElementById('click-ad-count-display');
+            if (cad) {
+                cad.innerText = `Earn 🎟️ 3 Tickets (${clickAdCount}/5)`;
+            }
+
             let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
             const tbd = document.getElementById('time-bonus-display');
             if (tbd) {
@@ -1405,8 +1410,22 @@
             }
         }
         
-        function openSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.add('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'block'; }
-        function closeSidePanel() { const sp = document.getElementById('side-panel'); if(sp) sp.classList.remove('active'); const so = document.getElementById('sheet-overlay'); if(so) so.style.display = 'none'; }
+        function openSidePanel() { 
+            const sp = document.getElementById('side-panel'); 
+            if(sp) sp.classList.add('active'); 
+            const so = document.getElementById('sheet-overlay'); 
+            if(so) { so.style.display = 'block'; setTimeout(() => so.style.opacity = '1', 10); } 
+        }
+        
+        function closeSidePanel(hideOverlay = true) { 
+            const sp = document.getElementById('side-panel'); 
+            if(sp) sp.classList.remove('active'); 
+            if (hideOverlay) {
+                const so = document.getElementById('sheet-overlay'); 
+                if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); }
+            }
+        }
+        
         function openSheet(id) { 
             const sh = document.getElementById(id);
             if(sh) sh.classList.add('active'); 
@@ -1470,19 +1489,19 @@
             updateWheelUI();
             triggerVibration('medium'); 
             
-            try { _supabase.from('profiles').update({ spin_chances: spinChances }).eq('user_id', userId).then(); } catch(e) {}
+            try { updateProfile(userId, { spin_chances: spinChances }); } catch(e) {}
             
             const rand = Math.random(); 
             let prizeIdx = 7; 
             
-            if (rand < 0.01) prizeIdx = 0;      // Rs 100 (1%)
-            else if (rand < 0.04) prizeIdx = 1; // Rs 50 (3%)
-            else if (rand < 0.09) prizeIdx = 2; // Rs 20 (5%)
-            else if (rand < 0.19) prizeIdx = 3; // Rs 10 (10%)
-            else if (rand < 0.34) prizeIdx = 4; // Rs 5 (15%)
-            else if (rand < 0.54) prizeIdx = 5; // Rs 2 (20%)
-            else if (rand < 0.79) prizeIdx = 6; // Rs 1 (25%)
-            else prizeIdx = 7;                  // Try Again (21%)
+            if (rand < 0.01) prizeIdx = 0;      
+            else if (rand < 0.04) prizeIdx = 1; 
+            else if (rand < 0.09) prizeIdx = 2; 
+            else if (rand < 0.19) prizeIdx = 3; 
+            else if (rand < 0.34) prizeIdx = 4; 
+            else if (rand < 0.54) prizeIdx = 5; 
+            else if (rand < 0.79) prizeIdx = 6; 
+            else prizeIdx = 7;                  
 
             const targetRotationMap = [352.5, 320, 270, 220, 170, 120, 70, 22.5]; 
             const baseRot = currentWheelRotation % 360;
@@ -1499,16 +1518,14 @@
                 const prize = prizes[prizeIdx];
                 if (prize.type === 'cash' || prize.type === 'coin') {
                     try {
-                        const { error } = await _supabase.from('profiles').update({ balance: currentBalance + prize.val, last_active: currentIsoDate }).eq('user_id', userId);
-                        if(!error) {
-                            currentBalance += prize.val; await _supabase.from('transactions').insert([{ user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' }]);
-                            showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                            confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 }, zIndex: 1000 });
-                            triggerVibration('heavy'); 
-                        } else { 
-                            showNotify("Failed to save prize.", "warning"); 
-                            triggerVibration('error');
-                        }
+                        updateProfile(userId, { balance: currentBalance + prize.val, last_active: currentIsoDate });
+                        
+                        currentBalance += prize.val; 
+                        addTransaction(userId, { user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' });
+                        showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
+                        confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 }, zIndex: 1000 });
+                        triggerVibration('heavy'); 
+                        
                     } catch(e) { 
                         showNotify("Error updating balance.", "warning"); 
                         triggerVibration('error');
@@ -1520,10 +1537,6 @@
                 if(btn) btn.disabled = false;
             }, 2000); 
         }
-
-        // ==========================================
-        // CRYPTO SLOT MACHINE GAME LOGIC
-        // ==========================================
 
         const cryptoLogos = [
             'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
@@ -1637,7 +1650,7 @@
 
             let spinInterval = setInterval(() => {
                 slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
-            }, 80);
+            }, 120); 
 
             setTimeout(() => {
                 clearInterval(spinInterval);
@@ -1717,21 +1730,21 @@
                 if (r1 === 0 && r2 === 0 && r3 === 0) {
                     pointsWon = 200; 
                     triggerVibration('heavy');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
+                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
                     showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success");
                 }
                 else if (r1 === 7 && r2 === 7 && r3 === 7) {
                     pointsWon = 100; 
                     triggerVibration('success');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#eab308', '#facc15', '#ffffff'] });
+                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#eab308', '#facc15', '#ffffff'] });
                     showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("💎 BNB JACKPOT! +100 PTS", "success");
                 }
                 else if (r1 === r2 && r2 === r3) {
                     pointsWon = 50; 
                     triggerVibration('success');
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
+                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
                     showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2);
                     showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
                 } 
@@ -1750,21 +1763,15 @@
                     updateSlotScoreUI(slotPoints);
                     
                     let earnedLkr = pointsWon / 100;
-                    if (_supabase) {
-                        _supabase.from('profiles').update({ balance: currentBalance + earnedLkr, last_active: new Date().toISOString() }).eq('user_id', userId).then(({error}) => {
-                            if(!error) {
-                                currentBalance += earnedLkr;
-                                _supabase.from('transactions').insert([{ user_id: userId, type: 'GAME_REWARD', amount: earnedLkr, status: 'approved' }]).then();
-                                updateUI();
-                                fetchHistory(true);
-                            }
-                        });
-                    } else {
-                        currentBalance += earnedLkr;
-                        updateUI();
-                    }
+                    
+                    updateProfile(userId, { balance: currentBalance + earnedLkr, last_active: new Date().toISOString() });
+                    currentBalance += earnedLkr;
+                    addTransaction(userId, { user_id: userId, type: 'GAME_REWARD', amount: earnedLkr, status: 'approved' });
+                    updateUI();
+                    fetchHistory(true);
+                    
                 } else {
-                    if (_supabase) { _supabase.from('profiles').update({ energy: currentEnergy }).eq('user_id', userId).then(); }
+                    updateProfile(userId, { energy: currentEnergy });
                 }
 
                 isSpinning = false;
