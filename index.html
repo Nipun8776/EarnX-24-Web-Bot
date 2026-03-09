@@ -400,6 +400,24 @@
             </div>
 
             <div id="home-tab-content" class="space-y-5">
+
+                <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-sky-900/40 to-blue-900/40 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/20 rounded-full blur-xl"></div>
+                    <div class="flex items-center gap-3 relative z-10 w-full">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-md play-anim-icon shrink-0">
+                            <i class="ph-fill ph-telegram-logo text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-sm">Join Channel</p>
+                            <p class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 100 Pts</p>
+                        </div>
+                        <div class="flex flex-col gap-1 shrink-0">
+                            <button onclick="window.open('https://t.me/FreeEarnClubNISH', '_blank')" class="bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-lg text-[9px] font-black btn-animate text-white shadow-sm w-[85px] text-center">JOIN</button>
+                            <button id="join-claim-btn" onclick="checkChannelJoin()" class="bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-lg text-[9px] font-black btn-animate border border-white/10 shadow-sm text-white tracking-widest w-[85px] text-center">CLAIM</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                     <div class="flex items-center gap-4 relative z-10">
@@ -788,6 +806,8 @@
 
   <script>
         const tg = window.Telegram?.WebApp || {};
+        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+        const CHANNEL_ID = "@FreeEarnClubNISH";
         
         // --- Local Storage Helpers ---
         function updateProfile(uid, updates) {
@@ -949,6 +969,53 @@
                         setTimeout(() => ls.style.display = 'none', 400); 
                     }
                 }, 300);
+            }
+        }
+
+        async function checkChannelJoin() {
+            if (localStorage.getItem(`joined_channel_${userId}`)) {
+                return showNotify("You have already claimed this reward!", "warning");
+            }
+            
+            const btn = document.getElementById('join-claim-btn');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>';
+            }
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${CHANNEL_ID}&user_id=${userId}`);
+                const data = await response.json();
+
+                if (data.ok && ['member', 'administrator', 'creator'].includes(data.result.status)) {
+                    const earnedLkr = 1.00; // 100 Pts = Rs 1
+                    const currentIsoDate = new Date().toISOString();
+                    
+                    updateProfile(userId, { balance: currentBalance + earnedLkr, last_active: currentIsoDate });
+                    currentBalance += earnedLkr;
+                    addTransaction(userId, { user_id: userId, type: 'CHANNEL_JOIN_REWARD', amount: earnedLkr, status: 'approved' });
+                    
+                    localStorage.setItem(`joined_channel_${userId}`, "true");
+                    
+                    showNotify("🎉 100 Pts Claimed successfully!", "success");
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.9 }, zIndex: 1000 });
+                    updateUI();
+                    fetchHistory(true);
+                    triggerVibration('heavy');
+                } else {
+                    showNotify("Please join the channel first!", "error");
+                    if(btn) {
+                        btn.disabled = false;
+                        btn.innerText = "CLAIM";
+                    }
+                    triggerVibration('error');
+                }
+            } catch(e) {
+                showNotify("Error verifying membership. Try again.", "error");
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerText = "CLAIM";
+                }
             }
         }
 
@@ -1164,7 +1231,7 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS'].includes(item.type);
+                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS', 'CHANNEL_JOIN_REWARD'].includes(item.type);
                         
                         let label = item.type.replace(/_/g, ' ');
                         if (item.type === 'CLICK_AD_REWARD') label = 'CLICK AD REWARD'; 
@@ -1174,6 +1241,7 @@
                         else if (item.type === 'GAME_REWARD') label = 'CRYPTO SPIN REWARD';
                         else if (item.type === 'WHEEL_REWARD') label = 'LUCKY WHEEL REWARD';
                         else if (item.type === 'REFERRAL_BONUS') label = 'REFERRAL REWARD';
+                        else if (item.type === 'CHANNEL_JOIN_REWARD') label = 'JOIN CHANNEL REWARD';
 
                         let statusColor = isEarn ? 'text-slate-500' : (item.status === 'approved' ? 'text-green-500' : (item.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'));
                         
@@ -1185,6 +1253,7 @@
                             else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
                             else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
                             else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
+                            else if (item.type === 'CHANNEL_JOIN_REWARD') iconClass = 'ph-telegram-logo';
                         } else {
                             iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
                         }
@@ -1213,7 +1282,7 @@
                             amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${total.toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px]">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}</div>`;
                         } else if (item.type === 'WHEEL_REWARD') {
                             amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+Rs ${item.amount.toFixed(2)}</p>`;
-                        } else if (item.type === 'GAME_REWARD') {
+                        } else if (item.type === 'GAME_REWARD' || item.type === 'CHANNEL_JOIN_REWARD') {
                             let pts = Math.round(item.amount * 100);
                             amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+${pts} Pts</p>`;
                         } else {
@@ -1498,11 +1567,23 @@
                 tbd.innerText = `Earn 🎟️ 2 Tickets (${timeClaimCount}/10)`;
             }
 
-            // Update Invite Tab specific data
             const itc = document.getElementById('invite-tab-count');
             if (itc) itc.innerText = myReferralCount;
             const ite = document.getElementById('invite-tab-earned');
             if (ite) ite.innerText = myReferralCount * 2;
+
+            const jcBtn = document.getElementById('join-claim-btn');
+            if (jcBtn) {
+                if (localStorage.getItem(`joined_channel_${userId}`)) {
+                    jcBtn.innerText = "CLAIMED";
+                    jcBtn.disabled = true;
+                    jcBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    jcBtn.innerText = "CLAIM";
+                    jcBtn.disabled = false;
+                    jcBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
         }
 
         function showNotify(msg, type = 'warning') {
@@ -1815,7 +1896,7 @@
                     r1 = 4; r2 = 4; r3 = 4; 
                 }
                 else if (winType === '3_MATCH') {
-                    const allowed = [1, 2, 3, 5, 6]; // removed index 4(TON) to keep it rare
+                    const allowed = [1, 2, 3, 5, 6]; 
                     r1 = allowed[Math.floor(Math.random() * allowed.length)];
                     r2 = r1; r3 = r1;
                 }
