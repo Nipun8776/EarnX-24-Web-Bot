@@ -6,120 +6,88 @@
     <title>Free Earn Club NISH - Verification</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --tg-theme-button-color: #248bcf;
-            --tg-theme-button-text-color: #ffffff;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--tg-theme-bg-color, #f4f7f6);
-            color: var(--tg-theme-text-color, #222);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 90%;
-            max-width: 400px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: #0088cc;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            margin: 0 auto 20px;
-            font-weight: bold;
-        }
-        h2 { margin-bottom: 10px; font-size: 22px; }
-        p { color: #666; font-size: 14px; line-height: 1.5; }
-        .btn {
-            background-color: var(--tg-theme-button-color, #0088cc);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            padding: 15px 30px;
-            width: 100%;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: opacity 0.3s;
-        }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .channel-link {
-            display: block;
-            margin-top: 15px;
-            color: #0088cc;
-            text-decoration: none;
-            font-size: 13px;
-        }
-        #status { margin-top: 15px; font-weight: bold; }
-        .success { color: #4CAF50; }
-        .error { color: #f44336; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 350px; }
+        .logo { width: 70px; height: 70px; background: #0088cc; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; font-weight: bold; }
+        h2 { margin: 10px 0; font-size: 20px; }
+        p { font-size: 14px; color: #555; margin-bottom: 20px; }
+        .btn { background: #0088cc; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn:disabled { background: #ccc; }
+        #status { margin-top: 15px; font-size: 14px; font-weight: bold; }
+        .error { color: #d32f2f; background: #ffebee; padding: 8px; border-radius: 5px; }
+        .success { color: #388e3c; background: #e8f5e9; padding: 8px; border-radius: 5px; }
+        a { color: #0088cc; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
     <div class="logo">F</div>
     <h2>Free Earn Club NISH</h2>
-    <p>ඔබේ ගිණුම තහවුරු කිරීමට (Verify) ප්‍රථමයෙන් අපගේ Telegram Channel එක හා සම්බන්ධ වන්න.</p>
-    
-    <a href="https://t.me/FreeEarnClubNISH" target="_blank" class="channel-link">චැනල් එකට මෙතනින් යන්න →</a>
-
-    <button id="verifyBtn" class="btn">Verify Account</button>
+    <p>පහත බොත්තම එබීමට පෙර අපගේ චැනල් එකට Join වී සිටිය යුතුය.</p>
     
     <div id="status"></div>
+    <br>
+    <button id="verifyBtn" class="btn">Verify Membership</button>
+    <br><br>
+    <a href="https://t.me/FreeEarnClubNISH" target="_blank">Join Channel Here</a>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    const verifyBtn = document.getElementById('verifyBtn');
-    const statusDiv = document.getElementById('status');
+    const btn = document.getElementById('verifyBtn');
+    const status = document.getElementById('status');
+    
+    // ඔබගේ විස්තර
+    const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
+    const CHANNEL_ID = "@FreeEarnClubNISH"; // Username එක @ සමග
 
-    // Web App එක Initialize කිරීම
     tg.ready();
     tg.expand();
 
-    verifyBtn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
         const user = tg.initDataUnsafe.user;
 
         if (!user) {
-            statusDiv.innerHTML = '<span class="error">කරුණාකර Telegram App එක හරහා පිවිසෙන්න.</span>';
+            status.innerHTML = '<div class="error">Telegram හරහා පිවිසෙන්න!</div>';
             return;
         }
 
-        verifyBtn.disabled = true;
-        verifyBtn.innerText = "Checking...";
+        btn.disabled = true;
+        btn.innerText = "Checking...";
+        status.innerHTML = "";
 
-        // සටහන: සැබෑ ලෝකයේදී මෙහිදී Backend එකකට Data යවා 
-        // Bot API එකෙන් (getChatMember) පරීක්ෂා කළ යුතුය.
-        // දැනට බොට් හරහා පණිවිඩයක් යැවීම පමණක් සිදු කරයි.
+        try {
+            // Telegram Bot API එකට Request එකක් යවනවා Member ද නැද්ද බලන්න
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${CHANNEL_ID}&user_id=${user.id}`);
+            const data = await response.json();
 
-        setTimeout(() => {
-            statusDiv.innerHTML = `<span class="success">ස්තූතියි ${user.first_name}! <br> ඔබව සාර්ථකව හඳුනාගත්තා.</span>`;
-            verifyBtn.innerText = "Verified ✅";
-            
-            // බොට් වෙත දත්ත යැවීම
-            tg.sendData(JSON.stringify({
-                status: "verified",
-                user_id: user.id,
-                username: user.username
-            }));
-            
-        }, 2000);
+            if (data.ok) {
+                const memberStatus = data.result.status;
+                // member, administrator, හෝ creator නම් පමණක් allow කරන්න
+                if (memberStatus === 'member' || memberStatus === 'administrator' || memberStatus === 'creator') {
+                    status.innerHTML = `<div class="success">Verification සාර්ථකයි! <br> ස්තූතියි ${user.first_name}</div>`;
+                    btn.innerText = "Verified ✅";
+                    
+                    // තත්පර 2කට පසු Web App එක වසා දත්ත බොට් වෙත යවයි
+                    setTimeout(() => {
+                        tg.close();
+                    }, 2000);
+                } else {
+                    status.innerHTML = '<div class="error">ඔබ තවමත් චැනල් එකට Join වී නැත!</div>';
+                    btn.disabled = false;
+                    btn.innerText = "Verify Membership";
+                }
+            } else {
+                status.innerHTML = '<div class="error">Error: චැනල් එක සොයාගත නොහැක.</div>';
+                btn.disabled = false;
+                btn.innerText = "Verify Membership";
+            }
+        } catch (e) {
+            status.innerHTML = '<div class="error">සම්බන්ධතාවය බිඳ වැටුණි.</div>';
+            btn.disabled = false;
+            btn.innerText = "Verify Membership";
+        }
     });
 </script>
 
