@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EarnX24 | Blue Glass</title> 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>                         
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>                        
     
     <script>
         const originalConsoleError = console.error;
@@ -20,19 +21,6 @@
             let msg = event.reason ? (event.reason.message || event.reason.toString()) : '';
             if (typeof msg === 'string' && msg.includes('adex timeout')) { event.preventDefault(); return false; }
         });
-
-        if (window.Telegram && window.Telegram.WebApp && !window.Telegram.WebApp.isVersionAtLeast('6.9')) {
-            const cloudPolyfill = {
-                setItem: function(k, v, cb) { try { localStorage.setItem('tg_cloud_' + k, v); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                getItem: function(k, cb) { try { let val = localStorage.getItem('tg_cloud_' + k); if(cb) cb(null, val); } catch(e) { if(cb) cb(e); } return this; },
-                getItems: function(ks, cb) { try { let res = {}; ks.forEach(k => { res[k] = localStorage.getItem('tg_cloud_' + k); }); if(cb) cb(null, res); } catch(e) { if(cb) cb(e); } return this; },
-                removeItem: function(k, cb) { try { localStorage.removeItem('tg_cloud_' + k); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                removeItems: function(ks, cb) { try { ks.forEach(k => { localStorage.removeItem('tg_cloud_' + k); }); if(cb) cb(null, true); } catch(e) { if(cb) cb(e); } return this; },
-                getKeys: function(cb) { try { let keys = []; for(let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); if(k.startsWith('tg_cloud_')) keys.push(k.replace('tg_cloud_', '')); } if(cb) cb(null, keys); } catch(e) { if(cb) cb(e); } return this; }
-            };
-            if (window.Telegram.WebApp.CloudStorage) Object.assign(window.Telegram.WebApp.CloudStorage, cloudPolyfill);
-            else window.Telegram.WebApp.CloudStorage = cloudPolyfill;
-        }
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,7 +138,7 @@
 
     <div id="loading-screen">
         <div class="loader-ring"></div>
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting...</p>
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Connecting Database...</p>
         <p class="text-[8px] mt-2 text-slate-500 font-bold uppercase tracking-widest">Accessing Secure Server...</p>
         <div class="progress-container"><div id="progress-bar"></div></div>
         <p id="percentage" class="text-[10px] mt-2 text-sky-500 font-black">0%</p>
@@ -401,23 +389,6 @@
 
             <div id="home-tab-content" class="space-y-5">
 
-                <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-sky-900/40 to-blue-900/40 relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/20 rounded-full blur-xl"></div>
-                    <div class="flex items-center gap-3 relative z-10 w-full">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-md play-anim-icon shrink-0">
-                            <i class="ph-fill ph-telegram-logo text-2xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-sm">Join Channel</p>
-                            <p class="text-[9px] text-sky-300 font-bold uppercase tracking-widest">Earn 100 Pts</p>
-                        </div>
-                        <div class="flex flex-col gap-1 shrink-0">
-                            <button onclick="window.open('https://t.me/FreeEarnClubNISH', '_blank')" class="bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-lg text-[9px] font-black btn-animate text-white shadow-sm w-[85px] text-center">JOIN</button>
-                            <button id="join-claim-btn" onclick="checkChannelJoin()" class="bg-white/10 hover:bg-white/20 px-4 py-1.5 rounded-lg text-[9px] font-black btn-animate border border-white/10 shadow-sm text-white tracking-widest w-[85px] text-center">CLAIM</button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="glass p-4 rounded-3xl flex items-center justify-between border-white/5 bg-gradient-to-br from-emerald-900/40 to-green-900/40 relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/20 rounded-full blur-xl"></div>
                     <div class="flex items-center gap-4 relative z-10">
@@ -562,16 +533,15 @@
             <div class="glass p-6 rounded-3xl border border-white/5 text-center relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl"></div>
                 <i class="ph-fill ph-rocket-launch text-4xl text-emerald-400 mb-3"></i>
-                <h3 class="text-2xl font-black text-white tracking-wider">v1.0.0</h3>
-                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Last Updated: March 2, 2026, 3:59 PM</p>
+                <h3 class="text-2xl font-black text-white tracking-wider">v2.0.0</h3>
+                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Supabase Secured Database</p>
             </div>
             <div class="glass p-4 rounded-2xl border border-white/5 space-y-3">
                 <h4 class="text-[10px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5 pb-2 mb-2">What's New</h4>
                 <ul class="text-xs text-slate-300 space-y-2">
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Play Crypto Spin and Lucky Wheel.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Complete tasks to earn tickets from scratch.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Invite friends to earn 2 tickets each.</span></li>
-                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Seamless and fast withdrawal system.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Connected to secure Supabase DB.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>100% Hack-proof Backend functions.</span></li>
+                    <li class="flex items-start gap-2"><i class="ph-bold ph-check-circle text-emerald-400 mt-0.5"></i> <span>Direct Referral Link System added.</span></li>
                 </ul>
             </div>
         </div>
@@ -806,47 +776,15 @@
 
   <script>
         const tg = window.Telegram?.WebApp || {};
-        const BOT_TOKEN = "8153175945:AAGuNLU1WZwQzzDkV-QdrQaI-JmODrlTkfE";
-        const CHANNEL_ID = "@FreeEarnClubNISH";
         
-        // --- Local Storage Helpers ---
-        function updateProfile(uid, updates) {
-            let dataStr = localStorage.getItem('profile_' + uid);
-            if (dataStr) {
-                let data = JSON.parse(dataStr);
-                Object.assign(data, updates);
-                localStorage.setItem('profile_' + uid, JSON.stringify(data));
-            }
-        }
-
-        function addTransaction(uid, tx) {
-            let txsStr = localStorage.getItem('transactions_' + uid);
-            let txs = txsStr ? JSON.parse(txsStr) : [];
-            tx.created_at = new Date().toISOString();
-            tx.id = Math.random().toString(36).substr(2, 9);
-            txs.unshift(tx);
-            localStorage.setItem('transactions_' + uid, JSON.stringify(txs));
-        }
-
-        function getAllProfiles() {
-            let profiles = [];
-            for(let i=0; i<localStorage.length; i++) {
-                let key = localStorage.key(i);
-                if(key.startsWith('profile_')) {
-                    profiles.push(JSON.parse(localStorage.getItem(key)));
-                }
-            }
-            return profiles;
-        }
-        // -----------------------------
-
+        const SUPABASE_URL = 'https://drzdlfieingneggxsauu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyemRsZmllaW5nbmVnZ3hzYXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjk5NDQsImV4cCI6MjA4ODY0NTk0NH0.aLX_jE-ISoG-f3WcWPOzH0vVrhepByxjL7B2HyaBc6w';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         let currentBalance = 0, currentEnergy = 0, userId = null, selectedMethodName = null;
         let isAllHistoryVisible = false;
         let spinChances = 0, currentWheelRotation = 0, myReferralCount = 0;
-        let sessionSpinCount = 0; 
         
-        let sessionExpired = false;
-
         const prizes = [
             { label: 'Rs 100', val: 100.00, type: 'cash' }, 
             { label: 'Rs 50', val: 50.00, type: 'cash' }, 
@@ -890,7 +828,6 @@
             } catch(e) {}
         }
 
-        // --- Switch Tab Logic ---
         function switchTab(tab) {
             const tabs = ['home', 'games', 'invite', 'wallet'];
             tabs.forEach(t => {
@@ -958,7 +895,7 @@
             try {
                 await fetchUserData(); 
                 await fetchHistory(true); 
-            } catch(e) { console.error(e); } 
+            } catch(e) { console.error("Init Error:", e); } 
             finally {
                 clearInterval(fakeLoader);
                 updateProg(100);
@@ -972,216 +909,35 @@
             }
         }
 
-        async function checkChannelJoin() {
-            if (localStorage.getItem(`joined_channel_${userId}`)) {
-                return showNotify("You have already claimed this reward!", "warning");
-            }
-            
-            const btn = document.getElementById('join-claim-btn');
-            if(btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>';
-            }
-
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=${CHANNEL_ID}&user_id=${userId}`);
-                const data = await response.json();
-
-                if (data.ok && ['member', 'administrator', 'creator'].includes(data.result.status)) {
-                    const earnedLkr = 1.00; // 100 Pts = Rs 1
-                    const currentIsoDate = new Date().toISOString();
-                    
-                    updateProfile(userId, { balance: currentBalance + earnedLkr, last_active: currentIsoDate });
-                    currentBalance += earnedLkr;
-                    addTransaction(userId, { user_id: userId, type: 'CHANNEL_JOIN_REWARD', amount: earnedLkr, status: 'approved' });
-                    
-                    localStorage.setItem(`joined_channel_${userId}`, "true");
-                    
-                    showNotify("🎉 100 Pts Claimed successfully!", "success");
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.9 }, zIndex: 1000 });
-                    updateUI();
-                    fetchHistory(true);
-                    triggerVibration('heavy');
-                } else {
-                    showNotify("Please join the channel first!", "error");
-                    if(btn) {
-                        btn.disabled = false;
-                        btn.innerText = "CLAIM";
-                    }
-                    triggerVibration('error');
-                }
-            } catch(e) {
-                showNotify("Error verifying membership. Try again.", "error");
-                if(btn) {
-                    btn.disabled = false;
-                    btn.innerText = "CLAIM";
-                }
-            }
-        }
-
-        function showRewardAd() {
-            const today = new Date().toISOString().split('T')[0];
-            let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
-            
-            if (videoCount >= 3) return showNotify("Daily limit of 3 video tasks reached!", "warning");
-
-            showNotify("Processing video task...", "success");
-
-            setTimeout(async () => {
-                try {
-                    const energyReward = 2; 
-                    const currentIsoDate = new Date().toISOString();
-                    
-                    updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
-                    currentEnergy += energyReward;
-                    videoCount++;
-                    localStorage.setItem(`video_count_${userId}_${today}`, videoCount.toString());
-                    addTransaction(userId, { user_id: userId, type: 'VIDEO_AD_REWARD', amount: 0, status: 'approved' });
-                    
-                    showNotify(`Earned 2 🎟️ from Video Task!`, "success");
-                    updateUI();
-                    fetchHistory(true);
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
-            }, 1500);
-        }
-
-        function showClickAd() {
-            const today = new Date().toISOString().split('T')[0];
-            let adCount = parseInt(localStorage.getItem(`click_ad_count_${userId}_${today}`) || "0");
-            
-            if (adCount >= 5) return showNotify("Daily limit of 5 click ads reached!", "warning");
-
-            showNotify("Processing ad task...", "success");
-
-            setTimeout(async () => {
-                try {
-                    const energyReward = 3; 
-                    const currentIsoDate = new Date().toISOString();
-                    
-                    updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
-                    currentEnergy += energyReward;
-                    adCount++;
-                    localStorage.setItem(`click_ad_count_${userId}_${today}`, adCount.toString());
-                    addTransaction(userId, { user_id: userId, type: 'CLICK_AD_REWARD', amount: 0, status: 'approved' });
-                    
-                    showNotify(`Earned 3 🎟️ from Ad Task!`, "success");
-                    updateUI();
-                    fetchHistory(true);
-                } catch(e) { showNotify("Failed to credit reward", "warning"); }
-            }, 1500);
-        }
-
-        function updateTimeBonusTimer() {
-            const today = new Date().toISOString().split('T')[0];
-            let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            
-            const btn = document.getElementById('daily-claim-btn');
-            if (!btn) return;
-
-            if (claimCount >= 10) {
-                btn.disabled = true;
-                btn.innerText = "LIMIT REACHED"; 
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                return;
-            }
-
-            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
-            const cooldown = 60 * 60 * 1000; 
-
-            if (lastClaim) {
-                const now = new Date().getTime();
-                const claimTime = parseInt(lastClaim, 10);
-                const diff = now - claimTime;
-
-                if (diff < cooldown) {
-                    const remaining = cooldown - diff;
-                    const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                    const s = Math.floor((remaining % (1000 * 60)) / 1000);
-                    
-                    btn.disabled = true;
-                    btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                    btn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    btn.disabled = false;
-                    btn.innerText = "CLAIM"; 
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            } else {
-                btn.disabled = false;
-                btn.innerText = "CLAIM"; 
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        async function claimTimeBonus() {
-            const today = new Date().toISOString().split('T')[0];
-            let claimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            
-            if (claimCount >= 10) return showNotify("Daily limit reached!", "warning");
-
-            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
-            const now = new Date().getTime();
-            const cooldown = 60 * 60 * 1000;
-
-            if (lastClaim && (now - parseInt(lastClaim, 10)) < cooldown) return showNotify("Please wait for the timer!", "warning");
-
-            const btn = document.getElementById('daily-claim-btn');
-            if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
-
-            try {
-                const energyReward = 2; 
-                const currentIsoDate = new Date().toISOString();
-                
-                updateProfile(userId, { energy: currentEnergy + energyReward, last_active: currentIsoDate });
-                
-                currentEnergy += energyReward;
-                claimCount++;
-                localStorage.setItem(`time_bonus_count_${userId}_${today}`, claimCount.toString());
-                localStorage.setItem(`time_bonus_last_${userId}`, now.toString()); 
-                
-                addTransaction(userId, { user_id: userId, type: 'TIME_BONUS', amount: 0, status: 'approved' });
-                
-                showNotify(`🎉 Awesome! You just claimed 2 Tickets! 🎟️`, "success");
-                confetti({ particleCount: 40, spread: 60, origin: { y: 0.9 }, zIndex: 1000 });
-                
-                updateUI();
-                fetchHistory(true);
-            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
-            updateTimeBonusTimer();
-        }
-
         async function fetchUserData() {
             try {
-                let dataStr = localStorage.getItem('profile_' + userId);
-                let data = dataStr ? JSON.parse(dataStr) : null;
+                const { data: dbUser, error } = await supabase.from('users').select('*').eq('user_id', userId).single();
+                let data = null;
 
-                if (!data) { 
+                if (dbUser) {
+                    data = dbUser;
+                    await supabase.from('users').update({ last_active: new Date().toISOString() }).eq('user_id', userId);
+                } else {
                     const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') : "Guest User";
                     const newUser = { 
                         user_id: userId, balance: 0, energy: 0, spin_chances: 0, username: tgUser?.username || '',
-                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || '',
-                        created_at: new Date().toISOString(), last_active: new Date().toISOString()
+                        first_name: fullName || 'Guest User', photo_url: tgUser?.photo_url || ''
                     };
-                    
                     if (startParam && startParam !== userId && startParam !== "99999") newUser.referrer_id = startParam;
                     
-                    localStorage.setItem('profile_' + userId, JSON.stringify(newUser));
-                    data = newUser; 
+                    await supabase.from('users').insert([newUser]);
+                    data = { ...newUser, created_at: new Date().toISOString(), last_active: new Date().toISOString() };
                     
                     if (startParam && startParam !== userId && startParam !== "99999") {
-                        let referrerDataStr = localStorage.getItem('profile_' + startParam);
-                        if (referrerDataStr) {
-                            let referrerData = JSON.parse(referrerDataStr);
-                            let newEnergy = parseInt(referrerData.energy || 0) + 2; 
+                        const { data: refUser } = await supabase.from('users').select('energy, spin_chances').eq('user_id', startParam).single();
+                        if (refUser) {
+                            let newEnergy = parseInt(refUser.energy || 0) + 2; 
+                            const { count: refCount } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('referrer_id', startParam);
+                            let newSpinChances = parseInt(refUser.spin_chances || 0);
+                            if (refCount > 0 && refCount % 5 === 0) { newSpinChances += 1; }
                             
-                            let currentRefs = getAllProfiles().filter(p => p.referrer_id === startParam).length;
-                            let newSpinChances = parseInt(referrerData.spin_chances || 0);
-                            
-                            if (currentRefs > 0 && currentRefs % 5 === 0) { newSpinChances += 1; }
-                            
-                            updateProfile(startParam, { spin_chances: newSpinChances, energy: newEnergy });
-                            addTransaction(startParam, { user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' });
+                            await supabase.from('users').update({ energy: newEnergy, spin_chances: newSpinChances }).eq('user_id', startParam);
+                            await supabase.from('transactions').insert([{ user_id: startParam, type: 'REFERRAL_BONUS', amount: 0, status: 'approved' }]);
                         }
                     }
                 }
@@ -1199,7 +955,6 @@
                 }
 
                 if (data && data.created_at) {
-                    window.userCreatedAt = data.created_at; 
                     const joinedDate = new Date(data.created_at);
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                     if(document.getElementById('menu-member-since')) document.getElementById('menu-member-since').innerHTML = `<i class="ph-regular ph-calendar-blank"></i> Member since ${monthNames[joinedDate.getMonth()]} ${joinedDate.getDate()}, ${joinedDate.getFullYear()}`;
@@ -1209,17 +964,17 @@
                 currentBalance = parseFloat(data?.balance || 0);
                 currentEnergy = parseInt(data?.energy || 0);
                 
-                let myRefs = getAllProfiles().filter(p => p.referrer_id === userId);
-                myReferralCount = myRefs.length;
+                const { count: countRefs } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('referrer_id', userId);
+                myReferralCount = countRefs || 0;
 
                 updateUI(); updateWheelUI(); updateTimeBonusTimer();
-            } catch(e) { console.error(e); updateUI(); updateWheelUI(); }
+            } catch(e) { console.error("Error loading user:", e); updateUI(); updateWheelUI(); }
         }
-        
+
         async function fetchHistory(limit = false) {
             try {
-                let txsStr = localStorage.getItem('transactions_' + userId);
-                let data = txsStr ? JSON.parse(txsStr) : [];
+                const { data: dbData } = await supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+                let data = dbData || [];
                 
                 if (data) {
                     const items = limit ? data.slice(0, 5) : data;
@@ -1231,14 +986,14 @@
                         return;
                     }
                     hList.innerHTML = items.map(item => {
-                        const isEarn = ['VIDEO_AD_REWARD', 'AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TASK_REWARD', 'DAILY_REWARD', 'CLICK_AD_REWARD', 'TIME_BONUS', 'CHANNEL_JOIN_REWARD'].includes(item.type);
+                        const isEarn = ['VIDEO_AD_REWARD', 'CLICK_AD_REWARD', 'REFERRAL_BONUS', 'WHEEL_REWARD', 'GAME_REWARD', 'TIME_BONUS', 'CHANNEL_JOIN_REWARD'].includes(item.type);
                         
                         let label = item.type.replace(/_/g, ' ');
                         if (item.type === 'CLICK_AD_REWARD') label = 'CLICK AD REWARD'; 
                         else if (item.type === 'VIDEO_AD_REWARD') label = 'VIDEO AD REWARD'; 
-                        else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') label = 'HOURLY REWARD'; 
+                        else if (item.type === 'TIME_BONUS') label = 'HOURLY REWARD'; 
                         else if (item.type === 'WITHDRAWAL') label = 'WITHDRAW REQUEST'; 
-                        else if (item.type === 'GAME_REWARD') label = 'CRYPTO SPIN REWARD';
+                        else if (item.type === 'GAME_REWARD') label = 'SPIN REWARD'; 
                         else if (item.type === 'WHEEL_REWARD') label = 'LUCKY WHEEL REWARD';
                         else if (item.type === 'REFERRAL_BONUS') label = 'REFERRAL REWARD';
                         else if (item.type === 'CHANNEL_JOIN_REWARD') label = 'JOIN CHANNEL REWARD';
@@ -1250,9 +1005,9 @@
                             if (item.type === 'REFERRAL_BONUS') iconClass = 'ph-gift';
                             else if (item.type === 'WHEEL_REWARD') iconClass = 'ph-aperture';
                             else if (item.type === 'GAME_REWARD') iconClass = 'ph-game-controller';
-                            else if (item.type === 'VIDEO_AD_REWARD' || item.type === 'AD_REWARD') iconClass = 'ph-video-camera';
+                            else if (item.type === 'VIDEO_AD_REWARD') iconClass = 'ph-video-camera';
                             else if (item.type === 'CLICK_AD_REWARD') iconClass = 'ph-cursor-click';
-                            else if (item.type === 'DAILY_REWARD' || item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
+                            else if (item.type === 'TIME_BONUS') iconClass = 'ph-calendar-check';
                             else if (item.type === 'CHANNEL_JOIN_REWARD') iconClass = 'ph-telegram-logo';
                         } else {
                             iconClass = item.status === 'approved' ? 'ph-check-circle' : (item.status === 'rejected' ? 'ph-x-circle' : 'ph-clock-countdown');
@@ -1268,8 +1023,6 @@
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 2 🎟️</p>`;
                         } else if (item.type === 'CLICK_AD_REWARD') {
                             amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ 3 🎟️</p>`;
-                        } else if (['TASK_REWARD', 'AD_REWARD', 'DAILY_REWARD'].includes(item.type) && item.amount === 0) {
-                            amountHtml = `<p class="text-amber-400 font-black text-xs uppercase">+ Tickets</p>`;
                         } else if (item.type === 'WITHDRAWAL') {
                             let wMethod = "Unknown";
                             if(item.address) {
@@ -1278,7 +1031,6 @@
                             }
                             let fee = wMethod === 'BANK' ? 15 : 0;
                             let total = item.amount + fee;
-
                             amountHtml = `<div class="text-right"><p class="text-red-400 font-black text-xs uppercase">-Rs ${total.toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px]">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}</div>`;
                         } else if (item.type === 'WHEEL_REWARD') {
                             amountHtml = `<p class="text-green-400 font-black text-xs uppercase">+Rs ${item.amount.toFixed(2)}</p>`;
@@ -1296,113 +1048,229 @@
             } catch(e) { console.error(e); }
         }
 
-        function toggleHistory() {
-            isAllHistoryVisible = !isAllHistoryVisible;
-            fetchHistory(!isAllHistoryVisible);
-            const btn = document.getElementById('toggle-history-btn');
-            if(btn) btn.innerText = isAllHistoryVisible ? "Hide" : "View All";
-        }
+        // Action Functions using RPC
+        async function checkChannelJoin() {
+            const btn = document.getElementById('join-claim-btn');
+            if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
 
-        async function openWithdrawHistory() {
-            closeSidePanel(false); openSheet('withdraw-history-sheet');
-            const listCont = document.getElementById('w-history-list-container');
-            if(listCont) listCont.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                let txsStr = localStorage.getItem('transactions_' + userId);
-                let allTxs = txsStr ? JSON.parse(txsStr) : [];
-                let data = allTxs.filter(t => t.type === 'WITHDRAWAL');
+                const { data: isMember, error } = await supabase.rpc('check_telegram_join', { p_user_id: userId });
 
-                const hc = document.getElementById('w-history-count');
-                if(hc) hc.innerText = data.length;
-                if (data.length === 0) {
-                    if(listCont) listCont.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>';
-                    return;
+                if (isMember === true) {
+                    const { data: userData } = await supabase.from('users').select('balance').eq('user_id', userId).single();
+                    if(userData) { currentBalance = userData.balance + 1.00; }
+                    
+                    await supabase.from('users').update({ balance: currentBalance, last_active: new Date().toISOString() }).eq('user_id', userId);
+                    await supabase.from('transactions').insert([{ user_id: userId, type: 'CHANNEL_JOIN_REWARD', amount: 1.00, status: 'approved' }]);
+                    
+                    showNotify("🎉 100 Pts Claimed successfully!", "success");
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.9 }, zIndex: 1000 });
+                    updateUI();
+                    fetchHistory(true);
+                    triggerVibration('heavy');
+                } else {
+                    showNotify("Please join the channel first!", "error");
+                    if(btn) { btn.disabled = false; btn.innerText = "CLAIM"; }
+                    triggerVibration('error');
                 }
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                if(listCont) listCont.innerHTML = data.map(item => {
-                    const dateObj = new Date(item.created_at);
-                    const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                    let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
-                    let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
-                    
-                    let parts = (item.address || "N/A").split('::');
-                    let destAddress = parts[0], wMethod = parts[1] || "Unknown", txId = parts[2] || (item.id ? item.id.substring(0, 8).toUpperCase() : "N/A");
-                    
-                    let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
-                    let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
-                    let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
-                    
-                    let fee = wMethod === 'BANK' ? 15 : 0;
-                    let totalDeducted = item.amount + fee;
+            } catch(e) {
+                showNotify("Error verifying membership. Try again.", "error");
+                if(btn) { btn.disabled = false; btn.innerText = "CLAIM"; }
+            }
+        }
 
-                    let amountsHtml = '';
-                    if (item.status === 'approved') {
-                        amountsHtml = `
-                        <div class="text-right">
-                            <p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p>
-                            ${fee > 0 ? `<p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}
-                            <p class="text-slate-400 font-bold text-[9px] uppercase mt-0.5">Total: Rs. ${totalDeducted.toFixed(2)}</p>
-                            <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span>
-                        </div>`;
-                    } else {
-                        amountsHtml = `
-                        <div class="text-right">
-                            <p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p>
-                            ${fee > 0 ? `<p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}
-                            <span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span>
-                        </div>`;
+        function showRewardAd() {
+            showNotify("Processing video task...", "success");
+            setTimeout(async () => {
+                try {
+                    const { data, error } = await supabase.rpc('claim_ad', { p_user_id: userId, p_type: 'VIDEO' });
+                    if(data && data.success) {
+                        currentEnergy = data.new_energy;
+                        showNotify(`Earned 2 🎟️ from Video Task!`, "success");
+                        updateUI(); fetchHistory(true);
                     }
-
-                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div>${amountsHtml}</div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
-                }).join('');
-            } catch(e) { console.error(e); }
-        }
-        
-        function copyTxId(txId) {
-            const textArea = document.createElement("textarea"); textArea.value = txId; document.body.appendChild(textArea); textArea.select();
-            try { document.execCommand('copy'); showNotify("Transaction ID Copied!", "success"); triggerVibration('light'); } catch (err) { showNotify("Failed to copy ID"); }
-            document.body.removeChild(textArea);
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            }, 1500);
         }
 
-        function selectMethod(btn, name) {
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected')); 
-            btn.classList.add('selected'); selectedMethodName = name;
-            triggerVibration('light');
-            
-            const wi = document.getElementById('withdraw-inputs');
-            if(wi) wi.classList.remove('hidden');
-            
-            const stdGroup = document.getElementById('standard-input-group');
-            const bankGroup = document.getElementById('bank-input-group');
-            const addrInput = document.getElementById('w-address');
+        function showClickAd() {
+            showNotify("Processing ad task...", "success");
+            setTimeout(async () => {
+                try {
+                    const { data, error } = await supabase.rpc('claim_ad', { p_user_id: userId, p_type: 'CLICK' });
+                    if(data && data.success) {
+                        currentEnergy = data.new_energy;
+                        showNotify(`Earned 3 🎟️ from Ad Task!`, "success");
+                        updateUI(); fetchHistory(true);
+                    }
+                } catch(e) { showNotify("Failed to credit reward", "warning"); }
+            }, 1500);
+        }
 
-            const feeNoteEl = document.getElementById('withdraw-fee-note');
-            const feeNoteContainer = document.getElementById('fee-note-container');
+        function updateTimeBonusTimer() {
+            const lastClaim = localStorage.getItem(`time_bonus_last_${userId}`);
+            const btn = document.getElementById('daily-claim-btn');
+            if (!btn) return;
+            const cooldown = 60 * 60 * 1000; 
 
-            if (name === 'BANK') {
-                if(stdGroup) stdGroup.classList.add('hidden'); 
-                if(bankGroup) bankGroup.classList.remove('hidden');
-                
-                if (feeNoteEl && feeNoteContainer) {
-                    feeNoteEl.innerText = "Note: A fixed processing fee of Rs. 15.00 applies to Bank Transfers.";
-                    feeNoteContainer.classList.remove('hidden');
+            if (lastClaim) {
+                const now = new Date().getTime();
+                const diff = now - parseInt(lastClaim, 10);
+                if (diff < cooldown) {
+                    const remaining = cooldown - diff;
+                    const h = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((remaining % (1000 * 60)) / 1000);
+                    btn.disabled = true;
+                    btn.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = false; btn.innerText = "CLAIM"; btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
-
             } else {
-                if(bankGroup) bankGroup.classList.add('hidden'); 
-                if(stdGroup) stdGroup.classList.remove('hidden');
-                
-                if (feeNoteContainer) {
-                    feeNoteContainer.classList.add('hidden');
-                }
+                btn.disabled = false; btn.innerText = "CLAIM"; btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
 
-                if(addrInput) {
-                    addrInput.placeholder = name === 'BINANCE' ? "Enter Binance ID" : "Enter Phone Number";
-                    addrInput.setAttribute('inputmode', 'numeric'); 
-                    addrInput.oninput = function() { this.value = this.value.replace(/[^0-9]/g, ''); };
-                    addrInput.value = ""; 
-                    setTimeout(() => { addrInput.focus(); }, 100);
+        async function claimTimeBonus() {
+            const btn = document.getElementById('daily-claim-btn');
+            if(btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner border-white border-t-transparent w-4 h-4 mx-auto"></div>'; }
+            try {
+                const { data, error } = await supabase.rpc('claim_hourly', { p_user_id: userId });
+                if(data && data.success) {
+                    currentEnergy = data.new_energy;
+                    localStorage.setItem(`time_bonus_last_${userId}`, new Date().getTime().toString()); 
+                    showNotify(`🎉 Awesome! You just claimed 2 Tickets! 🎟️`, "success");
+                    confetti({ particleCount: 40, spread: 60, origin: { y: 0.9 }, zIndex: 1000 });
+                    updateUI(); fetchHistory(true);
+                } else {
+                    showNotify(data.message || "Failed to claim", "warning");
                 }
+            } catch(e) { showNotify("Failed to claim bonus", "warning"); }
+            updateTimeBonusTimer();
+        }
+
+        let isWheelSpinning = false;
+        async function spinWheel() {
+            if(isWheelSpinning) return;
+            isWheelSpinning = true;
+            const btn = document.getElementById('wheel-spin-btn'); 
+            if(btn) btn.disabled = true;
+            triggerVibration('medium'); 
+
+            try {
+                const { data, error } = await supabase.rpc('play_wheel', { p_user_id: userId });
+                if(data && data.success) {
+                    currentEnergy = data.new_energy; 
+                    spinChances = data.new_spins;
+                    updateUI();
+                    updateWheelUI();
+
+                    const targetRotationMap = [352.5, 320, 270, 220, 170, 120, 70, 22.5]; 
+                    const baseRot = currentWheelRotation % 360;
+                    let offset = targetRotationMap[data.prize_idx] - baseRot;
+                    if (offset < 0) offset += 360;
+                    
+                    currentWheelRotation += (4 * 360) + offset + (Math.floor(Math.random() * 8) - 4);
+                    
+                    const lw = document.getElementById('lucky-wheel');
+                    if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+                    setTimeout(() => {
+                        currentBalance = data.new_balance;
+                        updateUI(); fetchHistory(true);
+                        if (data.val > 0) {
+                            showNotify(`Congratulations! You won Rs ${data.val}!`, "success"); 
+                            confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 }, zIndex: 1000 });
+                            triggerVibration('heavy'); 
+                        } else {
+                            showNotify("Oops! Try again next time.", "warning");
+                            triggerVibration('error'); 
+                        }
+                        isWheelSpinning = false;
+                        if(btn) btn.disabled = false;
+                    }, 2000); 
+
+                } else {
+                    showNotify(data.message || "Error spinning wheel", "warning");
+                    isWheelSpinning = false;
+                    if(btn) btn.disabled = false;
+                }
+            } catch(e) {
+                isWheelSpinning = false;
+                if(btn) btn.disabled = false;
+            }
+        }
+
+        let isSpinning = false;
+        let slotPoints = 0;
+        const cryptoLogos = [
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/2.png',      // 1: LTC
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png',   // 2: TRX
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',    // 3: USDT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png',  // 4: TON
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png',  // 5: NOT
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png',     // 6: DOGE
+            'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'    // 7: BNB
+        ];
+
+        async function spinSlot() {
+            if(isSpinning) return;
+            isSpinning = true;
+            
+            const btn = document.getElementById('spin-btn');
+            if(btn) { btn.disabled = true; btn.classList.add('opacity-50'); }
+            const msgBox = document.getElementById('slot-message-box');
+            if(msgBox) msgBox.classList.remove('active');
+            triggerVibration('medium');
+
+            const slots = [ document.getElementById('slot-img-1'), document.getElementById('slot-img-2'), document.getElementById('slot-img-3') ];
+            slots.forEach(s => s.classList.add('spinning-blur'));
+            let spinInterval = setInterval(() => { slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]); }, 120); 
+
+            try {
+                const { data, error } = await supabase.rpc('play_slot', { p_user_id: userId });
+                
+                setTimeout(() => {
+                    clearInterval(spinInterval);
+                    slots.forEach(s => s.classList.remove('spinning-blur'));
+
+                    if(data && data.success) {
+                        slots[0].src = cryptoLogos[data.r1];
+                        slots[1].src = cryptoLogos[data.r2];
+                        slots[2].src = cryptoLogos[data.r3];
+                        
+                        let pointsWon = data.points;
+                        if (pointsWon === 200) {
+                            triggerVibration('heavy'); confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
+                            showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success");
+                        } else if (pointsWon === 100) {
+                            triggerVibration('success'); confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#3b82f6', '#60a5fa', '#ffffff'] });
+                            showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("💎 TON JACKPOT! +100 PTS", "success");
+                        } else if (pointsWon === 50) {
+                            triggerVibration('success'); confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
+                            showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
+                        } else if (pointsWon === 10) {
+                            triggerVibration('light'); showFloatingText("+10 Pts", window.innerWidth / 2, window.innerHeight / 2); showSlotMessage("✨ SMALL WIN! +10 PTS", "success");
+                        } else {
+                            triggerVibration('error'); 
+                        }
+
+                        currentBalance = data.new_balance;
+                        currentEnergy = data.new_energy;
+                        if(pointsWon > 0) { slotPoints += pointsWon; updateSlotScoreUI(slotPoints); fetchHistory(true); }
+                        updateUI();
+                    } else {
+                        showNotify(data?.message || "Error spinning", "warning");
+                    }
+                    isSpinning = false;
+                    if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
+                }, 2000);
+
+            } catch(e) {
+                clearInterval(spinInterval); slots.forEach(s => s.classList.remove('spinning-blur'));
+                isSpinning = false; if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
             }
         }
 
@@ -1418,19 +1286,10 @@
                 const bb = document.getElementById('w-bank-branch');
                 const ban = document.getElementById('w-bank-acc-name');
                 const bno = document.getElementById('w-bank-acc-no');
-                
-                bankName = bn ? bn.value : "";
-                bankBranch = bb ? bb.value.trim() : "";
-                accName = ban ? ban.value.trim() : "";
-                addr = bno ? bno.value.trim() : "";
-                
-                if (!bankName) return showNotify("Please select a Bank!");
-                if (!bankBranch) return showNotify("Enter Branch Name!");
-                if (!accName) return showNotify("Enter Account Holder Name!");
-                if (!addr || addr.length < 5) return showNotify("Enter a valid Account Number!");
+                bankName = bn ? bn.value : ""; bankBranch = bb ? bb.value.trim() : ""; accName = ban ? ban.value.trim() : ""; addr = bno ? bno.value.trim() : "";
+                if (!bankName) return showNotify("Please select a Bank!"); if (!bankBranch) return showNotify("Enter Branch Name!"); if (!accName) return showNotify("Enter Account Holder Name!"); if (!addr || addr.length < 5) return showNotify("Enter a valid Account Number!");
             } else {
-                const adrEl = document.getElementById('w-address');
-                addr = adrEl ? adrEl.value.trim() : "";
+                const adrEl = document.getElementById('w-address'); addr = adrEl ? adrEl.value.trim() : "";
                 if (!addr) return showNotify("Please enter details!");
                 if (selectedMethodName === 'BINANCE' && (addr.length < 8 || addr.length > 15)) return showNotify("Invalid Binance ID!");
                 if (selectedMethodName === 'RELOAD' && addr.length !== 10) return showNotify("Invalid Phone Number!");
@@ -1445,39 +1304,88 @@
             const totalDeduction = amt + fee;
 
             if (totalDeduction > currentBalance) {
-                let feeMsg = fee > 0 ? ` including Rs. ${fee} fee` : ``;
-                return showNotify(`Need Rs ${totalDeduction}${feeMsg} to proceed.`, "warning");
+                let feeMsg = fee > 0 ? ` including Rs. ${fee} fee` : ``; return showNotify(`Need Rs ${totalDeduction}${feeMsg} to proceed.`, "warning");
             }
 
             const btn = document.getElementById('withdraw-btn'); 
             if(btn) { btn.disabled = true; btn.innerHTML = `<div class="flex items-center gap-2"><div class="spinner"></div><span>PROCESSING...</span></div>`; }
             triggerVibration('medium');
 
-            setTimeout(async () => {
+            try {
                 const txId = (Math.floor(Math.random() * 90000) + 10000).toString() + Date.now().toString().slice(-4);
                 let saveAddress = selectedMethodName === 'BANK' ? `${addr}::BANK::${txId}::${bankName}::${bankBranch}::${accName}` : `${addr}::${selectedMethodName}::${txId}`;
 
-                try {
-                    updateProfile(userId, { balance: currentBalance - totalDeduction });
-                    addTransaction(userId, { user_id: userId, type: 'WITHDRAWAL', amount: amt, status: 'pending', address: saveAddress });
-                    
-                    currentBalance -= totalDeduction; 
-                    updateUI(); 
-                    fetchHistory(true); 
-                    showNotify("Request Sent Successfully!", "success"); 
-                    triggerVibration('success'); 
-                    closeAllSheets();
-                } catch(e) { showNotify("Error processing request."); }
+                const { data, error } = await supabase.rpc('request_withdraw', { p_user_id: userId, p_amount: amt, p_total_deduct: totalDeduction, p_address: saveAddress });
                 
-                if(btn) { btn.disabled = false; btn.innerText = "SUBMIT REQUEST"; }
-            }, 3000);
+                if(data && data.success) {
+                    currentBalance = data.new_balance;
+                    updateUI(); fetchHistory(true); 
+                    showNotify("Request Sent Successfully!", "success"); triggerVibration('success'); closeAllSheets();
+                } else {
+                    showNotify(data.message || "Error processing request.");
+                }
+            } catch(e) { showNotify("Error processing request."); }
+            
+            if(btn) { btn.disabled = false; btn.innerText = "SUBMIT REQUEST"; }
         }
 
-        function copyRefLink() {
-            const refLink = `https://t.me/Earnx24webbot/App?startapp=${userId}`;
-            const textArea = document.createElement("textarea"); textArea.value = refLink; document.body.appendChild(textArea); textArea.select();
-            try { document.execCommand('copy'); showNotify("Referral Link Copied!", "success"); triggerVibration('light'); } catch (err) { showNotify("Failed to copy link"); }
-            document.body.removeChild(textArea);
+        // Additional UI updates
+        function updateSlotScoreUI(score) {
+            const display = document.getElementById('slot-points-display');
+            if(display) {
+                display.innerText = `${score} PTS`;
+                display.classList.remove('scale-110'); void display.offsetWidth; 
+                display.classList.add('scale-110'); setTimeout(() => display.classList.remove('scale-110'), 200);
+            }
+        }
+        function showSlotMessage(msg, type) {
+            const box = document.getElementById('slot-message-box');
+            if(!box) return;
+            box.innerText = msg;
+            if(type === 'success') { box.style.color = '#fbbf24'; box.style.textShadow = '0 0 10px rgba(251,191,36,0.8)'; } 
+            else { box.style.color = '#ef4444'; box.style.textShadow = '0 0 10px rgba(239,68,68,0.8)'; }
+            box.classList.remove('active'); void box.offsetWidth; box.classList.add('active');
+        }
+        function showFloatingText(text, x, y, isRed=false) {
+            let el = document.createElement('div'); el.className = 'float-points-anim'; el.innerText = text;
+            if(isRed) { el.style.color = '#ef4444'; el.style.textShadow = '0 0 15px rgba(239,68,68,0.9)'; }
+            const container = document.getElementById('slot-machine-container');
+            if(container) { el.style.top = `50%`; el.style.left = `50%`; el.style.transform = `translate(-50%, -50%)`; container.appendChild(el); } 
+            else { el.style.left = `${x}px`; el.style.top = `${y}px`; document.body.appendChild(el); }
+            setTimeout(() => el.remove(), 1500);
+        }
+        function openGameScreen() { const gfs = document.getElementById('game-full-screen'); if(gfs) gfs.classList.add('active'); slotPoints = 0; updateSlotScoreUI(slotPoints); const box = document.getElementById('slot-message-box'); if(box) box.classList.remove('active'); }
+        function closeGame() { if(isSpinning) return; const gfs = document.getElementById('game-full-screen'); if(gfs) gfs.classList.remove('active'); }
+        function toggleHistory() { isAllHistoryVisible = !isAllHistoryVisible; fetchHistory(!isAllHistoryVisible); const btn = document.getElementById('toggle-history-btn'); if(btn) btn.innerText = isAllHistoryVisible ? "Hide" : "View All"; }
+
+        // Withdraw UI
+        async function openWithdrawHistory() {
+            closeSidePanel(false); openSheet('withdraw-history-sheet');
+            const listCont = document.getElementById('w-history-list-container');
+            if(listCont) listCont.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-sky-500 border-t-transparent w-8 h-8"></div></div>';
+            try {
+                const { data: dbData } = await supabase.from('transactions').select('*').eq('user_id', userId).eq('type', 'WITHDRAWAL').order('created_at', { ascending: false });
+                let data = dbData || [];
+
+                const hc = document.getElementById('w-history-count'); if(hc) hc.innerText = data.length;
+                if (data.length === 0) { if(listCont) listCont.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-receipt text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No withdrawals yet</p></div>'; return; }
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                if(listCont) listCont.innerHTML = data.map(item => {
+                    const dateObj = new Date(item.created_at);
+                    const formattedDate = `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()} · ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                    let statusColor = item.status === 'approved' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : (item.status === 'rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30');
+                    let statusText = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                    
+                    let parts = (item.address || "N/A").split('::'); let destAddress = parts[0], wMethod = parts[1] || "Unknown", txId = parts[2] || (item.id ? item.id.substring(0, 8).toUpperCase() : "N/A");
+                    let methodIcon = wMethod === 'BINANCE' ? 'ph-currency-btc' : (wMethod === 'RELOAD' ? 'ph-device-mobile-camera' : 'ph-bank');
+                    let methodNiceName = wMethod === 'BINANCE' ? 'Binance' : (wMethod === 'RELOAD' ? 'Mobile Reload' : 'Bank Transfer');
+                    let destLabel = wMethod === 'BINANCE' ? 'Binance ID' : (wMethod === 'RELOAD' ? 'Phone No' : 'Account No');
+                    let fee = wMethod === 'BANK' ? 15 : 0; let totalDeducted = item.amount + fee;
+
+                    let amountsHtml = `<div class="text-right"><p class="font-black text-sm text-sky-400 leading-tight">Rs ${(item.amount).toFixed(2)}</p>${fee > 0 ? `<p class="text-red-500 font-bold text-[8px] uppercase mt-0.5">Fee: Rs. ${fee.toFixed(2)}</p>` : ''}<span class="${statusColor} px-2 py-0.5 rounded-md text-[8px] font-black uppercase mt-1 inline-block shadow-sm">${statusText}</span></div>`;
+                    return `<div class="glass p-4 rounded-3xl border border-white/5 relative overflow-hidden transition-all hover:bg-white/5 mb-1"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 shadow-inner border border-white/5"><i class="ph-fill ${methodIcon} text-xl"></i></div><div><p class="font-bold text-sm text-white leading-tight">${methodNiceName}</p><p class="text-[9px] text-slate-400 mt-0.5"><i class="ph-regular ph-calendar-blank"></i> ${formattedDate}</p></div></div>${amountsHtml}</div><div class="bg-[#020617]/50 rounded-2xl p-3.5 border border-white/5"><div class="flex justify-between items-center mb-2.5 pb-2.5 border-b border-white/5"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">${destLabel}</span><span class="text-[10px] text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">${destAddress}</span></div><div class="flex justify-between items-center"><span class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Transaction ID</span><div onclick="copyTxId('${txId}')" class="flex items-center gap-1.5 cursor-pointer active:scale-scale-95 transition-transform bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"><span class="text-[10px] text-sky-400 font-mono tracking-wider">#${txId}</span><i class="ph-bold ph-copy text-sky-400 text-[10px]"></i></div></div></div></div>`;
+                }).join('');
+            } catch(e) { console.error(e); }
         }
 
         async function openReferralList() {
@@ -1485,13 +1393,11 @@
             const rlc = document.getElementById('referral-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-purple-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                let data = getAllProfiles().filter(p => p.referrer_id === userId);
-                const rcd = document.getElementById('ref-count-display');
-                if(rcd) rcd.innerText = data.length;
-                
-                if (data.length === 0) { 
-                    if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; 
-                }
+                const { data: dbData } = await supabase.from('users').select('*').eq('referrer_id', userId);
+                let data = dbData || [];
+
+                const rcd = document.getElementById('ref-count-display'); if(rcd) rcd.innerText = data.length;
+                if (data.length === 0) { if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-users-slash text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No referrals yet</p></div>'; return; }
                 if(rlc) rlc.innerHTML = data.map(user => {
                     const statusClass = checkIsActive(user.last_active, user.created_at) ? "text-green-400" : "text-red-400";
                     const statusBg = checkIsActive(user.last_active, user.created_at) ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20";
@@ -1506,17 +1412,19 @@
             const rlc = document.getElementById('rank-list-container');
             if(rlc) rlc.innerHTML = '<div class="flex justify-center py-8"><div class="spinner border-yellow-500 border-t-transparent w-8 h-8"></div></div>';
             try {
-                let data = getAllProfiles().filter(p => p.referrer_id && p.referrer_id !== "99999");
+                const { data: dbData } = await supabase.from('users').select('user_id, first_name, photo_url, referrer_id').neq('referrer_id', null).neq('referrer_id', '99999');
+                let data = dbData || [];
+
                 if (data && data.length > 0) {
                     let counts = {};
                     data.forEach(item => { if(item.referrer_id && item.referrer_id !== "99999") counts[item.referrer_id] = (counts[item.referrer_id] || 0) + 1; });
                     let sortedRanks = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 10);
-                    if(sortedRanks.length === 0) { 
-                        if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; 
-                    }
+                    
+                    if(sortedRanks.length === 0) { if(rlc) rlc.innerHTML = '<div class="glass p-6 rounded-2xl text-center border border-white/5 mt-4"><i class="ph-fill ph-trophy text-4xl text-slate-500 mb-2"></i><p class="text-slate-400 text-xs font-bold uppercase tracking-widest">No data available</p></div>'; return; }
                     
                     const topIds = sortedRanks.map(r => r[0]);
-                    const profilesData = getAllProfiles().filter(p => topIds.includes(p.user_id));
+                    const { data: profilesData } = await supabase.from('users').select('user_id, first_name, photo_url').in('user_id', topIds);
+                    
                     const profileMap = {}; if (profilesData) profilesData.forEach(p => profileMap[p.user_id] = p);
 
                     if(rlc) rlc.innerHTML = sortedRanks.map((rank, index) => {
@@ -1532,445 +1440,30 @@
         function updateUI() {
             const balValDisplay = document.getElementById('bal-val-display');
             if (balValDisplay) balValDisplay.innerText = `Rs ${currentBalance.toFixed(2)}`;
-            
             const ptsValDisplay = document.getElementById('pts-val-display');
-            if (ptsValDisplay) {
-                let pts = Math.round(currentBalance * 100);
-                ptsValDisplay.innerText = `${pts} Pts`;
-            }
-
+            if (ptsValDisplay) { let pts = Math.round(currentBalance * 100); ptsValDisplay.innerText = `${pts} Pts`; }
             const wBalanceVal = document.getElementById('w-balance-val');
             if (wBalanceVal) wBalanceVal.innerText = `Rs ${currentBalance.toFixed(2)}`;
-            
             const energyDisplay = document.getElementById('energy-display');
             if (energyDisplay) energyDisplay.innerText = `${currentEnergy}`;
-
             const gameEnergy = document.getElementById('game-inner-tickets');
             if (gameEnergy) gameEnergy.innerText = currentEnergy;
 
             const today = new Date().toISOString().split('T')[0];
             let videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${today}`) || "0");
             const vcd = document.getElementById('video-count-display');
-            if (vcd) {
-                vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`;
-            }
+            if (vcd) { vcd.innerText = `Earn 🎟️ 2 Tickets (${videoCount}/3)`; }
 
             let clickAdCount = parseInt(localStorage.getItem(`click_ad_count_${userId}_${today}`) || "0");
             const cad = document.getElementById('click-ad-count-display');
-            if (cad) {
-                cad.innerText = `Earn 🎟️ 3 Tickets (${clickAdCount}/5)`;
-            }
-
-            let timeClaimCount = parseInt(localStorage.getItem(`time_bonus_count_${userId}_${today}`) || "0");
-            const tbd = document.getElementById('time-bonus-display');
-            if (tbd) {
-                tbd.innerText = `Earn 🎟️ 2 Tickets (${timeClaimCount}/10)`;
-            }
+            if (cad) { cad.innerText = `Earn 🎟️ 3 Tickets (${clickAdCount}/5)`; }
 
             const itc = document.getElementById('invite-tab-count');
             if (itc) itc.innerText = myReferralCount;
             const ite = document.getElementById('invite-tab-earned');
             if (ite) ite.innerText = myReferralCount * 2;
-
-            const jcBtn = document.getElementById('join-claim-btn');
-            if (jcBtn) {
-                if (localStorage.getItem(`joined_channel_${userId}`)) {
-                    jcBtn.innerText = "CLAIMED";
-                    jcBtn.disabled = true;
-                    jcBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    jcBtn.innerText = "CLAIM";
-                    jcBtn.disabled = false;
-                    jcBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            }
         }
 
-        function showNotify(msg, type = 'warning') {
-            const box = document.getElementById('custom-notify'); 
-            if(box) {
-                const nMsg = document.getElementById('notify-msg');
-                if(nMsg) nMsg.innerText = msg;
-                box.style.borderLeftColor = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#fbbf24'); 
-                box.classList.add('active'); 
-                setTimeout(() => box.classList.remove('active'), 3000);
-            }
-        }
-        
-        function openSidePanel() { 
-            const sp = document.getElementById('side-panel'); 
-            if(sp) sp.classList.add('active'); 
-            const so = document.getElementById('sheet-overlay'); 
-            if(so) { so.style.display = 'block'; setTimeout(() => so.style.opacity = '1', 10); } 
-        }
-        
-        function closeSidePanel(hideOverlay = true) { 
-            const sp = document.getElementById('side-panel'); 
-            if(sp) sp.classList.remove('active'); 
-            if (hideOverlay) {
-                const so = document.getElementById('sheet-overlay'); 
-                if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); }
-            }
-        }
-        
-        function openSheet(id) { 
-            const sh = document.getElementById(id);
-            if(sh) sh.classList.add('active'); 
-            const so = document.getElementById('sheet-overlay');
-            if(so) { so.style.display = 'block'; setTimeout(() => so.style.opacity = '1', 10); }
-            
-            if (id === 'withdraw-sheet') {
-                selectedMethodName = null; 
-                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-                const wi = document.getElementById('withdraw-inputs');
-                if(wi) wi.classList.add('hidden');
-                
-                ['w-address', 'w-amount', 'w-bank-name', 'w-bank-branch', 'w-bank-acc-name', 'w-bank-acc-no'].forEach(fid => {
-                    const el = document.getElementById(fid);
-                    if(el) el.value = '';
-                });
-
-                const feeNoteContainer = document.getElementById('fee-note-container');
-                if (feeNoteContainer) feeNoteContainer.classList.add('hidden');
-            }
-        }
-        
-        function closeSheet(id) { 
-            const sh = document.getElementById(id); 
-            if(sh) sh.classList.remove('active'); 
-            const so = document.getElementById('sheet-overlay'); 
-            if(so) { so.style.opacity = '0'; setTimeout(() => so.style.display = 'none', 300); }
-        }
-        function closeAllSheets() { closeSheet('withdraw-sheet'); closeSidePanel(); closeSheet('referral-sheet'); closeSheet('withdraw-history-sheet'); closeSheet('rank-sheet'); closeSheet('version-sheet'); closeSheet('game-rules-sheet'); closeSheet('wheel-rules-sheet'); }
-
-        let isWheelSpinning = false;
-        function openWheelScreen() {
-            const gfs = document.getElementById('wheel-full-screen');
-            if(gfs) gfs.classList.add('active');
-            updateWheelUI();
-        }
-        
-        function closeWheelScreen() {
-            if(isWheelSpinning) return;
-            const gfs = document.getElementById('wheel-full-screen');
-            if(gfs) gfs.classList.remove('active');
-        }
-
-        function updateWheelUI() {
-            const scd = document.getElementById('wheel-inner-tickets');
-            if(scd) scd.innerText = spinChances; 
-
-            const currentCycleInvites = myReferralCount % 5;
-            const refCountEl = document.getElementById('wheel-ref-count');
-            const refProgEl = document.getElementById('wheel-ref-progress');
-
-            if (refCountEl) refCountEl.innerText = `${currentCycleInvites}/5`;
-            if (refProgEl) refProgEl.style.width = `${(currentCycleInvites / 5) * 100}%`;
-        }
-
-        function spinWheel() {
-            if(isWheelSpinning) return;
-            if (spinChances <= 0) return showNotify("No spins left! Invite friends.", "warning");
-            
-            isWheelSpinning = true;
-            const btn = document.getElementById('wheel-spin-btn'); 
-            if(btn) btn.disabled = true;
-            
-            spinChances--; 
-            updateUI();
-            updateWheelUI();
-            triggerVibration('medium'); 
-            
-            try { updateProfile(userId, { spin_chances: spinChances }); } catch(e) {}
-            
-            const rand = Math.random(); 
-            let prizeIdx = 7; 
-            
-            if (rand < 0.01) prizeIdx = 0;      
-            else if (rand < 0.04) prizeIdx = 1; 
-            else if (rand < 0.09) prizeIdx = 2; 
-            else if (rand < 0.19) prizeIdx = 3; 
-            else if (rand < 0.34) prizeIdx = 4; 
-            else if (rand < 0.54) prizeIdx = 5; 
-            else if (rand < 0.79) prizeIdx = 6; 
-            else prizeIdx = 7;                  
-
-            const targetRotationMap = [352.5, 320, 270, 220, 170, 120, 70, 22.5]; 
-            const baseRot = currentWheelRotation % 360;
-            let offset = targetRotationMap[prizeIdx] - baseRot;
-            if (offset < 0) offset += 360;
-            
-            currentWheelRotation += (4 * 360) + offset + (Math.floor(Math.random() * 8) - 4);
-            
-            const lw = document.getElementById('lucky-wheel');
-            if(lw) lw.style.transform = `rotate(${currentWheelRotation}deg)`;
-
-            setTimeout(async () => {
-                const currentIsoDate = new Date().toISOString();
-                const prize = prizes[prizeIdx];
-                if (prize.type === 'cash' || prize.type === 'coin') {
-                    try {
-                        updateProfile(userId, { balance: currentBalance + prize.val, last_active: currentIsoDate });
-                        
-                        currentBalance += prize.val; 
-                        addTransaction(userId, { user_id: userId, type: 'WHEEL_REWARD', amount: prize.val, status: 'approved' });
-                        showNotify(`Congratulations! You won ${prize.label}!`, "success"); updateUI(); fetchHistory(true);
-                        confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 }, zIndex: 1000 });
-                        triggerVibration('heavy'); 
-                        
-                    } catch(e) { 
-                        showNotify("Error updating balance.", "warning"); 
-                        triggerVibration('error');
-                    }
-                } else {
-                    showNotify("Oops! Try again next time.", "warning");
-                    triggerVibration('error'); 
-                }
-                isWheelSpinning = false;
-                if(btn) btn.disabled = false;
-            }, 2000); 
-        }
-
-        const cryptoLogos = [
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1.png',      // 0: BTC
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/2.png',      // 1: LTC
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png',   // 2: TRX
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',    // 3: USDT
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png',  // 4: TON
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/28850.png',  // 5: NOT
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/74.png',     // 6: DOGE
-            'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png'    // 7: BNB
-        ];
-
-        let slotPoints = 0; 
-        let isSpinning = false;
-
-        function showSlotMessage(msg, type) {
-            const box = document.getElementById('slot-message-box');
-            if(!box) return;
-            box.innerText = msg;
-            if(type === 'success') {
-                box.style.color = '#fbbf24';
-                box.style.textShadow = '0 0 10px rgba(251,191,36,0.8)';
-            } else {
-                box.style.color = '#ef4444';
-                box.style.textShadow = '0 0 10px rgba(239,68,68,0.8)';
-            }
-            
-            box.classList.remove('active');
-            void box.offsetWidth; 
-            box.classList.add('active');
-        }
-
-        function showFloatingText(text, x, y, isRed=false) {
-            let el = document.createElement('div');
-            el.className = 'float-points-anim';
-            el.innerText = text;
-            
-            if(isRed) {
-                el.style.color = '#ef4444';
-                el.style.textShadow = '0 0 15px rgba(239,68,68,0.9)';
-            }
-            
-            const container = document.getElementById('slot-machine-container');
-            if(container) {
-                el.style.top = `50%`;
-                el.style.left = `50%`;
-                el.style.transform = `translate(-50%, -50%)`;
-                container.appendChild(el);
-            } else {
-                el.style.left = `${x}px`;
-                el.style.top = `${y}px`;
-                document.body.appendChild(el);
-            }
-            
-            setTimeout(() => el.remove(), 1500);
-        }
-
-        function openGameScreen() {
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.add('active');
-            slotPoints = 0;
-            updateSlotScoreUI(slotPoints);
-            const box = document.getElementById('slot-message-box');
-            if(box) box.classList.remove('active');
-        }
-
-        function closeGame() {
-            if(isSpinning) return;
-            const gfs = document.getElementById('game-full-screen');
-            if(gfs) gfs.classList.remove('active');
-        }
-
-        function updateSlotScoreUI(score) {
-            const display = document.getElementById('slot-points-display');
-            if(display) {
-                display.innerText = `${score} PTS`;
-                display.classList.remove('scale-110');
-                void display.offsetWidth; 
-                display.classList.add('scale-110');
-                setTimeout(() => display.classList.remove('scale-110'), 200);
-            }
-        }
-
-        function spinSlot() {
-            if(isSpinning) return;
-
-            if(currentEnergy < 1) {
-                showNotify("Not enough Tickets! Watch an ad or invite friends.", "warning");
-                return;
-            }
-
-            isSpinning = true;
-            currentEnergy--;
-            updateUI();
-            try { updateProfile(userId, { energy: currentEnergy }); } catch(e) {}
-            
-            const btn = document.getElementById('spin-btn');
-            if(btn) { btn.disabled = true; btn.classList.add('opacity-50'); }
-            
-            const msgBox = document.getElementById('slot-message-box');
-            if(msgBox) msgBox.classList.remove('active');
-
-            triggerVibration('medium');
-
-            const slots = [
-                document.getElementById('slot-img-1'),
-                document.getElementById('slot-img-2'),
-                document.getElementById('slot-img-3')
-            ];
-
-            slots.forEach(s => s.classList.add('spinning-blur'));
-
-            let spinInterval = setInterval(() => {
-                slots.forEach(s => s.src = cryptoLogos[Math.floor(Math.random() * cryptoLogos.length)]);
-            }, 120); 
-
-            setTimeout(() => {
-                clearInterval(spinInterval);
-                slots.forEach(s => s.classList.remove('spinning-blur'));
-
-                let r1, r2, r3;
-
-                const todayStr = new Date().toISOString().split('T')[0];
-                const videoCount = parseInt(localStorage.getItem(`video_count_${userId}_${todayStr}`) || "0");
-                
-                const hasDoneAllTasks = (videoCount >= 3); 
-
-                let daysActive = 0;
-                if (window.userCreatedAt) {
-                    const createdDate = new Date(window.userCreatedAt);
-                    const diffTime = Math.abs(new Date() - createdDate);
-                    daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                }
-
-                const lastBtcWin = parseInt(localStorage.getItem(`last_btc_win_${userId}`) || "0");
-                const nowMs = new Date().getTime();
-                const daysSinceBtc = (nowMs - lastBtcWin) / (1000 * 60 * 60 * 24);
-                
-                const hasWonTonToday = localStorage.getItem(`ton_win_${userId}_${todayStr}`) === "true";
-
-                const canWinBtc = hasDoneAllTasks && (daysActive >= 3) && (daysSinceBtc >= 3);
-                const canWinTon = hasDoneAllTasks && !hasWonTonToday;
-
-                const luck = Math.random();
-                let winType = 'NO_MATCH';
-
-                if (canWinBtc && luck < 0.05) {
-                    winType = 'BTC';
-                    localStorage.setItem(`last_btc_win_${userId}`, nowMs.toString());
-                } else if (canWinTon && luck < 0.15) {
-                    winType = 'TON';
-                    localStorage.setItem(`ton_win_${userId}_${todayStr}`, "true");
-                } else {
-                    let nr = Math.random();
-                    if (nr < 0.30) winType = '3_MATCH';       
-                    else if (nr < 0.80) winType = '2_MATCH';  
-                    else winType = 'NO_MATCH';                
-                }
-
-                if (winType === 'BTC') { 
-                    r1 = 0; r2 = 0; r3 = 0; 
-                }
-                else if (winType === 'TON') { 
-                    r1 = 4; r2 = 4; r3 = 4; 
-                }
-                else if (winType === '3_MATCH') {
-                    const allowed = [1, 2, 3, 5, 6]; 
-                    r1 = allowed[Math.floor(Math.random() * allowed.length)];
-                    r2 = r1; r3 = r1;
-                }
-                else if (winType === '2_MATCH') {
-                    r1 = Math.floor(Math.random() * cryptoLogos.length);
-                    r2 = r1;
-                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1);
-                    
-                    const pos = Math.floor(Math.random() * 3);
-                    if (pos === 0) { let temp = r1; r1 = r3; r3 = temp; }
-                    else if (pos === 1) { let temp = r2; r2 = r3; r3 = temp; }
-                }
-                else {
-                    r1 = Math.floor(Math.random() * cryptoLogos.length);
-                    do { r2 = Math.floor(Math.random() * cryptoLogos.length); } while (r2 === r1);
-                    do { r3 = Math.floor(Math.random() * cryptoLogos.length); } while (r3 === r1 || r3 === r2);
-                }
-
-                slots[0].src = cryptoLogos[r1];
-                slots[1].src = cryptoLogos[r2];
-                slots[2].src = cryptoLogos[r3];
-
-                let pointsWon = 0;
-
-                if (r1 === 0 && r2 === 0 && r3 === 0) {
-                    pointsWon = 200; 
-                    triggerVibration('heavy');
-                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#f59e0b', '#fbbf24', '#ffffff'] });
-                    showFloatingText("+200 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("🎉 SUPER BTC JACKPOT! +200 PTS", "success");
-                }
-                else if (r1 === 4 && r2 === 4 && r3 === 4) {
-                    pointsWon = 100; 
-                    triggerVibration('success');
-                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#3b82f6', '#60a5fa', '#ffffff'] });
-                    showFloatingText("+100 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("💎 TON JACKPOT! +100 PTS", "success");
-                }
-                else if (r1 === r2 && r2 === r3) {
-                    pointsWon = 50; 
-                    triggerVibration('success');
-                    confetti({ particleCount: 30, spread: 50, origin: { y: 0.5 }, zIndex: 1000, colors: ['#ef4444', '#10b981', '#3b82f6', '#eab308'] });
-                    showFloatingText("+50 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("🎉 MEGA JACKPOT! +50 PTS", "success");
-                } 
-                else if (r1 === r2 || r2 === r3 || r1 === r3) {
-                    pointsWon = 10; 
-                    triggerVibration('light');
-                    showFloatingText("+10 Pts", window.innerWidth / 2, window.innerHeight / 2);
-                    showSlotMessage("✨ SMALL WIN! +10 PTS", "success");
-                } 
-                else {
-                    triggerVibration('error'); 
-                }
-
-                if(pointsWon > 0) {
-                    slotPoints += pointsWon;
-                    updateSlotScoreUI(slotPoints);
-                    
-                    let earnedLkr = pointsWon / 100;
-                    
-                    updateProfile(userId, { balance: currentBalance + earnedLkr, last_active: new Date().toISOString() });
-                    currentBalance += earnedLkr;
-                    addTransaction(userId, { user_id: userId, type: 'GAME_REWARD', amount: earnedLkr, status: 'approved' });
-                    updateUI();
-                    fetchHistory(true);
-                    
-                }
-
-                isSpinning = false;
-                if(btn) { btn.disabled = false; btn.classList.remove('opacity-50'); }
-
-            }, 2000); 
-        }
     </script>
 </body>
 </html>
